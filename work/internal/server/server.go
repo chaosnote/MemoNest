@@ -7,18 +7,17 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 
 	"idv/chris/MemoNest/internal/service"
 	"idv/chris/MemoNest/utils"
 )
 
 // RegisterServer 啟動 HTTP 服務
-func RegisterServer(lc fx.Lifecycle, engine *gin.Engine, logger *zap.Logger, deps service.Deps) {
+func RegisterServer(lc fx.Lifecycle, engine *gin.Engine, deps service.DI) {
 	utils.RSAInit("./dist/crypt/rsa.txt", 1024, true)
 
 	// 註冊路由
-	RegisterRoutes(engine, logger, deps)
+	RegisterRoutes(engine, deps)
 
 	addr := fmt.Sprintf(":%s", deps.Config.Gin.Port)
 	srv := &http.Server{

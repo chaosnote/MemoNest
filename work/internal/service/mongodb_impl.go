@@ -6,7 +6,6 @@ import (
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.uber.org/zap"
 
 	"idv/chris/MemoNest/internal/model"
 )
@@ -14,7 +13,6 @@ import (
 // MongoDBImpl MongoDB 客戶端結構
 type MongoDBImpl struct {
 	client *mongo.Client
-	logger *zap.Logger
 }
 
 func (mds *MongoDBImpl) Close(ctx context.Context) error {
@@ -22,14 +20,14 @@ func (mds *MongoDBImpl) Close(ctx context.Context) error {
 }
 
 // NewMongoDBImpl 建立 MongoDB 連線
-func NewMongoDBImpl(cfg *model.APPConfig, logger *zap.Logger) (*MongoDBImpl, error) {
+func NewMongoDBImpl(cfg *model.APPConfig) (*MongoDBImpl, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	c, e := mongo.Connect(ctx, options.Client().ApplyURI(cfg.Mongodb.URI))
+	client, e := mongo.Connect(ctx, options.Client().ApplyURI(cfg.Mongodb.URI))
 	if e != nil {
 		return nil, e
 	}
 
-	return &MongoDBImpl{client: c, logger: logger}, nil
+	return &MongoDBImpl{client: client}, nil
 }

@@ -6,15 +6,13 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
-	"go.uber.org/zap"
 
 	"idv/chris/MemoNest/internal/model"
 )
 
 // MariaDBImpl MariaDB 客戶端結構
 type MariaDBImpl struct {
-	db     *sql.DB
-	logger *zap.Logger
+	db *sql.DB
 }
 
 func (mds *MariaDBImpl) AddRootNode(pathName string) (*model.Category, error) {
@@ -147,7 +145,7 @@ func (mds *MariaDBImpl) Close() error {
 }
 
 // NewMariaDBImpl 建立 MariaDB 連線
-func NewMariaDBImpl(cfg *model.APPConfig, logger *zap.Logger) (*MariaDBImpl, error) {
+func NewMariaDBImpl(cfg *model.APPConfig) (*MariaDBImpl, error) {
 	db, e := sql.Open("mysql", cfg.Mariadb.DSN)
 	if e != nil {
 		return nil, e
@@ -157,5 +155,5 @@ func NewMariaDBImpl(cfg *model.APPConfig, logger *zap.Logger) (*MariaDBImpl, err
 		return nil, e
 	}
 
-	return &MariaDBImpl{db: db, logger: logger}, nil
+	return &MariaDBImpl{db: db}, nil
 }

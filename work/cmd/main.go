@@ -7,7 +7,7 @@ import (
 
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
-	"go.uber.org/zap"
+	// "go.uber.org/zap"
 )
 
 func main() {
@@ -20,11 +20,11 @@ func main() {
 			// 	},
 			// 	fx.ResultTags(`name:"system"`),
 			// ),
-			func() *zap.Logger {
-				// logger := utils.NewFileLogger("./dist/system", "console", 1)
-				logger := utils.NewConsoleLogger("console", 1)
-				return logger.Named("system")
-			},
+			// func() *zap.Logger {
+			//  logger := utils.NewFileLogger("./dist/system", "console", 1)
+			// 	logger := utils.NewConsoleLogger("console", 1)
+			// 	return logger.Named("system")
+			// },
 			service.NewAPPConfig,
 			service.NewRedisDBImpl,
 			service.NewMariaDBImpl,
@@ -35,7 +35,7 @@ func main() {
 			// 	service.NewNatsIOClient,
 			// 	fx.ParamTags(``, ``, `name:"system"`), // `` 為預設值、留意注入參數順序，需對應函式參數
 			// ),
-			service.NewAPIImpl,
+			service.NewTPAImpl,
 			server.NewGinEngine,
 		),
 

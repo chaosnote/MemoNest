@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 
 	"idv/chris/MemoNest/internal/model"
+	"idv/chris/MemoNest/utils"
 )
 
 // NatsIOImpl NATS 客戶端結構
@@ -19,7 +20,8 @@ func (nis *NatsIOImpl) Close() {
 }
 
 // NewNatsIOImpl 建立 NATS 連線
-func NewNatsIOImpl(cfg *model.APPConfig, logger *zap.Logger) (*NatsIOImpl, error) {
+func NewNatsIOImpl(cfg *model.APPConfig) (*NatsIOImpl, error) {
+	logger := utils.NewFileLogger("./dist/natsio", "console", 1)
 	c, e := nats.Connect(cfg.Natsio.URL,
 		nats.PingInterval(time.Second),
 		nats.DisconnectErrHandler(func(nc *nats.Conn, err error) {

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	"go.uber.org/zap"
 
 	"idv/chris/MemoNest/internal/model"
 )
@@ -13,7 +12,6 @@ import (
 // RedisDBImpl Redis 客戶端結構
 type RedisDBImpl struct {
 	client *redis.Client
-	logger *zap.Logger
 }
 
 func (rds *RedisDBImpl) SetToken(ctx context.Context, key, value string) (e error) {
@@ -30,7 +28,7 @@ func (rds *RedisDBImpl) Close() error {
 }
 
 // NewRedisDBImpl 建立 Redis 連線
-func NewRedisDBImpl(cfg *model.APPConfig, logger *zap.Logger) (*RedisDBImpl, error) {
+func NewRedisDBImpl(cfg *model.APPConfig) (*RedisDBImpl, error) {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     cfg.Redis.Addr,
 		Password: cfg.Redis.Password,
@@ -42,5 +40,5 @@ func NewRedisDBImpl(cfg *model.APPConfig, logger *zap.Logger) (*RedisDBImpl, err
 		return nil, e
 	}
 
-	return &RedisDBImpl{client: rdb, logger: logger}, nil
+	return &RedisDBImpl{client: rdb}, nil
 }
