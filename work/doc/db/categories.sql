@@ -1,4 +1,6 @@
-CREATE TABLE `categories` (
+DROP TABLE IF EXISTS `categories` ;
+
+CREATE TABLE IF NOT EXISTS `categories` (
     `RowID` INT AUTO_INCREMENT,
     `NodeID` CHAR(36) NOT NULL,
     `ParentID` CHAR(36) NOT NULL,
