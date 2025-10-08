@@ -17,6 +17,7 @@ import (
 
 // RegisterRoutes 註冊所有路由
 func RegisterRoutes(engine *gin.Engine, logger *zap.Logger, deps service.Deps) {
+	engine.GET("/", vesion(deps))
 	engine.GET("/health", health(deps))
 
 	r := engine.Group("/tools", middleware.IPCheckMiddleware()) // 工具
@@ -29,6 +30,12 @@ func RegisterRoutes(engine *gin.Engine, logger *zap.Logger, deps service.Deps) {
 }
 
 //-----------------------------------------------
+
+func vesion(service.Deps) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"error": "", "message": "Test"})
+	}
+}
 
 func health(service.Deps) gin.HandlerFunc {
 	return func(c *gin.Context) {
