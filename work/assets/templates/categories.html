@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>列表</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2rem; }
+        ul { list-style-type: none; padding-left: 1.5em; }
+        li { margin: 0.5em 0; }
+        .category-item { font-weight: bold; }
+        .nested-list { margin-left: 2em; }
+    </style>
+</head>
+<body>
+    <h1>列表</h1>
+    {{ template "categoryList" .Categories }}
+</body>
+
+{{ define "categoryList" }}
+    <ul>
+        {{ range . }}
+            <li>
+                <a href="{{ .Path }}">{{ .PathName }}</a> (Lft: {{ .LftIdx }}, Rft: {{ .RftIdx }}, ID: {{ .NodeID }})
+                {{ if .Children }}
+                    {{ template "categoryList" .Children }}
+                {{ end }}
+            </li>
+        {{ end }}
+    </ul>
+{{ end }}
+</html>

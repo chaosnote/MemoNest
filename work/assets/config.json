@@ -1,0 +1,23 @@
+{
+  "gin": {
+    "mode": "debug",
+    "port": "8080"
+  },
+  "redis": {
+    "addr": "192.168.0.130:6379",
+    "password": "",
+    "db": 0
+  },
+  "mariadb": {
+    "dsn": "chris:123456@tcp(192.168.0.130:3306)/note_dev?charset=utf8mb4&parseTime=True&loc=Local"
+  },
+  "mongodb": {
+    "uri": "mongodb://admin:password@192.168.0.130:27017"
+  },
+  "natsio": {
+    "url": "nats://192.168.0.130:4222"
+  },
+  "api": {
+    "baseURL": "http://localhost"
+  }
+}
