@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
-	"text/template"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -229,23 +228,43 @@ func (u *BookController) addParentNode(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"error": "", "message": fmt.Sprintf("增加 %s 成功", params["name"])})
 }
 
-// 顯示節點路徑
-func (tc *BookController) getAllNode(c *gin.Context) {
-	parent_id := uuid.Nil.String()
-	allCategories := tc.helper.getAllNode()
+func (tc *BookController) list(c *gin.Context) {
+	dir := filepath.Join("./assets", "templates")
+	config := utils.TemplateConfig{
+		Layout:  filepath.Join(dir, "layout", "share.html"),
+		Page:    []string{filepath.Join(dir, "page", "book", "list.html")},
+		Pattern: []string{},
+	}
+	tmpl, e := utils.RenderTemplate(config)
+	defer func() {
+		if e != nil {
+			http.Error(c.Writer, e.Error(), http.StatusInternalServerError)
+		}
+	}()
+	if e != nil {
+		return
+	}
 
+	parent_id := uuid.Nil.String()
+	source := tc.helper.getAllNode()
 	nodesMap := make(map[string]*model.CategoryNode)
-	var rootNodes []*model.CategoryNode
+
+	rootNodes := []*model.CategoryNode{}
+	rootNodes = append(rootNodes, &model.CategoryNode{
+		Category: model.Category{
+			NodeID:   parent_id,
+			PathName: "Root",
+		},
+	})
 
 	// 第一次遍歷：建立節點地圖
-	for _, cat := range allCategories {
+	for _, cat := range source {
 		nodesMap[cat.NodeID] = &model.CategoryNode{
 			Category: cat,
 		}
 	}
-
 	// 第二次遍歷：建立樹狀結構並生成路徑
-	for _, cat := range allCategories {
+	for _, cat := range source {
 		currentNode := nodesMap[cat.NodeID]
 
 		// 建立完整路徑
@@ -255,12 +274,12 @@ func (tc *BookController) getAllNode(c *gin.Context) {
 			if tempNode.ParentID == parent_id {
 				break
 			}
-			if parent, ok := nodesMap[tempNode.ParentID]; ok {
-				pathParts = append([]string{parent.PathName}, pathParts...) // 將父節點名稱加到最前面
-				tempNode = parent
-			} else {
-				break // 父節點不存在，停止回溯
+			parent, ok := nodesMap[tempNode.ParentID]
+			if !ok {
+				break
 			}
+			pathParts = append([]string{parent.PathName}, pathParts...) // 將父節點名稱加到最前面
+			tempNode = parent
 		}
 		currentNode.Path = "/" + strings.Join(pathParts, "/")
 
@@ -274,34 +293,10 @@ func (tc *BookController) getAllNode(c *gin.Context) {
 		}
 	}
 
-	data := gin.H{"Categories": rootNodes}
-
-	templates := template.Must(template.ParseFiles(filepath.Join("./assets", "templates", "page", "book", "list.html")))
-	err := templates.Execute(c.Writer, data)
-	if err != nil {
-		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
-	}
-}
-
-func (tc *BookController) tmp(c *gin.Context) {
-	dir := filepath.Join("./assets", "templates")
-	config := utils.TemplateConfig{
-		Layout: filepath.Join(dir, "layout", "default.html"),
-		Page:   []string{filepath.Join(dir, "page", "book", "tmp.html")},
-	}
-	tmpl, e := utils.RenderTemplate(config)
+	e = tmpl.ExecuteTemplate(c.Writer, "list.html", gin.H{"Title": "XXXX", "Data": rootNodes})
 	if e != nil {
-		fmt.Println(e)
-		http.Error(c.Writer, e.Error(), http.StatusInternalServerError)
 		return
 	}
-	e = tmpl.Execute(c.Writer, gin.H{"Title": "XXXX"})
-	if e != nil {
-		fmt.Println(e)
-		http.Error(c.Writer, e.Error(), http.StatusInternalServerError)
-		return
-	}
-	fmt.Println("end")
 }
 
 //-----------------------------------------------
@@ -313,8 +308,6 @@ func NewBookController(rg *gin.RouterGroup, di service.DI) {
 		},
 	}
 	r := rg.Group("/book")
-	r.GET("/list", c.getAllNode)
-	r.GET("/tmp", c.tmp)
+	r.GET("/list", c.list)
 	r.POST("/init", c.addParentNode)
-
 }

@@ -1,31 +1,167 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <title>列表</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 2rem; }
-        ul { list-style-type: none; padding-left: 1.5em; }
-        li { margin: 0.5em 0; }
-        .category-item { font-weight: bold; }
-        .nested-list { margin-left: 2em; }
-    </style>
-</head>
-<body>
-    <h1>列表</h1>
-    {{ template "categoryList" .Categories }}
-</body>
+{{template "share" .}}
 
-{{ define "categoryList" }}
-    <ul>
-        {{ range . }}
-            <li>
-                <a href="{{ .Path }}">{{ .PathName }}</a> (Lft: {{ .LftIdx }}, Rft: {{ .RftIdx }}, ID: {{ .NodeID }})
-                {{ if .Children }}
-                    {{ template "categoryList" .Children }}
-                {{ end }}
-            </li>
-        {{ end }}
-    </ul>
+{{define "css"}}
+<style>
+    /* ------------------------------------------- */
+    /* 主介面 - 文字顯示區樣式 */
+    /* ------------------------------------------- */
+    #displaySelected {
+        border: 1px solid #ced4da;
+        padding: .375rem .75rem;
+        background-color: #e9ecef;
+        /* 淺灰色背景 */
+        min-width: 150px;
+        border-radius: .25rem;
+        color: #495057;
+        font-weight: bold;
+        flex-shrink: 0;
+    }
+
+    /* ------------------------------------------- */
+    /* 彈跳 Panel - 120x120 大按鈕樣式 (使用 Flexbox 排版) */
+    /* ------------------------------------------- */
+    .big-square-button {
+        width: 120px;
+        /* 寬度 120px */
+        height: 120px;
+        /* 高度 120px */
+
+        /* 使用 Flexbox 確保內容在按鈕內垂直和水平置中 */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        font-size: 1.1rem;
+        font-weight: bold;
+        text-align: center;
+        white-space: normal;
+        /* 允許文字換行 */
+    }
+
+    /* 確保 Modal 內容區有足夠的內距 */
+    .modal-body {
+        padding: 1.5rem;
+    }
+</style>
+{{end}}
+
+{{ define "list" }}
+{{ range . }}
+<button type="button" class="btn btn-outline-info big-square-button" data-value="{{.NodeID}}">{{.PathName}}</button>
 {{ end }}
-</html>
+{{end}}
+
+{{ define "category" }}
+<ul>
+    {{ range . }}
+    <li>
+        <a href="{{ .Path }}">{{ .PathName }}</a> (Lft: {{ .LftIdx }}, Rft: {{ .RftIdx }}, ID: {{ .NodeID }})
+        {{ if .Children }}
+        {{ template "category" .Children }}
+        {{ end }}
+    </li>
+    {{ end }}
+</ul>
+{{ end }}
+
+{{define "content"}}
+<div class="container mt-5">
+    <h2>增加節點</h2>
+    <div class="d-flex align-items-center gap-2 mb-4">
+        <button type="button" class="btn btn-primary flex-shrink-0" data-bs-toggle="modal"
+            data-bs-target="#panelModal">挑選父節點</button>
+        <span id="displaySelected">尚未挑選父節點</span> <input type="text" class="form-control" id="mainTextInput"
+            placeholder="輸入節點名稱">
+        <button type="button" class="btn btn-success flex-shrink-0" id="mainSubmitBtn">增加節點</button>
+    </div>
+</div>
+<div class="container mt-5">
+    {{ template "category" .Data }}
+</div>
+<div class="modal fade" id="panelModal" tabindex="-1" aria-labelledby="panelModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="panelModalLabel">請選擇一個節點</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex flex-wrap gap-3 justify-content-center" id="modalButtonsContainer">
+                    {{template "list" .Data}}
+                </div>
+                <hr class="mt-4">
+                <p class="text-center text-muted">點擊上方的按鈕，會將其值填入主畫面的顯示區。</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉 Panel</button>
+            </div>
+        </div>
+    </div>
+</div>
+{{end}}
+
+{{define "js"}}
+<script>
+    $(document).ready(function () { // 建議使用 function() 避免作用域問題
+
+        // --- 常量定義 ---
+        const DEFAULT_DISPLAY_TEXT = "尚未挑選父節點"; // 與 HTML 顯示區的預設文字保持一致
+
+        // ----------------------------------------------------------------
+        // 處理主介面的 "增加節點" 按鈕
+        // ----------------------------------------------------------------
+        $("#mainSubmitBtn").on("click", function () {
+            // 1. 取得文字顯示區的值 (父節點 ID 或 PathName)
+            const selectedContent = $("#displaySelected").text();
+            // 2. 取得文字輸入框的值 (節點名稱)
+            const nodeName = $("#mainTextInput").val();
+
+            if (selectedContent === DEFAULT_DISPLAY_TEXT) {
+                alert("請先點擊「挑選父節點」按鈕，選擇一個父節點！");
+                return;
+            }
+            if (nodeName.trim() === "") {
+                alert("請輸入新的節點名稱！");
+                return;
+            }
+
+            const finalData = {
+                parent_node_id: selectedContent, // 假設 selectedContent 現在是 Node ID
+                new_node_name: nodeName
+            };
+
+            // 實際應發送 AJAX 請求到 Go 後端
+            console.log("新增節點資料:", finalData);
+            alert(`準備新增節點！\n父節點 ID: ${finalData.parent_node_id}\n節點名稱: ${finalData.new_node_name}`);
+        });
+
+        // ----------------------------------------------------------------
+        // 處理 Panel 內的 "項目按鈕" (A11y 修正已納入)
+        // ----------------------------------------------------------------
+        $("#modalButtonsContainer").on("click", ".big-square-button", function () {
+            // 1. 取得按鈕上的資料值 (data-value)
+            const selectedValue = $(this).data("value");
+
+            // 2. 填入主畫面的 文字顯示區
+            $("#displaySelected").text(selectedValue);
+
+            // 3. [A11y 修正] 立即將焦點從當前點擊的按鈕上移除
+            $(this).blur();
+
+            // 4. 關閉彈跳視窗
+            const modalEl = document.getElementById('panelModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) {
+                modal.hide();
+            }
+        });
+
+        // ----------------------------------------------------------------
+        // [A11y 修正] 處理 Modal Footer 內的關閉按鈕
+        // ----------------------------------------------------------------
+        $('#panelModal button[data-bs-dismiss="modal"]').on('click', function () {
+            $(this).blur(); // 立即將焦點從關閉按鈕上移除，解決 aria-hidden 警告
+        });
+    });
+</script>
+{{end}}
