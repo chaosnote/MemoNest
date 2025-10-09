@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"database/sql"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -13,13 +14,40 @@ import (
 	"idv/chris/MemoNest/internal/service"
 )
 
-type ToolsController struct{}
+type ToolsHelper struct {
+	db *sql.DB
+}
+
+func (th *ToolsHelper) GetCategories() (categories []model.Category) {
+	// 從資料庫中讀取所有分類，並按 LftIdx 排序
+	rows, err := th.db.Query("SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM categories ORDER BY LftIdx ASC")
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var c model.Category
+		if err := rows.Scan(&c.RowID, &c.NodeID, &c.ParentID, &c.PathName, &c.LftIdx, &c.RftIdx); err != nil {
+			return
+		}
+		categories = append(categories, c)
+	}
+
+	return
+}
+
+//-----------------------------------------------
+
+type ToolsController struct {
+	helper *ToolsHelper
+}
 
 // 顯示節點路徑
-func (u *ToolsController) show_node(di service.DI) gin.HandlerFunc {
+func (tc *ToolsController) show_node() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		const parent_id = "00000000-0000-0000-0000-000000000000"
-		allCategories := di.Mariadb.GetCategories()
+		parent_id := uuid.Nil.String()
+		allCategories := tc.helper.GetCategories()
 
 		nodesMap := make(map[string]*model.CategoryNode)
 		var rootNodes []*model.CategoryNode
@@ -71,7 +99,7 @@ func (u *ToolsController) show_node(di service.DI) gin.HandlerFunc {
 	}
 }
 
-func (u *ToolsController) gen_uuid(service.DI) gin.HandlerFunc {
+func (tc *ToolsController) gen_uuid(service.DI) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"error": "",
@@ -81,8 +109,12 @@ func (u *ToolsController) gen_uuid(service.DI) gin.HandlerFunc {
 }
 
 func NewToolsController(rg *gin.RouterGroup, di service.DI) {
-	c := &ToolsController{}
+	c := &ToolsController{
+		helper: &ToolsHelper{
+			db: di.MariaDB,
+		},
+	}
 	r := rg.Group("/tools")
-	r.GET("/show_node", c.show_node(di))
+	r.GET("/show_node", c.show_node())
 	r.GET("/uuid", c.gen_uuid(di))
 }

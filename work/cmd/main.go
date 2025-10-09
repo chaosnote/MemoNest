@@ -26,9 +26,9 @@ func main() {
 			// 	return logger.Named("system")
 			// },
 			service.NewAPPConfig,
-			service.NewRedisDBImpl,
-			service.NewMariaDBImpl,
-			service.NewMongoDBImpl,
+			service.NewRedisDB,
+			service.NewMariaDB,
+			service.NewMongoDB,
 			service.NewNatsIOImpl,
 			service.NewFlagImpl,
 			// fx.Annotate(
@@ -44,7 +44,7 @@ func main() {
 		}),
 
 		// 啟動 HTTP Server
-		fx.Invoke(server.RegisterServer),
+		fx.Invoke(server.Register),
 	)
 
 	app.Run()

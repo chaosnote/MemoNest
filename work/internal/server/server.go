@@ -12,8 +12,8 @@ import (
 	"idv/chris/MemoNest/utils"
 )
 
-// RegisterServer 啟動 HTTP 服務
-func RegisterServer(lc fx.Lifecycle, engine *gin.Engine, deps service.DI) {
+// Register 啟動 HTTP 服務
+func Register(lc fx.Lifecycle, engine *gin.Engine, deps service.DI) {
 	utils.RSAInit("./dist/crypt/rsa.txt", 1024, true)
 
 	// 註冊路由
@@ -31,10 +31,10 @@ func RegisterServer(lc fx.Lifecycle, engine *gin.Engine, deps service.DI) {
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
-			deps.Mariadb.Close()
-			deps.MongoDB.Close(ctx)
+			deps.MariaDB.Close()
+			deps.MongoDB.Disconnect(ctx)
 			deps.NatsIO.Close()
-			deps.Redis.Close()
+			deps.RedisDB.Close()
 			return srv.Shutdown(ctx) // 可在此關閉資料庫連線、釋放資源
 		},
 	})

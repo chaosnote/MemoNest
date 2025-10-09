@@ -8,6 +8,6 @@ CREATE TABLE IF NOT EXISTS `articles` (
     `CreatedDt` DATETIME NOT NULL,
     `NodeID` CHAR(36) NOT NULL,
     PRIMARY KEY (`ArticleID`),
-    KEY `idx_node_id` (`NodeID`),
+    KEY `k_node_id` (`NodeID`),
     FOREIGN KEY (`NodeID`) REFERENCES `categories`(`NodeID`)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8mb4;
