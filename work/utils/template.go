@@ -5,9 +5,10 @@ import (
 )
 
 type TemplateConfig struct {
-	Layout  string   // 空字串則不使用
-	Page    []string // []string{name.html,...}
-	Pattern []string // []string{*.html}
+	Layout  string           // 空字串則不使用
+	Page    []string         // []string{name.html,...}
+	Pattern []string         // []string{*.html}
+	Funcs   template.FuncMap // 外部函式註入
 }
 
 func RenderTemplate(config TemplateConfig) (tmpl *template.Template, e error) {
@@ -17,7 +18,14 @@ func RenderTemplate(config TemplateConfig) (tmpl *template.Template, e error) {
 	}
 	list = append(list, config.Page...)
 
-	tmpl, e = template.ParseFiles(list...)
+	// 建立 base template 並注入 FuncMap（如果有）
+	if config.Funcs != nil {
+		tmpl = template.New("base").Funcs(config.Funcs)
+	} else {
+		tmpl = template.New("base")
+	}
+
+	tmpl, e = tmpl.ParseFiles(list...)
 	if e != nil {
 		return
 	}
