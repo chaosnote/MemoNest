@@ -9,6 +9,5 @@ CREATE TABLE IF NOT EXISTS `categories` (
     `RftIdx` INT NOT NULL,
     PRIMARY KEY (`RowID`),
     UNIQUE KEY `k_node_id` (`NodeID`),
-    UNIQUE KEY `k_path_name` (`PathName`),
     KEY `k_parent_id` (`ParentID`)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8mb4;

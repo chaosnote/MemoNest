@@ -16,11 +16,11 @@ import (
 	"idv/chris/MemoNest/utils"
 )
 
-type BookHelper struct {
+type NodeHelper struct {
 	db *sql.DB
 }
 
-func (bh *BookHelper) addParentNode(pathName string) (*model.Category, error) {
+func (bh *NodeHelper) addParentNode(pathName string) (*model.Category, error) {
 	tx, err := bh.db.Begin()
 	if err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func (bh *BookHelper) addParentNode(pathName string) (*model.Category, error) {
 }
 
 // addChildNode 插入一個新的分類節點
-func (bh *BookHelper) addChildNode(parentID, pathName string) (*model.Category, error) {
+func (bh *NodeHelper) addChildNode(parentID, pathName string) (*model.Category, error) {
 	tx, err := bh.db.Begin()
 	if err != nil {
 		return nil, err
@@ -126,8 +126,8 @@ func (bh *BookHelper) addChildNode(parentID, pathName string) (*model.Category, 
 // Nested Set 移除節點的核心邏輯
 // ---------------------------------------------------------
 
-// removeNode 移除指定的分類節點及其所有後代節點
-func (bh *BookHelper) removeNode(nodeID string) error {
+// del 移除指定的分類節點及其所有後代節點
+func (bh *NodeHelper) del(nodeID string) error {
 	tx, err := bh.db.Begin()
 	if err != nil {
 		return err
@@ -171,7 +171,7 @@ func (bh *BookHelper) removeNode(nodeID string) error {
 	return tx.Commit()
 }
 
-func (th *BookHelper) getAllNode() (categories []model.Category) {
+func (th *NodeHelper) getAll() (categories []model.Category) {
 	// 從資料庫中讀取所有分類，並按 LftIdx 排序
 	rows, err := th.db.Query("SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM categories ORDER BY LftIdx ASC")
 	if err != nil {
@@ -192,40 +192,13 @@ func (th *BookHelper) getAllNode() (categories []model.Category) {
 
 //-----------------------------------------------
 
-type BookController struct {
-	helper *BookHelper
+type NodeController struct {
+	helper *NodeHelper
 }
 
-// curl -X POST -H "Content-Type: application/json" -d "{\"name\": \"test\"}" http://localhost:8080/api/v1/book/addParentNode
-func (u *BookController) addParentNode(c *gin.Context) {
-	const msg = "add_parent_node"
-	logger := utils.NewFileLogger("./dist/book/add_parent_node", "console", 1)
-	var e error
-	defer func() {
-		if e != nil {
-			logger.Error(msg, zap.Error(e))
-			c.JSON(http.StatusOK, gin.H{"Code": e.Error()})
-		}
-	}()
-	var params map[string]interface{}
-	e = c.BindJSON(&params)
-	if e != nil {
-		return
-	}
-	const (
-		label = "label"
-	)
-	logger.Info(msg, zap.Any("params", params))
-	_, e = u.helper.addParentNode(params[label].(string))
-	if e != nil {
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": fmt.Sprintf("增加 %s 成功", params[label])})
-}
-
-func (u *BookController) addChildNode(c *gin.Context) {
-	const msg = "add_child_node"
-	logger := utils.NewFileLogger("./dist/book/add_child_node", "console", 1)
+func (u *NodeController) add(c *gin.Context) {
+	const msg = "add"
+	logger := utils.NewFileLogger("./dist/node/add", "console", 1)
 	var e error
 	defer func() {
 		if e != nil {
@@ -238,11 +211,12 @@ func (u *BookController) addChildNode(c *gin.Context) {
 	if e != nil {
 		return
 	}
+	logger.Info(msg, zap.Any("params", params))
+
 	const (
 		id    = "id"
 		label = "label"
 	)
-	logger.Info(msg, zap.Any("params", params))
 	if params["id"] == uuid.Nil.String() {
 		_, e = u.helper.addParentNode(params[label])
 	} else {
@@ -254,9 +228,9 @@ func (u *BookController) addChildNode(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": fmt.Sprintf("增加 %s 成功", params[label])})
 }
 
-func (u *BookController) removeNode(c *gin.Context) {
-	const msg = "remove_node"
-	logger := utils.NewFileLogger("./dist/book/remove_node", "console", 1)
+func (u *NodeController) del(c *gin.Context) {
+	const msg = "del"
+	logger := utils.NewFileLogger("./dist/node/del", "console", 1)
 	var e error
 	defer func() {
 		if e != nil {
@@ -269,18 +243,20 @@ func (u *BookController) removeNode(c *gin.Context) {
 	if e != nil {
 		return
 	}
-	e = u.helper.removeNode(params["id"])
+	logger.Info(msg, zap.Any("params", params))
+
+	e = u.helper.del(params["id"])
 	if e != nil {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": fmt.Sprintf("刪除 %s 成功", params["id"])})
 }
 
-func (tc *BookController) list(c *gin.Context) {
+func (tc *NodeController) list(c *gin.Context) {
 	dir := filepath.Join("./assets", "templates")
 	config := utils.TemplateConfig{
 		Layout:  filepath.Join(dir, "layout", "share.html"),
-		Page:    []string{filepath.Join(dir, "page", "book", "list.html")},
+		Page:    []string{filepath.Join(dir, "page", "node", "list.html")},
 		Pattern: []string{},
 	}
 	tmpl, e := utils.RenderTemplate(config)
@@ -293,49 +269,53 @@ func (tc *BookController) list(c *gin.Context) {
 		return
 	}
 
-	parent_id := uuid.Nil.String()
-	source := tc.helper.getAllNode()
-	nodesMap := make(map[string]*model.CategoryNode)
+	root_id := uuid.Nil.String()
+	source := tc.helper.getAll()
+	node_map := make(map[string]*model.CategoryNode)
 
-	rootNodes := []*model.CategoryNode{}
-
+	root_node := []*model.CategoryNode{}
 	// 第一次遍歷：建立節點地圖
 	for _, cat := range source {
-		nodesMap[cat.NodeID] = &model.CategoryNode{
+		node_map[cat.NodeID] = &model.CategoryNode{
 			Category: cat,
 		}
 	}
 	// 第二次遍歷：建立樹狀結構並生成路徑
 	for _, cat := range source {
-		currentNode := nodesMap[cat.NodeID]
+		current_node := node_map[cat.NodeID]
 
 		// 建立完整路徑
-		pathParts := []string{currentNode.PathName}
-		tempNode := currentNode
+		path_seg := []string{current_node.PathName}
+		temp_node := current_node
 		for {
-			if tempNode.ParentID == parent_id {
+			if temp_node.ParentID == root_id {
 				break
 			}
-			parent, ok := nodesMap[tempNode.ParentID]
+			parent, ok := node_map[temp_node.ParentID]
 			if !ok {
 				break
 			}
-			pathParts = append([]string{parent.PathName}, pathParts...) // 將父節點名稱加到最前面
-			tempNode = parent
+			path_seg = append([]string{parent.PathName}, path_seg...) // 將父節點名稱加到最前面
+			temp_node = parent
 		}
-		currentNode.Path = "/" + strings.Join(pathParts, "/")
+		current_node.Path = "/" + strings.Join(path_seg, "/")
 
 		// 處理樹狀結構
-		if cat.ParentID == parent_id {
-			rootNodes = append(rootNodes, currentNode)
+		if cat.ParentID == root_id {
+			root_node = append(root_node, current_node)
 		} else {
-			if parent, ok := nodesMap[cat.ParentID]; ok {
-				parent.Children = append(parent.Children, currentNode)
+			if parent, ok := node_map[cat.ParentID]; ok {
+				parent.Children = append(parent.Children, current_node)
 			}
 		}
 	}
 
-	e = tmpl.ExecuteTemplate(c.Writer, "list.html", gin.H{"Title": "XXXX", "Nodes": nodesMap, "List": rootNodes})
+	e = tmpl.ExecuteTemplate(c.Writer, "list.html", gin.H{
+		"Title":   "節點清單",
+		"NodeMap": node_map,
+		"List":    root_node,
+		"RootID":  root_id,
+	})
 	if e != nil {
 		return
 	}
@@ -343,15 +323,14 @@ func (tc *BookController) list(c *gin.Context) {
 
 //-----------------------------------------------
 
-func NewBookController(rg *gin.RouterGroup, di service.DI) {
-	c := &BookController{
-		helper: &BookHelper{
+func NewNodeController(rg *gin.RouterGroup, di service.DI) {
+	c := &NodeController{
+		helper: &NodeHelper{
 			db: di.MariaDB,
 		},
 	}
-	r := rg.Group("/book")
+	r := rg.Group("/node")
 	r.GET("/list", c.list)
-	r.POST("/add/parent", c.addParentNode)
-	r.POST("/add/child", c.addChildNode)
-	r.POST("/del/node", c.removeNode)
+	r.POST("/add", c.add)
+	r.POST("/del", c.del)
 }

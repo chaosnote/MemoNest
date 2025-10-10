@@ -18,13 +18,13 @@
     }
 
     /* ------------------------------------------- */
-    /* 彈跳 Panel - 120x120 大按鈕樣式 (使用 Flexbox 排版) */
+    /* 彈跳 Panel 樣式                              */
     /* ------------------------------------------- */
     .big-square-button {
-        width: 120px;
-        /* 寬度 120px */
-        height: 120px;
-        /* 高度 120px */
+        width: 80px;
+        /* 寬度 80px */
+        height: 80px;
+        /* 高度 80px */
 
         /* 使用 Flexbox 確保內容在按鈕內垂直和水平置中 */
         display: flex;
@@ -46,10 +46,10 @@
 {{end}}
 
 {{ define "list" }}
-<button type="button" class="btn btn-outline-info big-square-button" onclick="select_node(event,'00000000-0000-0000-0000-000000000000')">Root</button>
-{{ range . }}
-<button type="button" class="btn btn-outline-info big-square-button" onclick="select_node(event,'{{.NodeID}}')">{{.PathName}}</button>
-{{ end }}
+<button type="button" class="btn btn-outline-info big-square-button" onclick="select_node(event,'Root','{{.RootID}}')">Root</button>
+    {{ range .NodeMap }}
+    <button type="button" class="btn btn-outline-info big-square-button" onclick="select_node(event,'{{.PathName}}','{{.NodeID}}')">{{.PathName}}</button>
+    {{ end }}
 {{end}}
 
 {{ define "category" }}
@@ -112,7 +112,7 @@
             </div>
             <div class="modal-body">
                 <div class="d-flex flex-wrap gap-3 justify-content-center" id="modalButtonsContainer">
-                    {{template "list" .Nodes}}
+                    {{template "list" .}}
                 </div>
                 <hr class="mt-4">
                 <p class="text-center text-muted">點擊上方的按鈕，會將其值填入主畫面的顯示區。</p>
@@ -148,7 +148,7 @@
             label: node_name
         };
         $.ajax({
-            url: "/api/v1/book/add/child", // 根據你的後端路由調整
+            url: "/api/v1/node/add", // 根據你的後端路由調整
             type: "POST",
             contentType: "application/json",
             data: JSON.stringify(params),
@@ -161,22 +161,24 @@
             }
         });
     }
-    function select_node(event, id){
+    
+    function select_node(event, name, id){
         node_id = id ;
         $(event.target).blur();
-        $("#displaySelected").text(id);
+        $("#displaySelected").text(name);
         const modalEl = document.getElementById('panelModal');
         const modal = bootstrap.Modal.getInstance(modalEl);
         if (modal) {
             modal.hide();
         }
     }
+    
     function del_node(id){
         const params = {
             id: id
         };
         $.ajax({
-            url: "/api/v1/book/del/node", // 根據你的後端路由調整
+            url: "/api/v1/node/del", // 根據你的後端路由調整
             type: "POST",
             contentType: "application/json",
             data: JSON.stringify(params),

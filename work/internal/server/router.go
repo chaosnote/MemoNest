@@ -13,5 +13,5 @@ func RegisterRoutes(engine *gin.Engine, deps service.DI) {
 	controllers.NewIndexController(engine, deps)
 	controllers.NewToolsController(engine.Group(prefix), deps)
 	controllers.NewMemberController(engine.Group(prefix), deps)
-	controllers.NewBookController(engine.Group(prefix), deps)
+	controllers.NewNodeController(engine.Group(prefix), deps)
 }
