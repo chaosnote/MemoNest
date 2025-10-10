@@ -20,8 +20,8 @@ type NodeHelper struct {
 	db *sql.DB
 }
 
-func (bh *NodeHelper) addParentNode(pathName string) (*model.Category, error) {
-	tx, err := bh.db.Begin()
+func (nh *NodeHelper) addParentNode(pathName string) (*model.Category, error) {
+	tx, err := nh.db.Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -65,8 +65,8 @@ func (bh *NodeHelper) addParentNode(pathName string) (*model.Category, error) {
 }
 
 // addChildNode 插入一個新的分類節點
-func (bh *NodeHelper) addChildNode(parentID, pathName string) (*model.Category, error) {
-	tx, err := bh.db.Begin()
+func (nh *NodeHelper) addChildNode(parentID, pathName string) (*model.Category, error) {
+	tx, err := nh.db.Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -127,8 +127,8 @@ func (bh *NodeHelper) addChildNode(parentID, pathName string) (*model.Category, 
 // ---------------------------------------------------------
 
 // del 移除指定的分類節點及其所有後代節點
-func (bh *NodeHelper) del(nodeID string) error {
-	tx, err := bh.db.Begin()
+func (nh *NodeHelper) del(nodeID string) error {
+	tx, err := nh.db.Begin()
 	if err != nil {
 		return err
 	}
@@ -171,9 +171,9 @@ func (bh *NodeHelper) del(nodeID string) error {
 	return tx.Commit()
 }
 
-func (th *NodeHelper) getAll() (categories []model.Category) {
+func (nh *NodeHelper) getAll() (categories []model.Category) {
 	// 從資料庫中讀取所有分類，並按 LftIdx 排序
-	rows, err := th.db.Query("SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM categories ORDER BY LftIdx ASC")
+	rows, err := nh.db.Query("SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM categories ORDER BY LftIdx ASC")
 	if err != nil {
 		return
 	}
@@ -298,7 +298,7 @@ func (tc *NodeController) list(c *gin.Context) {
 			path_seg = append([]string{parent.PathName}, path_seg...) // 將父節點名稱加到最前面
 			temp_node = parent
 		}
-		current_node.Path = "/" + strings.Join(path_seg, "/")
+		current_node.Path = strings.Join(path_seg, "/")
 
 		// 處理樹狀結構
 		if cat.ParentID == root_id {

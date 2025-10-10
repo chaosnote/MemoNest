@@ -17,27 +17,6 @@
         flex-shrink: 0;
     }
 
-    /* ------------------------------------------- */
-    /* 彈跳 Panel 樣式                              */
-    /* ------------------------------------------- */
-    .big-square-button {
-        width: 80px;
-        /* 寬度 80px */
-        height: 80px;
-        /* 高度 80px */
-
-        /* 使用 Flexbox 確保內容在按鈕內垂直和水平置中 */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        font-size: 1.1rem;
-        font-weight: bold;
-        text-align: center;
-        white-space: normal;
-        /* 允許文字換行 */
-    }
-
     /* 確保 Modal 內容區有足夠的內距 */
     .modal-body {
         padding: 1.5rem;
@@ -46,9 +25,9 @@
 {{end}}
 
 {{ define "list" }}
-<button type="button" class="btn btn-outline-info big-square-button" onclick="select_node(event,'Root','{{.RootID}}')">Root</button>
+<button type="button" class="btn btn-outline-info" onclick="select_node(event,'Root','{{.RootID}}')">Root</button>
     {{ range .NodeMap }}
-    <button type="button" class="btn btn-outline-info big-square-button" onclick="select_node(event,'{{.PathName}}','{{.NodeID}}')">{{.PathName}}</button>
+    <button type="button" class="btn btn-outline-info" onclick="select_node(event,'{{.PathName}}','{{.NodeID}}')">{{.Path}}</button>
     {{ end }}
 {{end}}
 
@@ -80,32 +59,27 @@
 {{ end }}
 
 {{define "content"}}
-<div class="container mt-5">
-    <h2>增加節點</h2>
+<div class="mb-3">
     <div class="d-flex align-items-center gap-2 mb-4">
-        <button type="button" class="btn btn-primary flex-shrink-0" data-bs-toggle="modal"
-            data-bs-target="#panelModal">挑選父節點</button>
-        <span id="displaySelected">尚未挑選父節點</span> <input type="text" class="form-control" id="mainTextInput"
-            placeholder="輸入節點名稱">
+        <button type="button" class="btn btn-outline-primary flex-shrink-0" data-bs-toggle="modal" data-bs-target="#panelModal">挑選父節點</button>
+        <span id="displaySelected">尚未挑選父節點</span> <input type="text" class="form-control" id="mainTextInput" placeholder="輸入節點名稱">
         <button type="button" class="btn btn-success flex-shrink-0" onclick="add_node();">增加節點</button>
     </div>
 </div>
-<div class="container mt-5">
+<div class="mb-3">
     {{ template "category" .List }}
 </div>
 <div class="modal fade" id="panelModal" tabindex="-1" aria-labelledby="panelModalLabel" aria-hidden="true" onclick="onBlur(event)">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="panelModalLabel">請選擇一個節點</h5>
+                <h5 class="modal-title" id="panelModalLabel">請選擇節點</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="d-flex flex-wrap gap-3 justify-content-center" id="modalButtonsContainer">
+                <div class="d-flex flex-wrap gap-2" id="modalButtonsContainer">
                     {{template "list" .}}
                 </div>
-                <hr class="mt-4">
-                <p class="text-center text-muted">點擊上方的按鈕，會將其值填入主畫面的顯示區。</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="onBlur(event)">關閉 Panel</button>
