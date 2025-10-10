@@ -3,14 +3,6 @@
 {{define "css"}}
 <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 <style>
-  .ql-font-arial { font-family: Arial, sans-serif; }
-  .ql-font-helvetica { font-family: Helvetica, sans-serif; }
-  .ql-font-georgia { font-family: Georgia, serif; }
-  .ql-font-courier { font-family: "Courier New", monospace; }
-  .ql-font-jhenghei { font-family: "Microsoft JhengHei", sans-serif; }
-  .ql-font-noto { font-family: "Noto Sans TC", sans-serif; }
-</style>
-<style>
     /* ------------------------------------------- */
     /* 主介面 - 文字顯示區樣式 */
     /* ------------------------------------------- */
@@ -81,15 +73,12 @@
     function onBlur(event){
         $(event.target).blur();
     }
-    const Font = Quill.import('formats/font');
-    Font.whitelist = ['arial', 'helvetica', 'georgia', 'courier', 'jhenghei', 'noto'];
-    Quill.register(Font, true);
 
     const quill = new Quill('#editor', {
         theme: 'snow',
         modules: {
         toolbar: [
-            [{ font: Font.whitelist }, { size: ['small', false, 'large', 'huge'] }],
+            [{ font: [] }, { size: ['small', false, 'large', 'huge'] }],
             [{ color: [] }, { background: [] }],
             ['bold', 'italic', 'underline'],
             [{ list: 'ordered' }, { list: 'bullet' }],
