@@ -53,37 +53,27 @@
 {{end}}
 
 {{ define "category" }}
-<ul class="list-unstyled">
+<ul class="list-group">
     {{ range . }}
-    <li class="mb-3">
-        <div class="card">
-            <div class="card-body">
-                <div id="node_list" class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <div class="fw-bold">{{ .PathName }}</div>
-                        {{/**
-                        <div class="text-muted small"
-                            data-bs-toggle="tooltip"
-                            data-bs-placement="right"
-                            title="Lft: {{ .LftIdx }}, Rft: {{ .RftIdx }}, ID: {{ .NodeID }}">
-                            節點資訊
-                        </div>
-                        */}}
-                    </div>
-                    <button type="button"
-                            class="btn btn-sm btn-outline-danger delete-node-btn"
-                            data-id="{{ .NodeID }}"
-                            title="刪除這個節點" onclick="del_node('{{.NodeID}}')">刪除
-                    </button>
-                </div>
-
+    <li class="list-group-item">
+        <div class="d-flex justify-content-between align-items-center">
+            <span>
                 {{ if .Children }}
-                <div class="mt-3 ms-4">
-                    {{ template "category" .Children }}
-                </div>
+                    <span data-bs-toggle="collapse" data-bs-target="#node-{{.NodeID}}" style="cursor:pointer;">
+                        ⊞ {{ .PathName }}
+                    </span>
+                {{ else }}
+                    ⊟ {{ .PathName }}
                 {{ end }}
-            </div>
+            </span>
+            <button class="btn btn-sm btn-outline-danger" onclick="del_node('{{.NodeID}}')">刪除</button>
         </div>
+
+        {{ if .Children }}
+        <div class="collapse show mt-2 ms-3" id="node-{{.NodeID}}">
+            {{ template "category" .Children }}
+        </div>
+        {{ end }}
     </li>
     {{ end }}
 </ul>
