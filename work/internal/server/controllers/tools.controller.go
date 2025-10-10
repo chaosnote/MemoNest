@@ -20,13 +20,11 @@ type ToolsController struct {
 	helper *ToolsHelper
 }
 
-func (tc *ToolsController) gen_uuid(service.DI) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"error": "",
-			"uuid":  uuid.NewString(),
-		})
-	}
+func (tc *ToolsController) gen_uuid(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"Code": "OK",
+		"uuid": uuid.NewString(),
+	})
 }
 
 func NewToolsController(rg *gin.RouterGroup, di service.DI) {
@@ -36,5 +34,5 @@ func NewToolsController(rg *gin.RouterGroup, di service.DI) {
 		},
 	}
 	r := rg.Group("/tools")
-	r.GET("/uuid", c.gen_uuid(di))
+	r.GET("/uuid", c.gen_uuid)
 }

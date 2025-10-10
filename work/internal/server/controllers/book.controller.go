@@ -171,15 +171,6 @@ func (bh *BookHelper) removeNode(nodeID string) error {
 	return tx.Commit()
 }
 
-// removeParentNode 移除一個根節點 (或任何頂層節點)
-func (bh *BookHelper) removeParentNode(nodeID string) error {
-	return bh.removeNode(nodeID)
-}
-
-// removeChildNode 移除一個子節點
-func (bh *BookHelper) removeChildNode(nodeID string) error {
-	return bh.removeNode(nodeID)
-}
 func (th *BookHelper) getAllNode() (categories []model.Category) {
 	// 從資料庫中讀取所有分類，並按 LftIdx 排序
 	rows, err := th.db.Query("SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM categories ORDER BY LftIdx ASC")
@@ -207,12 +198,13 @@ type BookController struct {
 
 // curl -X POST -H "Content-Type: application/json" -d "{\"name\": \"test\"}" http://localhost:8080/api/v1/book/addParentNode
 func (u *BookController) addParentNode(c *gin.Context) {
-	logger := utils.NewFileLogger("./dist/book", "console", 1)
+	const msg = "add_parent_node"
+	logger := utils.NewFileLogger("./dist/book/add_parent_node", "console", 1)
 	var e error
 	defer func() {
 		if e != nil {
-			logger.Error("init", zap.Error(e))
-			c.JSON(http.StatusOK, gin.H{"error": e.Error()})
+			logger.Error(msg, zap.Error(e))
+			c.JSON(http.StatusOK, gin.H{"Code": e.Error()})
 		}
 	}()
 	var params map[string]interface{}
@@ -220,12 +212,68 @@ func (u *BookController) addParentNode(c *gin.Context) {
 	if e != nil {
 		return
 	}
-	logger.Info("init", zap.Any("params", params))
-	_, e = u.helper.addParentNode(params["name"].(string))
+	const (
+		label = "label"
+	)
+	logger.Info(msg, zap.Any("params", params))
+	_, e = u.helper.addParentNode(params[label].(string))
 	if e != nil {
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"error": "", "message": fmt.Sprintf("增加 %s 成功", params["name"])})
+	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": fmt.Sprintf("增加 %s 成功", params[label])})
+}
+
+func (u *BookController) addChildNode(c *gin.Context) {
+	const msg = "add_child_node"
+	logger := utils.NewFileLogger("./dist/book/add_child_node", "console", 1)
+	var e error
+	defer func() {
+		if e != nil {
+			logger.Error(msg, zap.Error(e))
+			c.JSON(http.StatusOK, gin.H{"Code": e.Error()})
+		}
+	}()
+	var params map[string]string
+	e = c.BindJSON(&params)
+	if e != nil {
+		return
+	}
+	const (
+		id    = "id"
+		label = "label"
+	)
+	logger.Info(msg, zap.Any("params", params))
+	if params["id"] == uuid.Nil.String() {
+		_, e = u.helper.addParentNode(params[label])
+	} else {
+		_, e = u.helper.addChildNode(params[id], params[label])
+	}
+	if e != nil {
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": fmt.Sprintf("增加 %s 成功", params[label])})
+}
+
+func (u *BookController) removeNode(c *gin.Context) {
+	const msg = "remove_node"
+	logger := utils.NewFileLogger("./dist/book/remove_node", "console", 1)
+	var e error
+	defer func() {
+		if e != nil {
+			logger.Error(msg, zap.Error(e))
+			c.JSON(http.StatusOK, gin.H{"Code": e.Error()})
+		}
+	}()
+	var params map[string]string
+	e = c.BindJSON(&params)
+	if e != nil {
+		return
+	}
+	e = u.helper.removeNode(params["id"])
+	if e != nil {
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": fmt.Sprintf("刪除 %s 成功", params["id"])})
 }
 
 func (tc *BookController) list(c *gin.Context) {
@@ -250,12 +298,6 @@ func (tc *BookController) list(c *gin.Context) {
 	nodesMap := make(map[string]*model.CategoryNode)
 
 	rootNodes := []*model.CategoryNode{}
-	rootNodes = append(rootNodes, &model.CategoryNode{
-		Category: model.Category{
-			NodeID:   parent_id,
-			PathName: "Root",
-		},
-	})
 
 	// 第一次遍歷：建立節點地圖
 	for _, cat := range source {
@@ -293,7 +335,7 @@ func (tc *BookController) list(c *gin.Context) {
 		}
 	}
 
-	e = tmpl.ExecuteTemplate(c.Writer, "list.html", gin.H{"Title": "XXXX", "Data": rootNodes})
+	e = tmpl.ExecuteTemplate(c.Writer, "list.html", gin.H{"Title": "XXXX", "Nodes": nodesMap, "List": rootNodes})
 	if e != nil {
 		return
 	}
@@ -309,5 +351,7 @@ func NewBookController(rg *gin.RouterGroup, di service.DI) {
 	}
 	r := rg.Group("/book")
 	r.GET("/list", c.list)
-	r.POST("/init", c.addParentNode)
+	r.POST("/add/parent", c.addParentNode)
+	r.POST("/add/child", c.addChildNode)
+	r.POST("/del/node", c.removeNode)
 }
