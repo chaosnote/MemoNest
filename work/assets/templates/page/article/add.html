@@ -25,26 +25,26 @@
 {{end}}
 
 {{define "content"}}
-<!-- 標題欄位 -->
+{{/** 標題欄位 */}}
 <div class="mb-3">
     <input type="text" class="form-control" id="articleTitle" placeholder="請輸入文章標題">
 </div>
 
-<!-- 節點選擇按鈕 -->
+{{/** 節點選擇按鈕 */}}
 <div class="d-flex align-items-center gap-2 mb-3">
     <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#nodeModal">挑選節點</button>
     <span id="displaySelected">尚未挑選</span>
 </div>
 
-<!-- Quill 編輯器 -->
+{{/** Quill 編輯器 */}}
 <div class="mb-3">
     <div id="editor" style="height: 600px;"></div>
 </div>
 
-<!-- 送出按鈕 -->
+{{/** 送出按鈕 */}}
 <button class="btn btn-success" onclick="submitArticle()">送出文章</button>
 
-<!-- 節點選擇 Modal -->
+{{/** 節點選擇 Modal */}}
 <div class="modal fade" id="nodeModal" tabindex="-1" aria-hidden="true" onclick="onBlur(event)">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
