@@ -55,7 +55,7 @@
             <div class="modal-body">
                 <div class="d-flex flex-wrap gap-2">
                     {{range .NodeMap}}
-                    <button class="btn btn-outline-info" onclick="selectNode('{{.NodeID}}', '{{.PathName}}')">{{.Path}}</button>
+                    <button class="btn btn-outline-info" onclick="select_node('{{.NodeID}}', '{{.PathName}}')">{{.Path}}</button>
                     {{end}}
                 </div>
             </div>
@@ -74,24 +74,9 @@
         $(event.target).blur();
     }
 
-    const quill = new Quill('#editor', {
-        theme: 'snow',
-        modules: {
-        toolbar: [
-            [{ font: [] }, { size: ['small', false, 'large', 'huge'] }],
-            [{ color: [] }, { background: [] }],
-            ['bold', 'italic', 'underline'],
-            [{ list: 'ordered' }, { list: 'bullet' }],
-            ['link', 'image'],
-            ['clean']
-        ]
-        },
-        placeholder: '請輸入文章內容...'
-    });
-
-    let selectedNodeId = null;
-    function selectNode(id, name) {
-        selectedNodeId = id;
+    let node_id = null;
+    function select_node(id, name) {
+        node_id = id;
         document.getElementById("displaySelected").textContent = name;
         bootstrap.Modal.getInstance(document.getElementById("nodeModal")).hide();
     }
@@ -101,13 +86,13 @@
         const contentHtml = quill.root.innerHTML;
 
         if (!title) return alert("請輸入文章標題！");
-        if (!selectedNodeId) return alert("請選擇節點！");
+        if (!node_id) return alert("請選擇節點！");
         if (!contentHtml || contentHtml === "<p><br></p>") return alert("請輸入文章內容！");
 
         const payload = {
             title: title,
             content: contentHtml,
-            node_id: selectedNodeId
+            node_id: node_id
         };
 
         fetch("/api/v1/article/create", {
@@ -125,5 +110,20 @@
             }
         });
     }
+
+    const quill = new Quill('#editor', {
+        theme: 'snow',
+        modules: {
+            toolbar: [
+                [{ font: [] }, { size: ['small', false, 'large', 'huge'] }],
+                [{ color: [] }, { background: [] }],
+                ['bold', 'italic', 'underline'],
+                [{ list: 'ordered' }, { list: 'bullet' }],
+                ['link', 'image'],
+                ['clean']
+            ]
+        },
+        placeholder: '請輸入文章內容...'
+    });
 </script>
 {{end}}
