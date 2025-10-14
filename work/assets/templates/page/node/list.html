@@ -71,7 +71,7 @@
             </div>
             <div class="modal-body">
                 <div class="d-flex flex-wrap gap-2">
-                    <button type="button" class="btn btn-outline-info" onclick="select_node(event,'Root','{{.RootID}}')">Root</button>
+                    <button type="button" class="btn btn-outline-info" onclick="select_node('Root','{{.RootID}}')">Root</button>
                     {{range .NodeMap}}
                     <button class="btn btn-outline-info" onclick="select_node('{{.NodeID}}', '{{.PathName}}')">{{.Path}}</button>
                     {{end}}
@@ -122,9 +122,8 @@
         });
     }
     
-    function select_node(event, name, id){
+    function select_node(id, name){
         node_id = id ;
-        $(event.target).blur();
         $("#displaySelected").text(name);
         const modalEl = document.getElementById('nodeModal');
         const modal = bootstrap.Modal.getInstance(modalEl);

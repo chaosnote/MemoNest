@@ -61,8 +61,10 @@ func (u *ArticleController) add(c *gin.Context) {
 	_, node_map := share.GenNodeInfo(u.helper.getAllNode())
 
 	e = tmpl.ExecuteTemplate(c.Writer, "add.html", gin.H{
-		"Title":   "增加文章",
-		"NodeMap": node_map,
+		"Title":          "增加文章",
+		"NodeMap":        node_map,
+		"ArticleTitle":   "請輸入文章標題",
+		"ArticleContent": "請輸入文章內容...",
 	})
 	if e != nil {
 		return

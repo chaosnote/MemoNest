@@ -27,7 +27,7 @@
 {{define "content"}}
 {{/** 標題欄位 */}}
 <div class="mb-3">
-    <input type="text" class="form-control" id="articleTitle" placeholder="請輸入文章標題">
+    <input type="text" class="form-control" id="articleTitle" placeholder="{{.ArticleTitle}}">
 </div>
 
 {{/** 節點選擇按鈕 */}}
@@ -123,7 +123,7 @@
                 ['clean']
             ]
         },
-        placeholder: '請輸入文章內容...'
+        placeholder: '{{.ArticleContent}}'
     });
 </script>
 {{end}}
