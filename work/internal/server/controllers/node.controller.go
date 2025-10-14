@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"net/http"
 	"path/filepath"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 
 	"idv/chris/MemoNest/internal/model"
+	"idv/chris/MemoNest/internal/server/controllers/share"
 	"idv/chris/MemoNest/internal/service"
 	"idv/chris/MemoNest/utils"
 )
@@ -269,52 +269,13 @@ func (tc *NodeController) list(c *gin.Context) {
 		return
 	}
 
-	root_id := uuid.Nil.String()
-	source := tc.helper.getAll()
-	node_map := make(map[string]*model.CategoryNode)
-
-	root_node := []*model.CategoryNode{}
-	// 第一次遍歷：建立節點地圖
-	for _, cat := range source {
-		node_map[cat.NodeID] = &model.CategoryNode{
-			Category: cat,
-		}
-	}
-	// 第二次遍歷：建立樹狀結構並生成路徑
-	for _, cat := range source {
-		current_node := node_map[cat.NodeID]
-
-		// 建立完整路徑
-		path_seg := []string{current_node.PathName}
-		temp_node := current_node
-		for {
-			if temp_node.ParentID == root_id {
-				break
-			}
-			parent, ok := node_map[temp_node.ParentID]
-			if !ok {
-				break
-			}
-			path_seg = append([]string{parent.PathName}, path_seg...) // 將父節點名稱加到最前面
-			temp_node = parent
-		}
-		current_node.Path = strings.Join(path_seg, "/")
-
-		// 處理樹狀結構
-		if cat.ParentID == root_id {
-			root_node = append(root_node, current_node)
-		} else {
-			if parent, ok := node_map[cat.ParentID]; ok {
-				parent.Children = append(parent.Children, current_node)
-			}
-		}
-	}
+	node_list, node_map := share.GenNodeInfo(tc.helper.getAll())
 
 	e = tmpl.ExecuteTemplate(c.Writer, "list.html", gin.H{
 		"Title":   "節點清單",
 		"NodeMap": node_map,
-		"List":    root_node,
-		"RootID":  root_id,
+		"List":    node_list,
+		"RootID":  uuid.Nil.String(),
 	})
 	if e != nil {
 		return
