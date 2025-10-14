@@ -42,7 +42,7 @@
 </div>
 
 {{/** 送出按鈕 */}}
-<button class="btn btn-success" onclick="submitArticle()">送出文章</button>
+<button class="btn btn-success" onclick="submit()">送出</button>
 
 {{/** 節點選擇 Modal */}}
 <div class="modal fade" id="nodeModal" tabindex="-1" aria-hidden="true" onclick="onBlur(event)">
@@ -81,18 +81,17 @@
         bootstrap.Modal.getInstance(document.getElementById("nodeModal")).hide();
     }
 
-    function submitArticle() {
+    function submit() {
         const title = document.getElementById("articleTitle").value.trim();
-        const contentHtml = quill.root.innerHTML;
 
         if (!title) return alert("請輸入文章標題！");
         if (!node_id) return alert("請選擇節點！");
-        if (!contentHtml || contentHtml === "<p><br></p>") return alert("請輸入文章內容！");
+        if (!quill.root.innerText) return alert("請輸入文章內容！");
 
         const payload = {
+            node_id: node_id,
             title: title,
-            content: contentHtml,
-            node_id: node_id
+            content: quill.root.innerHTML
         };
 
         fetch("/api/v1/article/create", {

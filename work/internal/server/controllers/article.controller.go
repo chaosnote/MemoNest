@@ -41,14 +41,15 @@ type ArticleController struct {
 	helper *ArticleHelper
 }
 
-func (u *ArticleController) add(c *gin.Context) {
+func (u *ArticleController) fresh(c *gin.Context) {
 	dir := filepath.Join("./assets", "templates")
 	config := utils.TemplateConfig{
 		Layout:  filepath.Join(dir, "layout", "share.html"),
-		Page:    []string{filepath.Join(dir, "page", "article", "add.html")},
+		Page:    []string{filepath.Join(dir, "page", "article", "fresh.html")},
 		Pattern: []string{},
 	}
 	tmpl, e := utils.RenderTemplate(config)
+
 	defer func() {
 		if e != nil {
 			http.Error(c.Writer, e.Error(), http.StatusInternalServerError)
@@ -60,7 +61,7 @@ func (u *ArticleController) add(c *gin.Context) {
 
 	_, node_map := share.GenNodeInfo(u.helper.getAllNode())
 
-	e = tmpl.ExecuteTemplate(c.Writer, "add.html", gin.H{
+	e = tmpl.ExecuteTemplate(c.Writer, "fresh.html", gin.H{
 		"Title":          "增加文章",
 		"NodeMap":        node_map,
 		"ArticleTitle":   "請輸入文章標題",
@@ -78,5 +79,5 @@ func NewArticleController(rg *gin.RouterGroup, di service.DI) {
 		},
 	}
 	r := rg.Group("/article")
-	r.GET("/add", c.add)
+	r.GET("/fresh", c.fresh)
 }
