@@ -2,10 +2,13 @@ package controllers
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"path/filepath"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 
 	"idv/chris/MemoNest/internal/model"
 	"idv/chris/MemoNest/internal/server/controllers/share"
@@ -35,17 +38,61 @@ func (nh *ArticleHelper) getAllNode() (categories []model.Category) {
 	return
 }
 
+func (nh *ArticleHelper) add(title, content, node_id string) error {
+	_, e := nh.db.Exec("CALL insert_article(?, ?, NOW(), NOW(), ?) ;", title, content, node_id)
+	if e != nil {
+		return e
+	}
+	return e
+}
+
+func (nh *ArticleHelper) get(id int) (articles []model.Article) {
+	rows, e := nh.db.Query(`
+		SELECT 
+		a.RowID AS ArticleRowID,
+		a.Title,
+		a.Content,
+		a.NodeID,
+		c.PathName,
+		a.UpdateDt
+		FROM articles as a
+		JOIN categories as c ON a.NodeID = c.NodeID
+		WHERE a.RowID = ? ;
+	`, id)
+	if e != nil {
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var article model.Article
+		e = rows.Scan(
+			&article.ArticleRowID,
+			&article.Title,
+			&article.Content,
+			&article.NodeID,
+			&article.PathName,
+			&article.UpdateDt,
+		)
+		if e != nil {
+			return
+		}
+		articles = append(articles, article)
+	}
+	return
+}
+
 //-----------------------------------------------
 
 type ArticleController struct {
 	helper *ArticleHelper
 }
 
-func (u *ArticleController) fresh(c *gin.Context) {
+func (ac *ArticleController) fresh(c *gin.Context) {
 	dir := filepath.Join("./assets", "templates")
 	config := utils.TemplateConfig{
 		Layout:  filepath.Join(dir, "layout", "share.html"),
-		Page:    []string{filepath.Join(dir, "page", "article", "fresh.html")},
+		Page:    []string{filepath.Join(dir, "page", "article", "edit.html")},
 		Pattern: []string{},
 	}
 	tmpl, e := utils.RenderTemplate(config)
@@ -59,10 +106,11 @@ func (u *ArticleController) fresh(c *gin.Context) {
 		return
 	}
 
-	_, node_map := share.GenNodeInfo(u.helper.getAllNode())
+	_, node_map := share.GenNodeInfo(ac.helper.getAllNode())
 
-	e = tmpl.ExecuteTemplate(c.Writer, "fresh.html", gin.H{
+	e = tmpl.ExecuteTemplate(c.Writer, "edit.html", gin.H{
 		"Title":          "增加文章",
+		"UsePicker":      true,
 		"NodeMap":        node_map,
 		"ArticleTitle":   "請輸入文章標題",
 		"ArticleContent": "請輸入文章內容...",
@@ -70,6 +118,57 @@ func (u *ArticleController) fresh(c *gin.Context) {
 	if e != nil {
 		return
 	}
+}
+
+func (ac *ArticleController) add(c *gin.Context) {
+	const msg = "add"
+	logger := utils.NewFileLogger("./dist/article/add", "console", 1)
+	var e error
+	defer func() {
+		if e != nil {
+			logger.Error(msg, zap.Error(e))
+			c.JSON(http.StatusOK, gin.H{"Code": e.Error()})
+		}
+	}()
+	var params map[string]string
+	e = c.BindJSON(&params)
+	if e != nil {
+		return
+	}
+	logger.Info(msg, zap.Any("params", params))
+
+	e = ac.helper.add(
+		params["title"],
+		params["content"],
+		params["node_id"],
+	)
+	if e != nil {
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": ""})
+}
+
+func (ac *ArticleController) edit(c *gin.Context) {
+	const msg = "add"
+	logger := utils.NewFileLogger("./dist/article/add", "console", 1)
+	var e error
+	defer func() {
+		if e != nil {
+			logger.Error(msg, zap.Error(e))
+			c.JSON(http.StatusOK, gin.H{"Code": e.Error()})
+		}
+	}()
+
+	var id int
+	id, e = strconv.Atoi(c.Param("id"))
+	if e != nil {
+		return
+	}
+
+	// 接下來就可以用 intID 做資料庫查詢或其他操作
+	fmt.Println("ID:", id)
+
+	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": id, "data": ac.helper.get(id)})
 }
 
 func NewArticleController(rg *gin.RouterGroup, di service.DI) {
@@ -80,4 +179,6 @@ func NewArticleController(rg *gin.RouterGroup, di service.DI) {
 	}
 	r := rg.Group("/article")
 	r.GET("/fresh", c.fresh)
+	r.POST("/add", c.add)
+	r.GET("/edit/:id", c.edit)
 }

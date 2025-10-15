@@ -1,6 +1,6 @@
 package model
 
-type DataModel struct {
+type CategoryModel struct {
 	Categories []Category
 }
 
