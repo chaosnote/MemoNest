@@ -198,7 +198,7 @@ type NodeController struct {
 
 func (u *NodeController) add(c *gin.Context) {
 	const msg = "add"
-	logger := utils.NewFileLogger("./dist/node/add", "console", 1)
+	logger := utils.NewFileLogger("./dist/logs/node/add", "console", 1)
 	var e error
 	defer func() {
 		if e != nil {
@@ -229,7 +229,7 @@ func (u *NodeController) add(c *gin.Context) {
 
 func (u *NodeController) del(c *gin.Context) {
 	const msg = "del"
-	logger := utils.NewFileLogger("./dist/node/del", "console", 1)
+	logger := utils.NewFileLogger("./dist/logs/node/del", "console", 1)
 	var e error
 	defer func() {
 		if e != nil {

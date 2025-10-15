@@ -12,7 +12,7 @@ import (
 
 // NewNatsIOImpl 建立 NATS 連線
 func NewNatsIOImpl(cfg *model.APPConfig) (*nats.Conn, error) {
-	logger := utils.NewFileLogger("./dist/natsio", "console", 1)
+	logger := utils.NewFileLogger("./dist/logs/natsio", "console", 1)
 	c, e := nats.Connect(cfg.Natsio.URL,
 		nats.PingInterval(time.Second),
 		nats.DisconnectErrHandler(func(nc *nats.Conn, err error) {

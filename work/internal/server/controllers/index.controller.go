@@ -11,7 +11,7 @@ import (
 type IndexController struct{}
 
 func (u *IndexController) entry(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": "首頁"})
+	c.Redirect(http.StatusSeeOther, "/health")
 }
 
 func (u *IndexController) health(c *gin.Context) {

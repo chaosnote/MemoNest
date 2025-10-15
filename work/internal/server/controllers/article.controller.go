@@ -113,7 +113,7 @@ func (ac *ArticleController) fresh(c *gin.Context) {
 		"UsePicker":      true,
 		"NodeMap":        node_map,
 		"ArticleTitle":   "請輸入文章標題",
-		"ArticleContent": "請輸入文章內容...",
+		"ArticleContent": "<p><br></p>",
 	})
 	if e != nil {
 		return
@@ -122,7 +122,7 @@ func (ac *ArticleController) fresh(c *gin.Context) {
 
 func (ac *ArticleController) add(c *gin.Context) {
 	const msg = "add"
-	logger := utils.NewFileLogger("./dist/article/add", "console", 1)
+	logger := utils.NewFileLogger("./dist/logs/article/add", "console", 1)
 	var e error
 	defer func() {
 		if e != nil {
@@ -141,20 +141,25 @@ func (ac *ArticleController) add(c *gin.Context) {
 	}
 	logger.Info(msg, zap.Any("params", param))
 
+	const userID = "tester"
+	content := share.ProcessBase64Images(userID, param.ArticleID, param.Content)
 	e = ac.helper.add(
 		param.Title,
-		param.Content,
+		content,
 		param.ArticleID,
 	)
 	if e != nil {
 		return
 	}
+
+	share.CleanupUnusedImages(userID, param.ArticleID, content)
+
 	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": ""})
 }
 
 func (ac *ArticleController) edit(c *gin.Context) {
 	const msg = "edit"
-	logger := utils.NewFileLogger("./dist/article/add", "console", 1)
+	logger := utils.NewFileLogger("./dist/logs/article/add", "console", 1)
 	var e error
 	defer func() {
 		if e != nil {
@@ -169,10 +174,31 @@ func (ac *ArticleController) edit(c *gin.Context) {
 		return
 	}
 
-	// 接下來就可以用 intID 做資料庫查詢或其他操作
-	fmt.Println("ID:", id)
+	list := ac.helper.get(id)
+	if len(list) == 0 {
+		e = fmt.Errorf("無指定資料")
+		return
+	}
+	data := list[0]
 
-	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": id, "data": ac.helper.get(id)})
+	dir := filepath.Join("./assets", "templates")
+	config := utils.TemplateConfig{
+		Layout:  filepath.Join(dir, "layout", "share.html"),
+		Page:    []string{filepath.Join(dir, "page", "article", "edit.html")},
+		Pattern: []string{},
+	}
+
+	tmpl, e := utils.RenderTemplate(config)
+	e = tmpl.ExecuteTemplate(c.Writer, "edit.html", gin.H{
+		"Title":          "增加文章",
+		"UsePicker":      false,
+		"ArticleTitle":   data.Title,
+		"ArticleContent": data.Content,
+	})
+	if e != nil {
+		return
+	}
+
 }
 
 func NewArticleController(rg *gin.RouterGroup, di service.DI) {

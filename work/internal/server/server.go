@@ -14,7 +14,7 @@ import (
 
 // Register 啟動 HTTP 服務
 func Register(lc fx.Lifecycle, engine *gin.Engine, deps service.DI) {
-	utils.RSAInit("./dist/crypt/rsa.txt", 1024, true)
+	utils.RSAInit("./dist/logs/crypt/rsa.txt", 1024, true)
 
 	// 註冊路由
 	RegisterRoutes(engine, deps)

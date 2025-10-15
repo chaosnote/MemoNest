@@ -75,6 +75,7 @@
     let node_id = null;
     let node_name = null;
 </script>
+
 {{ if .UsePicker }}
 <script>
     function select_node(id, name) {
@@ -85,7 +86,24 @@
     }
 </script>
 {{ end }}
+
 <script>
+    const quill = new Quill('#editor', {
+        theme: 'snow',
+        placeholder: "請輸入文章內容...",
+        modules: {
+            toolbar: [
+                [{ font: [] }, { size: ['small', false, 'large', 'huge'] }],
+                [{ color: [] }, { background: [] }],
+                ['bold', 'italic', 'underline'],
+                [{ list: 'ordered' }, { list: 'bullet' }],
+                ['link', 'image'],
+                ['clean']
+            ]
+        }
+    });
+    quill.root.innerHTML = '{{.ArticleContent}}' ;
+
     function onBlur(event){
         $(event.target).blur();
     }
@@ -122,20 +140,5 @@
             }
         });
     }
-
-    const quill = new Quill('#editor', {
-        theme: 'snow',
-        placeholder: '{{.ArticleContent}}',
-        modules: {
-            toolbar: [
-                [{ font: [] }, { size: ['small', false, 'large', 'huge'] }],
-                [{ color: [] }, { background: [] }],
-                ['bold', 'italic', 'underline'],
-                [{ list: 'ordered' }, { list: 'bullet' }],
-                ['link', 'image'],
-                ['clean']
-            ]
-        }
-    });
 </script>
 {{end}}

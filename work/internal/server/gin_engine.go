@@ -12,7 +12,7 @@ import (
 
 // NewGinEngine 建立 Gin Engine 並加入中介層
 func NewGinEngine(cfg *model.APPConfig, store redis.Store) *gin.Engine {
-	logger := utils.NewFileLogger("./dist/server", "console", 1)
+	logger := utils.NewFileLogger("./dist/logs/server", "console", 1)
 
 	gin.SetMode(cfg.Gin.Mode)
 

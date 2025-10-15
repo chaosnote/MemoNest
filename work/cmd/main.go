@@ -21,7 +21,7 @@ func main() {
 			// 	fx.ResultTags(`name:"system"`),
 			// ),
 			// func() *zap.Logger {
-			//  logger := utils.NewFileLogger("./dist/system", "console", 1)
+			//  logger := utils.NewFileLogger("./dist/logs/system", "console", 1)
 			// 	logger := utils.NewConsoleLogger("console", 1)
 			// 	return logger.Named("system")
 			// },
@@ -40,7 +40,7 @@ func main() {
 		),
 
 		fx.WithLogger(func() fxevent.Logger {
-			return &fxevent.ZapLogger{Logger: utils.NewFileLogger("./dist/fx", "console", 1)}
+			return &fxevent.ZapLogger{Logger: utils.NewFileLogger("./dist/logs/fx", "console", 1)}
 		}),
 
 		// 啟動 HTTP Server
