@@ -106,7 +106,8 @@ func (nh *ArticleHelper) list() (articles []model.Article) {
 			c.PathName,
 			a.UpdateDt
 		FROM articles as a
-		JOIN categories as c ON a.NodeID = c.NodeID ;
+		JOIN categories as c ON a.NodeID = c.NodeID
+		ORDER BY a.UpdateDt DESC ;
 	`)
 	if e != nil {
 		return
@@ -217,8 +218,15 @@ func (ac *ArticleController) edit(c *gin.Context) {
 		}
 	}()
 
+	s := sessions.Default(c)
+	key := []byte(s.Get(model.SK_AES_KEY).(string))
+	txt, e := utils.AesDecrypt(c.Param("id"), key)
+	if e != nil {
+		return
+	}
+
 	var id int
-	id, e = strconv.Atoi(c.Param("id"))
+	id, e = strconv.Atoi(txt)
 	if e != nil {
 		return
 	}
@@ -243,7 +251,7 @@ func (ac *ArticleController) edit(c *gin.Context) {
 	}
 	e = tmpl.ExecuteTemplate(c.Writer, "edit.html", gin.H{
 		"Title":          "修改文章",
-		"RowID":          data.RowID,
+		"ID":             c.Param("id"),
 		"PathName":       data.PathName,
 		"ArticleTitle":   data.Title,
 		"ArticleContent": data.Content,
@@ -293,7 +301,7 @@ func (ac *ArticleController) list(c *gin.Context) {
 		return
 	}
 	e = tmpl.ExecuteTemplate(c.Writer, "list.html", gin.H{
-		"Title": "修改文章",
+		"Title": "文章清單",
 		"List":  list,
 	})
 	if e != nil {
