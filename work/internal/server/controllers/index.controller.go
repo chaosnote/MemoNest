@@ -42,7 +42,7 @@ func (ic *IndexController) entry(c *gin.Context) {
 	e = tmpl.ExecuteTemplate(c.Writer, "index.html", gin.H{
 		"Title":   "測試頁",
 		"Login":   []string{"/api/v1/member/login", "/api/v1/member/logout"},
-		"Article": []string{"/api/v1/article/fresh"},
+		"Article": []string{"/api/v1/article/list", "/api/v1/article/fresh"},
 	})
 	if e != nil {
 		return

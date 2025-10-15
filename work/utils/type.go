@@ -2,7 +2,7 @@ package utils
 
 import "reflect"
 
-func StructToMap(obj interface{}, output map[string]any) {
+func StructToMap(obj any, output map[string]any) {
 	v := reflect.ValueOf(obj)
 	typeOfS := v.Type()
 

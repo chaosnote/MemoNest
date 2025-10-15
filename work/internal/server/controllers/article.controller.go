@@ -3,9 +3,11 @@ package controllers
 import (
 	"database/sql"
 	"fmt"
+	"html/template"
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -71,6 +73,41 @@ func (nh *ArticleHelper) get(id int) (articles []model.Article) {
 		JOIN categories as c ON a.NodeID = c.NodeID
 		WHERE a.RowID = ? ;
 	`, id)
+	if e != nil {
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var article model.Article
+		e = rows.Scan(
+			&article.RowID,
+			&article.Title,
+			&article.Content,
+			&article.NodeID,
+			&article.PathName,
+			&article.UpdateDt,
+		)
+		if e != nil {
+			return
+		}
+		articles = append(articles, article)
+	}
+	return
+}
+
+func (nh *ArticleHelper) list() (articles []model.Article) {
+	rows, e := nh.db.Query(`
+		SELECT 
+			a.RowID AS ArticleRowID,
+			a.Title,
+			a.Content,
+			a.NodeID,
+			c.PathName,
+			a.UpdateDt
+		FROM articles as a
+		JOIN categories as c ON a.NodeID = c.NodeID ;
+	`)
 	if e != nil {
 		return
 	}
@@ -217,6 +254,59 @@ func (ac *ArticleController) edit(c *gin.Context) {
 
 }
 
+func (ac *ArticleController) list(c *gin.Context) {
+	const msg = "list"
+	logger := utils.NewFileLogger("./dist/logs/article/list", "console", 1)
+	var e error
+	defer func() {
+		if e != nil {
+			logger.Error(msg, zap.Error(e))
+			c.JSON(http.StatusOK, gin.H{"Code": e.Error()})
+		}
+	}()
+
+	s := sessions.Default(c)
+	key := []byte(s.Get(model.SK_AES_KEY).(string))
+
+	list := ac.helper.list()
+
+	dir := filepath.Join("./assets", "templates")
+	config := utils.TemplateConfig{
+		Layout:  filepath.Join(dir, "layout", "share.html"),
+		Page:    []string{filepath.Join(dir, "page", "article", "list.html")},
+		Pattern: []string{},
+		Funcs: map[string]any{
+			"trans": func(s string) template.HTML {
+				return template.HTML(s)
+			},
+			"format": func(t time.Time) string {
+				return t.Format("2006-01-02 15:04")
+			},
+			"encrypt": func(id int) string {
+				fmt.Println("key", string(key))
+				output, e := utils.AesEncrypt([]byte(fmt.Sprintf("%v", id)), key)
+				if e != nil {
+					fmt.Println(e.Error())
+				}
+				fmt.Println(string(output))
+				return string(output)
+			},
+		},
+	}
+	tmpl, e := utils.RenderTemplate(config)
+	if e != nil {
+		return
+	}
+	e = tmpl.ExecuteTemplate(c.Writer, "list.html", gin.H{
+		"Title": "修改文章",
+		"List":  list,
+	})
+	if e != nil {
+		return
+	}
+
+}
+
 func NewArticleController(rg *gin.RouterGroup, di service.DI) {
 	c := &ArticleController{
 		helper: &ArticleHelper{
@@ -226,6 +316,7 @@ func NewArticleController(rg *gin.RouterGroup, di service.DI) {
 	r := rg.Group("/article")
 	r.Use(middleware.MustLoginMiddleware(di))
 	r.GET("/fresh", c.fresh)
+	r.GET("/list", c.list)
 	r.POST("/add", c.add)
 	r.GET("/edit/:id", c.edit)
 }
