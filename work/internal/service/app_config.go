@@ -2,7 +2,6 @@ package service
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 
 	"idv/chris/MemoNest/internal/model"
@@ -24,7 +23,7 @@ func NewAPPConfig() (*model.APPConfig, error) {
 	}
 
 	logger := utils.NewConsoleLogger("console", 1)
-	logger.Debug("server", zap.Any("addr", fmt.Sprintf("http://localhost:%s", cfg.Gin.Port)))
+	logger.Debug("server", zap.Any("addr", "http://172.31.235.34:8080/"))
 
 	return &cfg, nil
 }

@@ -7,11 +7,13 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
 	"idv/chris/MemoNest/internal/model"
 	"idv/chris/MemoNest/internal/server/controllers/share"
+	"idv/chris/MemoNest/internal/server/middleware"
 	"idv/chris/MemoNest/internal/service"
 	"idv/chris/MemoNest/utils"
 )
@@ -154,14 +156,15 @@ func (ac *ArticleController) add(c *gin.Context) {
 		return
 	}
 
-	const userID = "tester"
+	s := sessions.Default(c)
+	account := s.Get(model.SK_ACCOUNT).(string)
 	article_id := fmt.Sprintf("%v", row_id)
-	content := share.ProcessBase64Images(userID, article_id, param.Content)
+	content := share.ProcessBase64Images(account, article_id, param.Content)
 	e = ac.helper.update(row_id, param.Title, content)
 	if e != nil {
 		return
 	}
-	share.CleanupUnusedImages(userID, article_id, content)
+	share.CleanupUnusedImages(account, article_id, content)
 
 	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": ""})
 }
@@ -218,6 +221,7 @@ func NewArticleController(rg *gin.RouterGroup, di service.DI) {
 		},
 	}
 	r := rg.Group("/article")
+	r.Use(middleware.MustLoginMiddleware(di))
 	r.GET("/fresh", c.fresh)
 	r.POST("/add", c.add)
 	r.GET("/edit/:id", c.edit)

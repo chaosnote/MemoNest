@@ -78,31 +78,30 @@
         const title = document.getElementById("articleTitle").value.trim();
 
         if (!title) return alert("請輸入文章標題！");
-        if (!node_id) return alert("請選擇節點！");
         if (!quill.root.innerText) return alert("請輸入文章內容！");
 
         const params = {
-            node_id: node_id,
+            row_id: row_id,
             title: title,
             content: quill.root.innerHTML
         };
 
         $.ajax({
-            url: "/api/v1/article/add",
+            url: "/api/v1/article/renew",
             type: "POST",
             contentType: "application/json",
             data: JSON.stringify(params),
             success: function (response) {
                 if(response.Code == "OK"){
-                    alert("增加文章成功！");
+                    alert("修改文章成功！");
                     location.reload();
                     return;
                 }
-                alert("增加文章失敗", response.Code);
+                alert("修改文章失敗", response.Code);
             },
             error: function (xhr, status, error) {
-                console.error("增加文章失敗：", error);
-                alert("增加文章失敗，請稍後再試！");
+                console.error("修改文章失敗：", error);
+                alert("修改文章失敗，請稍後再試！");
             }
         });
     }

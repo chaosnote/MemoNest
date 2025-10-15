@@ -12,6 +12,7 @@ import (
 
 	"idv/chris/MemoNest/internal/model"
 	"idv/chris/MemoNest/internal/server/controllers/share"
+	"idv/chris/MemoNest/internal/server/middleware"
 	"idv/chris/MemoNest/internal/service"
 	"idv/chris/MemoNest/utils"
 )
@@ -302,6 +303,7 @@ func NewNodeController(rg *gin.RouterGroup, di service.DI) {
 		},
 	}
 	r := rg.Group("/node")
+	r.Use(middleware.MustLoginMiddleware(di))
 	r.GET("/list", c.list)
 	r.POST("/add", c.add)
 	r.POST("/del", c.del)

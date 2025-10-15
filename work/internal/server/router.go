@@ -8,11 +8,13 @@ import (
 )
 
 // RegisterRoutes 註冊所有路由
-func RegisterRoutes(engine *gin.Engine, deps service.DI) {
+func RegisterRoutes(engine *gin.Engine, di service.DI) {
 	const prefix = "/api/v1"
-	controllers.NewIndexController(engine, deps)
-	controllers.NewToolsController(engine.Group(prefix), deps)
-	controllers.NewMemberController(engine.Group(prefix), deps)
-	controllers.NewNodeController(engine.Group(prefix), deps)
-	controllers.NewArticleController(engine.Group(prefix), deps)
+	controllers.NewIndexController(engine, di)
+
+	g := engine.Group(prefix)
+	controllers.NewMemberController(g, di)
+	controllers.NewToolsController(g, di)
+	controllers.NewNodeController(g, di)
+	controllers.NewArticleController(g, di)
 }
