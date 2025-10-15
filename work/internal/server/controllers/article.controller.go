@@ -153,7 +153,7 @@ func (ac *ArticleController) add(c *gin.Context) {
 }
 
 func (ac *ArticleController) edit(c *gin.Context) {
-	const msg = "add"
+	const msg = "edit"
 	logger := utils.NewFileLogger("./dist/article/add", "console", 1)
 	var e error
 	defer func() {
