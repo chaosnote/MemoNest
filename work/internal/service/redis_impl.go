@@ -1,25 +1,24 @@
 package service
 
 import (
-	"context"
+	"fmt"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/gin-contrib/sessions/redis"
 
 	"idv/chris/MemoNest/internal/model"
 )
 
 // NewRedisDB 建立 Redis 連線
-func NewRedisDB(cfg *model.APPConfig) (*redis.Client, error) {
-	r := redis.NewClient(&redis.Options{
-		Addr:     cfg.Redis.Addr,
-		Password: cfg.Redis.Password,
-		DB:       cfg.Redis.DB,
-	})
+func NewRedisDB(cfg *model.APPConfig) (redis.Store, error) {
+	store, err := redis.NewStoreWithDB(
+		10,                              // 連線池大小
+		"tcp",                           // 網路類型
+		cfg.Redis.Addr,                  // Redis 地址
+		"",                              // user name
+		cfg.Redis.Password,              // 密碼 (如果沒有則留空)
+		fmt.Sprintf("%v", cfg.Redis.DB), // 指定 DB
+		[]byte("secret-key"),            // Session 密鑰
+	)
 
-	// 測試連線
-	if e := r.Ping(context.Background()).Err(); e != nil {
-		return nil, e
-	}
-
-	return r, nil
+	return store, err
 }

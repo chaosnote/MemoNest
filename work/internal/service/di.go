@@ -3,7 +3,7 @@ package service
 import (
 	"database/sql"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/gin-contrib/sessions/redis"
 	"github.com/nats-io/nats.go"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/fx"
@@ -16,7 +16,7 @@ type DI struct {
 	fx.In
 
 	Config  *model.APPConfig
-	RedisDB *redis.Client
+	RedisDB redis.Store
 	MariaDB *sql.DB
 	MongoDB *mongo.Client
 	NatsIO  *nats.Conn

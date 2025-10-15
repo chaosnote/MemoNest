@@ -34,7 +34,6 @@ func Register(lc fx.Lifecycle, engine *gin.Engine, deps service.DI) {
 			deps.MariaDB.Close()
 			deps.MongoDB.Disconnect(ctx)
 			deps.NatsIO.Close()
-			deps.RedisDB.Close()
 			return srv.Shutdown(ctx) // 可在此關閉資料庫連線、釋放資源
 		},
 	})
