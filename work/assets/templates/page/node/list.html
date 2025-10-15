@@ -142,6 +142,10 @@
             contentType: "application/json",
             data: JSON.stringify(params),
             success: function (response) {
+                if(response.Code != "OK"){
+                    alert(response.Code)
+                    return ;
+                }
                 location.reload();
             },
             error: function (xhr, status, error) {

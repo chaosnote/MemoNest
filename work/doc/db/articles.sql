@@ -28,6 +28,8 @@ BEGIN
     IF EXISTS (SELECT 1 FROM categories WHERE NodeID = p_NodeID) THEN
         INSERT INTO articles (Title, Content, UpdateDt, CreatedDt, NodeID)
         VALUES (p_Title, p_Content, p_UpdateDt, p_CreatedDt, p_NodeID);
+
+        SELECT LAST_INSERT_ID() AS RowID; 
     ELSE
         SET error_message = CONCAT('NodeID(', p_NodeID, ') 不存在於 `categories`');
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = error_message ;

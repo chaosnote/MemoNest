@@ -128,6 +128,16 @@ func (nh *NodeHelper) addChildNode(parentID, pathName string) (*model.Category, 
 
 // del 移除指定的分類節點及其所有後代節點
 func (nh *NodeHelper) del(nodeID string) error {
+	row := nh.db.QueryRow(`SELECT COUNT(*) AS Total FROM articles WHERE NodeID = ?;`, nodeID)
+	var total int
+	e := row.Scan(&total)
+	if e != nil {
+		return e
+	}
+	if total != 0 {
+		return fmt.Errorf("該節點仍有文章(筆數: %v)", total)
+	}
+
 	tx, err := nh.db.Begin()
 	if err != nil {
 		return err

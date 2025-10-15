@@ -38,12 +38,22 @@ func (nh *ArticleHelper) getAllNode() (categories []model.Category) {
 	return
 }
 
-func (nh *ArticleHelper) add(title, content, node_id string) error {
-	_, e := nh.db.Exec("CALL insert_article(?, ?, NOW(), NOW(), ?) ;", title, content, node_id)
+func (nh *ArticleHelper) add(node_id string) (id int, e error) {
+	row := nh.db.QueryRow("CALL insert_article(?, ?, NOW(), NOW(), ?) ;", "", "", node_id)
+	e = row.Scan(&id)
+	if e != nil {
+		return
+	}
+	return
+}
+
+func (nh *ArticleHelper) update(row_id int, title, content string) error {
+	query := `UPDATE articles SET Title = ?, Content = ? WHERE RowID = ?;`
+	_, e := nh.db.Exec(query, title, content, row_id)
 	if e != nil {
 		return e
 	}
-	return e
+	return nil
 }
 
 func (nh *ArticleHelper) get(id int) (articles []model.Article) {
@@ -67,7 +77,7 @@ func (nh *ArticleHelper) get(id int) (articles []model.Article) {
 	for rows.Next() {
 		var article model.Article
 		e = rows.Scan(
-			&article.ArticleRowID,
+			&article.RowID,
 			&article.Title,
 			&article.Content,
 			&article.NodeID,
@@ -92,7 +102,7 @@ func (ac *ArticleController) fresh(c *gin.Context) {
 	dir := filepath.Join("./assets", "templates")
 	config := utils.TemplateConfig{
 		Layout:  filepath.Join(dir, "layout", "share.html"),
-		Page:    []string{filepath.Join(dir, "page", "article", "edit.html")},
+		Page:    []string{filepath.Join(dir, "page", "article", "fresh.html")},
 		Pattern: []string{},
 	}
 	tmpl, e := utils.RenderTemplate(config)
@@ -108,12 +118,10 @@ func (ac *ArticleController) fresh(c *gin.Context) {
 
 	_, node_map := share.GenNodeInfo(ac.helper.getAllNode())
 
-	e = tmpl.ExecuteTemplate(c.Writer, "edit.html", gin.H{
-		"Title":          "增加文章",
-		"UsePicker":      true,
-		"NodeMap":        node_map,
-		"ArticleTitle":   "請輸入文章標題",
-		"ArticleContent": "<p><br></p>",
+	e = tmpl.ExecuteTemplate(c.Writer, "fresh.html", gin.H{
+		"Title":        "增加文章",
+		"NodeMap":      node_map,
+		"ArticleTitle": "請輸入文章標題",
 	})
 	if e != nil {
 		return
@@ -131,35 +139,36 @@ func (ac *ArticleController) add(c *gin.Context) {
 		}
 	}()
 	var param struct {
-		Title     string `json:"title"`
-		Content   string `json:"content"`
-		ArticleID string `json:"node_id"`
+		Title   string `json:"title"`
+		Content string `json:"content"`
+		NodeID  string `json:"node_id"`
 	}
 	e = c.BindJSON(&param)
 	if e != nil {
 		return
 	}
 	logger.Info(msg, zap.Any("params", param))
-
-	const userID = "tester"
-	content := share.ProcessBase64Images(userID, param.ArticleID, param.Content)
-	e = ac.helper.add(
-		param.Title,
-		content,
-		param.ArticleID,
-	)
+	var row_id int
+	row_id, e = ac.helper.add(param.NodeID)
 	if e != nil {
 		return
 	}
 
-	share.CleanupUnusedImages(userID, param.ArticleID, content)
+	const userID = "tester"
+	article_id := fmt.Sprintf("%v", row_id)
+	content := share.ProcessBase64Images(userID, article_id, param.Content)
+	e = ac.helper.update(row_id, param.Title, content)
+	if e != nil {
+		return
+	}
+	share.CleanupUnusedImages(userID, article_id, content)
 
 	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": ""})
 }
 
 func (ac *ArticleController) edit(c *gin.Context) {
 	const msg = "edit"
-	logger := utils.NewFileLogger("./dist/logs/article/add", "console", 1)
+	logger := utils.NewFileLogger("./dist/logs/article/edit", "console", 1)
 	var e error
 	defer func() {
 		if e != nil {
@@ -190,8 +199,9 @@ func (ac *ArticleController) edit(c *gin.Context) {
 
 	tmpl, e := utils.RenderTemplate(config)
 	e = tmpl.ExecuteTemplate(c.Writer, "edit.html", gin.H{
-		"Title":          "增加文章",
-		"UsePicker":      false,
+		"Title":          "修改文章",
+		"RowID":          data.RowID,
+		"PathName":       data.PathName,
 		"ArticleTitle":   data.Title,
 		"ArticleContent": data.Content,
 	})

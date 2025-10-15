@@ -44,8 +44,8 @@ func ProcessBase64Images(userID, articleID, html string) string {
 }
 
 func GetImageStoragePath(userID, articleID, filename string) string {
-	exePath, _ := os.Executable()
-	fmt.Println("DIR", exePath)
+	// exePath, _ := os.Executable()
+	// fmt.Println("DIR", exePath)
 	// baseDir := filepath.Dir(exePath)
 	baseDir := "./dist"
 	return filepath.Join(baseDir, "uploads", userID, "article", articleID, filename)
