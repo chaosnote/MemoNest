@@ -283,12 +283,7 @@ func (ac *ArticleController) list(c *gin.Context) {
 				return t.Format("2006-01-02 15:04")
 			},
 			"encrypt": func(id int) string {
-				fmt.Println("key", string(key))
-				output, e := utils.AesEncrypt([]byte(fmt.Sprintf("%v", id)), key)
-				if e != nil {
-					fmt.Println(e.Error())
-				}
-				fmt.Println(string(output))
+				output, _ := utils.AesEncrypt([]byte(fmt.Sprintf("%v", id)), key)
 				return string(output)
 			},
 		},
