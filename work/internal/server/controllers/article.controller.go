@@ -201,6 +201,9 @@ func (ac *ArticleController) edit(c *gin.Context) {
 	}
 
 	tmpl, e := utils.RenderTemplate(config)
+	if e != nil {
+		return
+	}
 	e = tmpl.ExecuteTemplate(c.Writer, "edit.html", gin.H{
 		"Title":          "修改文章",
 		"RowID":          data.RowID,
