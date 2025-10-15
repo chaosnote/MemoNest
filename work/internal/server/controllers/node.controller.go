@@ -206,26 +206,25 @@ func (u *NodeController) add(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{"Code": e.Error()})
 		}
 	}()
-	var params map[string]string
-	e = c.BindJSON(&params)
+	var param struct {
+		ID    string `json:"id"`
+		Label string `json:"label"`
+	}
+	e = c.BindJSON(&param)
 	if e != nil {
 		return
 	}
-	logger.Info(msg, zap.Any("params", params))
+	logger.Info(msg, zap.Any("params", param))
 
-	const (
-		id    = "id"
-		label = "label"
-	)
-	if params["id"] == uuid.Nil.String() {
-		_, e = u.helper.addParentNode(params[label])
+	if param.ID == uuid.Nil.String() {
+		_, e = u.helper.addParentNode(param.Label)
 	} else {
-		_, e = u.helper.addChildNode(params[id], params[label])
+		_, e = u.helper.addChildNode(param.ID, param.Label)
 	}
 	if e != nil {
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": fmt.Sprintf("增加 %s 成功", params[label])})
+	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": fmt.Sprintf("增加 %s 成功", param.Label)})
 }
 
 func (u *NodeController) del(c *gin.Context) {
@@ -238,18 +237,20 @@ func (u *NodeController) del(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{"Code": e.Error()})
 		}
 	}()
-	var params map[string]string
-	e = c.BindJSON(&params)
+	var param struct {
+		ID string `json:"id"`
+	}
+	e = c.BindJSON(&param)
 	if e != nil {
 		return
 	}
-	logger.Info(msg, zap.Any("params", params))
+	logger.Info(msg, zap.Any("params", param))
 
-	e = u.helper.del(params["id"])
+	e = u.helper.del(param.ID)
 	if e != nil {
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": fmt.Sprintf("刪除 %s 成功", params["id"])})
+	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": fmt.Sprintf("刪除 %s 成功", param.ID)})
 }
 
 func (tc *NodeController) list(c *gin.Context) {

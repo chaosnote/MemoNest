@@ -125,6 +125,7 @@
 
     const quill = new Quill('#editor', {
         theme: 'snow',
+        placeholder: '{{.ArticleContent}}',
         modules: {
             toolbar: [
                 [{ font: [] }, { size: ['small', false, 'large', 'huge'] }],
@@ -134,8 +135,7 @@
                 ['link', 'image'],
                 ['clean']
             ]
-        },
-        placeholder: '{{.ArticleContent}}'
+        }
     });
 </script>
 {{end}}

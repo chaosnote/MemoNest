@@ -49,12 +49,12 @@ func (nh *ArticleHelper) add(title, content, node_id string) error {
 func (nh *ArticleHelper) get(id int) (articles []model.Article) {
 	rows, e := nh.db.Query(`
 		SELECT 
-		a.RowID AS ArticleRowID,
-		a.Title,
-		a.Content,
-		a.NodeID,
-		c.PathName,
-		a.UpdateDt
+			a.RowID AS ArticleRowID,
+			a.Title,
+			a.Content,
+			a.NodeID,
+			c.PathName,
+			a.UpdateDt
 		FROM articles as a
 		JOIN categories as c ON a.NodeID = c.NodeID
 		WHERE a.RowID = ? ;
@@ -130,17 +130,21 @@ func (ac *ArticleController) add(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{"Code": e.Error()})
 		}
 	}()
-	var params map[string]string
-	e = c.BindJSON(&params)
+	var param struct {
+		Title     string `json:"title"`
+		Content   string `json:"content"`
+		ArticleID string `json:"node_id"`
+	}
+	e = c.BindJSON(&param)
 	if e != nil {
 		return
 	}
-	logger.Info(msg, zap.Any("params", params))
+	logger.Info(msg, zap.Any("params", param))
 
 	e = ac.helper.add(
-		params["title"],
-		params["content"],
-		params["node_id"],
+		param.Title,
+		param.Content,
+		param.ArticleID,
 	)
 	if e != nil {
 		return
