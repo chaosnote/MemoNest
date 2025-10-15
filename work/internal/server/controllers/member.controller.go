@@ -8,15 +8,18 @@ import (
 
 	"idv/chris/MemoNest/internal/model"
 	"idv/chris/MemoNest/internal/service"
+	"idv/chris/MemoNest/utils"
 )
 
 type MemberController struct{}
 
 // 使用者(註冊/登入)
 func (u *MemberController) login(c *gin.Context) {
+	account := "tester" // 暫用
 	s := sessions.Default(c)
-	s.Set(model.SK_ACCOUNT, "tester")
+	s.Set(model.SK_ACCOUNT, account)
 	s.Set(model.SK_IS_LOGIN, true)
+	s.Set(model.SK_AES_KEY, utils.MD5Hash(account))
 	s.Save()
 
 	c.Redirect(http.StatusSeeOther, "/api/v1/article/fresh")
