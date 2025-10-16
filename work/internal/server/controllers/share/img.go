@@ -71,3 +71,9 @@ func ExtractImageFilenamesFromHTML(html string) []string {
 	}
 	return filenames
 }
+
+func DelImageDir(userID, articleID string) {
+	baseDir := "./dist"
+	dir := filepath.Join(baseDir, "uploads", userID, "article", articleID)
+	os.RemoveAll(dir)
+}

@@ -121,7 +121,7 @@
             success: function (response) {
                 if(response.Code == "OK"){
                     alert("增加文章成功！");
-                    location.reload();
+                    location.href = "/api/v1/article/list";
                     return;
                 }
                 alert("增加文章失敗", response.Code);

@@ -43,8 +43,17 @@ func (nh *ArticleHelper) getAllNode() (categories []model.Category) {
 }
 
 func (nh *ArticleHelper) add(node_id string) (id int, e error) {
-	row := nh.db.QueryRow("CALL insert_article(?, ?, NOW(), NOW(), ?) ;", "", "", node_id)
+	t := time.Now().UTC()
+	row := nh.db.QueryRow("CALL insert_article(?, ?, ?, ?, ?) ;", "", "", t, t, node_id)
 	e = row.Scan(&id)
+	if e != nil {
+		return
+	}
+	return
+}
+
+func (nh *ArticleHelper) del(id int) (e error) {
+	_, e = nh.db.Exec(`DELETE from articles where RowID = ? ;`, id)
 	if e != nil {
 		return
 	}
@@ -207,6 +216,45 @@ func (ac *ArticleController) add(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": ""})
 }
 
+func (ac *ArticleController) del(c *gin.Context) {
+	const msg = "del"
+	logger := utils.NewFileLogger("./dist/logs/article/del", "console", 1)
+	var e error
+	defer func() {
+		if e != nil {
+			logger.Error(msg, zap.Error(e))
+			c.JSON(http.StatusOK, gin.H{"Code": e.Error()})
+		}
+	}()
+	var param struct {
+		Txt string `json:"id"`
+	}
+	e = c.BindJSON(&param)
+	if e != nil {
+		return
+	}
+	logger.Info(msg, zap.Any("params", param))
+
+	s := sessions.Default(c)
+	account := s.Get(model.SK_ACCOUNT).(string)
+	key := []byte(s.Get(model.SK_AES_KEY).(string))
+	output, _ := utils.AesDecrypt(param.Txt, key)
+
+	var id int
+	id, e = strconv.Atoi(output)
+	if e != nil {
+		return
+	}
+	e = ac.helper.del(id)
+	if e != nil {
+		return
+	}
+
+	share.DelImageDir(account, fmt.Sprintf("%v", id))
+
+	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": ""})
+}
+
 func (ac *ArticleController) edit(c *gin.Context) {
 	const msg = "edit"
 	logger := utils.NewFileLogger("./dist/logs/article/edit", "console", 1)
@@ -288,7 +336,8 @@ func (ac *ArticleController) list(c *gin.Context) {
 				return template.HTML(s)
 			},
 			"format": func(t time.Time) string {
-				return t.Format("2006-01-02 15:04")
+				loc, _ := time.LoadLocation("Asia/Taipei")
+				return t.In(loc).Format("2006-01-02 15:04")
 			},
 			"encrypt": func(id int) string {
 				output, _ := utils.AesEncrypt([]byte(fmt.Sprintf("%v", id)), key)
@@ -321,5 +370,6 @@ func NewArticleController(rg *gin.RouterGroup, di service.DI) {
 	r.GET("/fresh", c.fresh)
 	r.GET("/list", c.list)
 	r.POST("/add", c.add)
+	r.POST("/del", c.del)
 	r.GET("/edit/:id", c.edit)
 }

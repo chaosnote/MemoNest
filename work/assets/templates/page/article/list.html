@@ -4,24 +4,53 @@
 {{end}}
 
 {{define "content"}}
+{{ if .List }}
     {{range .List}}
     <div class="card mt-2 border border-2">
         <div class="card-body">
             <h5 class="card-title fw-bold fs-5 text-primary mb-3">[{{format .UpdateDt}}]&nbsp;{{.Title}}</h5>
             <div class="card-text border p-2">{{trans .Content}}</div>
             <div class="d-flex justify-content-end gap-2 mt-3">
-                <a href="#" class="btn btn-outline-primary btn-sm" onclick="direct('{{encrypt .RowID}}')">修改</a>
-                <a href="#" class="btn btn-outline-danger btn-sm" onclick="console.log('{{encrypt .RowID}}')">刪除</a>
+                <a class="btn btn-outline-primary btn-sm" onclick="directTo('{{encrypt .RowID}}')">修改</a>
+                <a class="btn btn-outline-danger btn-sm" onclick="onDel('{{encrypt .RowID}}')">刪除</a>
             </div>
         </div>
     </div>
     {{end}}
+{{ else }}
+    <div class="alert alert-danger border rounded" role="alert">
+    <strong>提示：</strong> 目前無資料
+</div>
+{{ end }}
 {{end}}
 
 {{define "js"}}
 <script>
-    function direct(id){
+    function directTo(id){
         location.href = "/api/v1/article/edit/"+id;
+    }
+    function onDel(id){
+        const params = {
+            id: id,
+        };
+        $.ajax({
+            url: "/api/v1/article/del",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(params),
+            success: function (response) {
+                if(response.Code == "OK"){
+                    alert("刪除文章成功！");
+                    location.reload();
+                    return;
+                }
+                alert("刪除文章失敗", response.Code);
+            },
+            error: function (xhr, status, error) {
+                console.error("刪除文章失敗：", error);
+                alert("刪除文章失敗，請稍後再試！");
+            }
+        });
     }
 </script>
     
