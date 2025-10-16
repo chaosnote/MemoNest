@@ -22,7 +22,7 @@ func (u *MemberController) login(c *gin.Context) {
 	s.Set(model.SK_AES_KEY, utils.MD5Hash(account))
 	s.Save()
 
-	c.Redirect(http.StatusSeeOther, "/api/v1/article/fresh")
+	c.Redirect(http.StatusSeeOther, "/api/v1/article/list")
 }
 
 // 使用者登出

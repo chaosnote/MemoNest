@@ -25,8 +25,8 @@ type ArticleHelper struct {
 	db *sql.DB
 }
 
-func (nh *ArticleHelper) getAllNode() (categories []model.Category) {
-	rows, err := nh.db.Query("SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM categories ORDER BY LftIdx ASC")
+func (ah *ArticleHelper) getAllNode() (categories []model.Category) {
+	rows, err := ah.db.Query("SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM categories ORDER BY LftIdx ASC")
 	if err != nil {
 		return
 	}
@@ -43,9 +43,9 @@ func (nh *ArticleHelper) getAllNode() (categories []model.Category) {
 	return
 }
 
-func (nh *ArticleHelper) add(node_id string) (id int, e error) {
+func (ah *ArticleHelper) add(node_id string) (id int, e error) {
 	t := time.Now().UTC()
-	row := nh.db.QueryRow("CALL insert_article(?, ?, ?, ?, ?) ;", "", "", t, t, node_id)
+	row := ah.db.QueryRow("CALL insert_article(?, ?, ?, ?, ?) ;", "", "", t, t, node_id)
 	e = row.Scan(&id)
 	if e != nil {
 		return
@@ -53,26 +53,26 @@ func (nh *ArticleHelper) add(node_id string) (id int, e error) {
 	return
 }
 
-func (nh *ArticleHelper) del(id int) (e error) {
-	_, e = nh.db.Exec(`DELETE from articles where RowID = ? ;`, id)
+func (ah *ArticleHelper) del(id int) (e error) {
+	_, e = ah.db.Exec(`DELETE from articles where RowID = ? ;`, id)
 	if e != nil {
 		return
 	}
 	return
 }
 
-func (nh *ArticleHelper) update(row_id int, title, content string) error {
+func (ah *ArticleHelper) update(row_id int, title, content string) error {
 	t := time.Now().UTC()
 	query := `UPDATE articles SET Title = ?, Content = ?, UpdateDt =? WHERE RowID = ?;`
-	_, e := nh.db.Exec(query, title, content, t, row_id)
+	_, e := ah.db.Exec(query, title, content, t, row_id)
 	if e != nil {
 		return e
 	}
 	return nil
 }
 
-func (nh *ArticleHelper) get(id int) (articles []model.Article) {
-	rows, e := nh.db.Query(`
+func (ah *ArticleHelper) get(id int) (articles []model.Article) {
+	rows, e := ah.db.Query(`
 		SELECT 
 			a.RowID AS ArticleRowID,
 			a.Title,
@@ -107,8 +107,8 @@ func (nh *ArticleHelper) get(id int) (articles []model.Article) {
 	return
 }
 
-func (nh *ArticleHelper) list() (articles []model.Article) {
-	rows, e := nh.db.Query(`
+func (ah *ArticleHelper) list() (articles []model.Article) {
+	rows, e := ah.db.Query(`
 		SELECT 
 			a.RowID AS ArticleRowID,
 			a.Title,
@@ -168,9 +168,11 @@ func (ac *ArticleController) fresh(c *gin.Context) {
 	}
 
 	_, node_map := share.GenNodeInfo(ac.helper.getAllNode())
-
+	menu_list, menu_map := share.GetMenu()
 	e = tmpl.ExecuteTemplate(c.Writer, "fresh.html", gin.H{
 		"Title":        "增加文章",
+		"Menu":         menu_list,
+		"Children":     menu_list[menu_map[share.MK_ARTICLE]].Children,
 		"NodeMap":      node_map,
 		"ArticleTitle": "請輸入文章標題",
 	})
@@ -305,8 +307,11 @@ func (ac *ArticleController) edit(c *gin.Context) {
 	if e != nil {
 		return
 	}
+	menu_list, menu_map := share.GetMenu()
 	e = tmpl.ExecuteTemplate(c.Writer, "edit.html", gin.H{
 		"Title":          "修改文章",
+		"Menu":           menu_list,
+		"Children":       menu_list[menu_map[share.MK_ARTICLE]].Children,
 		"ID":             c.Param("id"),
 		"PathName":       data.PathName,
 		"ArticleTitle":   data.Title,
@@ -399,9 +404,12 @@ func (ac *ArticleController) list(c *gin.Context) {
 	if e != nil {
 		return
 	}
+	menu_list, menu_map := share.GetMenu()
 	e = tmpl.ExecuteTemplate(c.Writer, "list.html", gin.H{
-		"Title": "文章清單",
-		"List":  list,
+		"Title":    "文章清單",
+		"Menu":     menu_list,
+		"Children": menu_list[menu_map[share.MK_ARTICLE]].Children,
+		"List":     list,
 	})
 	if e != nil {
 		return

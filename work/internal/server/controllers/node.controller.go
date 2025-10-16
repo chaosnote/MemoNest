@@ -282,12 +282,14 @@ func (tc *NodeController) list(c *gin.Context) {
 	}
 
 	node_list, node_map := share.GenNodeInfo(tc.helper.getAll())
-
+	menu_list, menu_map := share.GetMenu()
 	e = tmpl.ExecuteTemplate(c.Writer, "list.html", gin.H{
-		"Title":   "節點清單",
-		"NodeMap": node_map,
-		"List":    node_list,
-		"RootID":  uuid.Nil.String(),
+		"Title":    "節點清單",
+		"Menu":     menu_list,
+		"Children": menu_list[menu_map[share.MK_NODE]].Children,
+		"NodeMap":  node_map,
+		"List":     node_list,
+		"RootID":   uuid.Nil.String(),
 	})
 	if e != nil {
 		return
