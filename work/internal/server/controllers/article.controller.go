@@ -191,10 +191,7 @@ func (ah *ArticleHelper) composit(input string) (query string, args []interface{
 }
 
 func (ah *ArticleHelper) query(input string) (articles []model.Article) {
-	fmt.Println(input)
 	cmd, args := ah.composit(input)
-	fmt.Println(cmd)
-	fmt.Println(args)
 	rows, e := ah.db.Query(cmd, args...)
 	if e != nil {
 		return
