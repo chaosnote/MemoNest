@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-contrib/sessions"
@@ -15,7 +16,9 @@ func MustLoginMiddleware(deps service.DI) gin.HandlerFunc {
 		s := sessions.Default(c)
 		flag, ok := s.Get(model.SK_IS_LOGIN).(bool)
 		if !ok || !flag {
+			fmt.Println("must login")
 			c.Redirect(http.StatusFound, "/")
+			c.Abort()
 			return
 		}
 		c.Next()

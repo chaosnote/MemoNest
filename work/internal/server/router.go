@@ -9,9 +9,10 @@ import (
 
 // RegisterRoutes 註冊所有路由
 func RegisterRoutes(engine *gin.Engine, di service.DI) {
-	const prefix = "/api/v1"
 	controllers.NewIndexController(engine, di)
+	controllers.NewAssetController(engine, di)
 
+	const prefix = "/api/v1"
 	g := engine.Group(prefix)
 	controllers.NewMemberController(g, di)
 	controllers.NewToolsController(g, di)

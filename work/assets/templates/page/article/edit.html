@@ -68,7 +68,7 @@
             ]
         }
     });
-    quill.root.innerHTML = '{{.ArticleContent}}' ;
+    quill.root.innerHTML = '{{trans .ID .ArticleContent}}' ;
 
     function onBlur(event){
         $(event.target).blur();
@@ -85,11 +85,6 @@
             title: title,
             content: quill.root.innerHTML
         };
-
-        console.log(params) ;
-        if(true){
-            return;
-        }
 
         $.ajax({
             url: "/api/v1/article/renew",

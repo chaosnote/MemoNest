@@ -14,6 +14,7 @@ func NewRecoveryMiddleware(logger *zap.Logger) gin.HandlerFunc {
 			if r := recover(); r != nil {
 				logger.Error("panic recovered", zap.Any("error", r))
 				c.AbortWithStatus(http.StatusInternalServerError)
+				c.Abort()
 			}
 		}()
 		c.Next()

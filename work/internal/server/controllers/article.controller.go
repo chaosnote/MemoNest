@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-contrib/sessions"
@@ -203,9 +204,10 @@ func (ac *ArticleController) add(c *gin.Context) {
 		return
 	}
 
+	article_id := fmt.Sprintf("%v", row_id)
+
 	s := sessions.Default(c)
 	account := s.Get(model.SK_ACCOUNT).(string)
-	article_id := fmt.Sprintf("%v", row_id)
 	content := share.ProcessBase64Images(account, article_id, param.Content)
 	e = ac.helper.update(row_id, param.Title, content)
 	if e != nil {
@@ -291,6 +293,11 @@ func (ac *ArticleController) edit(c *gin.Context) {
 		Layout:  filepath.Join(dir, "layout", "share.html"),
 		Page:    []string{filepath.Join(dir, "page", "article", "edit.html")},
 		Pattern: []string{},
+		Funcs: map[string]any{
+			"trans": func(id, data string) string {
+				return strings.ReplaceAll(data, model.IMG_ENCRYPT, id)
+			},
+		},
 	}
 
 	tmpl, e := utils.RenderTemplate(config)
@@ -307,7 +314,48 @@ func (ac *ArticleController) edit(c *gin.Context) {
 	if e != nil {
 		return
 	}
+}
 
+func (ac *ArticleController) renew(c *gin.Context) {
+	const msg = "renew"
+	logger := utils.NewFileLogger("./dist/logs/article/renew", "console", 1)
+	var e error
+	defer func() {
+		if e != nil {
+			logger.Error(msg, zap.Error(e))
+			c.JSON(http.StatusOK, gin.H{"Code": e.Error()})
+		}
+	}()
+	var param struct {
+		Title   string `json:"title"`
+		Content string `json:"content"`
+		ID      string `json:"id"`
+	}
+	e = c.BindJSON(&param)
+	if e != nil {
+		return
+	}
+	logger.Info(msg, zap.Any("params", param))
+
+	s := sessions.Default(c)
+	account := s.Get(model.SK_ACCOUNT).(string)
+	key := []byte(s.Get(model.SK_AES_KEY).(string))
+	article_id, _ := utils.AesDecrypt(param.ID, key)
+
+	var row_id int
+	row_id, e = strconv.Atoi(article_id)
+	if e != nil {
+		return
+	}
+
+	content := share.ProcessBase64Images(account, article_id, param.Content)
+	e = ac.helper.update(row_id, param.Title, content)
+	if e != nil {
+		return
+	}
+	share.CleanupUnusedImages(account, article_id, content)
+
+	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": ""})
 }
 
 func (ac *ArticleController) list(c *gin.Context) {
@@ -332,9 +380,6 @@ func (ac *ArticleController) list(c *gin.Context) {
 		Page:    []string{filepath.Join(dir, "page", "article", "list.html")},
 		Pattern: []string{},
 		Funcs: map[string]any{
-			"trans": func(s string) template.HTML {
-				return template.HTML(s)
-			},
 			"format": func(t time.Time) string {
 				loc, _ := time.LoadLocation("Asia/Taipei")
 				return t.In(loc).Format("2006-01-02 15:04")
@@ -342,6 +387,10 @@ func (ac *ArticleController) list(c *gin.Context) {
 			"encrypt": func(id int) string {
 				output, _ := utils.AesEncrypt([]byte(fmt.Sprintf("%v", id)), key)
 				return string(output)
+			},
+			"trans": func(id int, data string) template.HTML {
+				output, _ := utils.AesEncrypt([]byte(fmt.Sprintf("%v", id)), key)
+				return template.HTML(strings.ReplaceAll(data, model.IMG_ENCRYPT, output))
 			},
 		},
 	}
@@ -371,5 +420,6 @@ func NewArticleController(rg *gin.RouterGroup, di service.DI) {
 	r.GET("/list", c.list)
 	r.POST("/add", c.add)
 	r.POST("/del", c.del)
+	r.POST("/renew", c.renew)
 	r.GET("/edit/:id", c.edit)
 }
