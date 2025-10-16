@@ -4,6 +4,12 @@
 {{end}}
 
 {{define "content"}}
+<div class="mt-3 mb-3">
+    <div class="d-flex align-items-center gap-2 mb-4">
+        <input type="text" class="form-control" id="query" placeholder="關鍵字查詢">
+        <button type="button" class="btn btn-success flex-shrink-0" onclick="onQuery()">查詢</button>
+    </div>
+</div>
 {{ if .List }}
     {{range .List}}
     <div class="card mt-2 border border-2">
@@ -58,6 +64,15 @@
                 alert("刪除文章失敗，請稍後再試！");
             }
         });
+    }
+    function onQuery(){
+        let q = $("#query").val() ;
+        if(q.length ==0){
+            alert("未設置查詢內容") ;
+            return
+        }
+        const encoded = encodeURIComponent(q) ;
+        location.href = `/api/v1/article/list?q=${encoded}`;
     }
 </script>
     

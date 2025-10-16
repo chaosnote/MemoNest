@@ -143,6 +143,82 @@ func (ah *ArticleHelper) list() (articles []model.Article) {
 	return
 }
 
+func (ah *ArticleHelper) composit(input string) (query string, args []interface{}) {
+	input = strings.TrimSpace(input)
+	if input == "" {
+		return "", nil
+	}
+
+	andParts := strings.Split(input, "&")
+	var conditions []string
+
+	for _, part := range andParts {
+		orParts := strings.Split(part, "+")
+		orPartsClean := []string{}
+		for _, kw := range orParts {
+			kw = strings.TrimSpace(kw)
+			if kw != "" {
+				orPartsClean = append(orPartsClean, kw)
+			}
+		}
+
+		if len(orPartsClean) == 1 {
+			// 單一關鍵字：Title 或 Content 任一欄位包含
+			conditions = append(conditions, "(a.Title LIKE ? OR a.Content LIKE ?)")
+			args = append(args, "%"+orPartsClean[0]+"%", "%"+orPartsClean[0]+"%")
+		} else if len(orPartsClean) > 1 {
+			// 多關鍵字：Title 或 Content 任一欄位符合 REGEXP
+			pattern := strings.Join(orPartsClean, "|")
+			conditions = append(conditions, "(a.Title REGEXP ? OR a.Content REGEXP ?)")
+			args = append(args, pattern, pattern)
+		}
+	}
+
+	query = `
+        SELECT 
+            a.RowID AS ArticleRowID,
+            a.Title,
+            a.Content,
+            a.NodeID,
+            c.PathName,
+            a.UpdateDt
+        FROM articles AS a
+        JOIN categories AS c ON a.NodeID = c.NodeID
+        WHERE ` + strings.Join(conditions, " AND ") + `
+        ORDER BY a.UpdateDt DESC
+    `
+	return
+}
+
+func (ah *ArticleHelper) query(input string) (articles []model.Article) {
+	fmt.Println(input)
+	cmd, args := ah.composit(input)
+	fmt.Println(cmd)
+	fmt.Println(args)
+	rows, e := ah.db.Query(cmd, args...)
+	if e != nil {
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var article model.Article
+		e = rows.Scan(
+			&article.RowID,
+			&article.Title,
+			&article.Content,
+			&article.NodeID,
+			&article.PathName,
+			&article.UpdateDt,
+		)
+		if e != nil {
+			return
+		}
+		articles = append(articles, article)
+	}
+	return
+}
+
 //-----------------------------------------------
 
 type ArticleController struct {
@@ -375,10 +451,17 @@ func (ac *ArticleController) list(c *gin.Context) {
 		}
 	}()
 
+	q := c.Query("q")
+
+	var list []model.Article
+	if len(q) > 0 {
+		list = ac.helper.query(q)
+	} else {
+		list = ac.helper.list()
+	}
+
 	s := sessions.Default(c)
 	key := []byte(s.Get(model.SK_AES_KEY).(string))
-
-	list := ac.helper.list()
 
 	dir := filepath.Join("./assets", "templates")
 	config := utils.TemplateConfig{
