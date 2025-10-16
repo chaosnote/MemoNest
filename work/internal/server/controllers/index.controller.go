@@ -40,9 +40,8 @@ func (ic *IndexController) entry(c *gin.Context) {
 		return
 	}
 	e = tmpl.ExecuteTemplate(c.Writer, "index.html", gin.H{
-		"Title":   "測試頁",
-		"Login":   []string{"/api/v1/member/login", "/api/v1/member/logout"},
-		"Article": []string{"/api/v1/article/fresh", "/api/v1/article/list"},
+		"Title": "測試頁",
+		"Login": []string{"/api/v1/member/login", "/api/v1/member/logout"},
 	})
 	if e != nil {
 		return

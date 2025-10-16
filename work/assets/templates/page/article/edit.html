@@ -92,7 +92,12 @@
             contentType: "application/json",
             data: JSON.stringify(params),
             success: function (response) {
-                if(response.Code == "OK"){
+                if (!response.hasOwnProperty('Code')) {
+                    location.href = "/" ;
+                    return;
+                }
+                console.log(response.Code) ;
+                if( response.Code == "OK"){
                     alert("修改文章成功！");
                     location.reload();
                     return;

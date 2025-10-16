@@ -119,6 +119,10 @@
             contentType: "application/json",
             data: JSON.stringify(params),
             success: function (response) {
+                if (!response.hasOwnProperty('Code')) {
+                    location.href = "/" ;
+                    return;
+                }
                 if(response.Code == "OK"){
                     alert("增加文章成功！");
                     location.href = "/api/v1/article/list";

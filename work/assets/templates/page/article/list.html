@@ -42,6 +42,10 @@
             contentType: "application/json",
             data: JSON.stringify(params),
             success: function (response) {
+                if (!response.hasOwnProperty('Code')) {
+                    location.href = "/" ;
+                    return;
+                }
                 if(response.Code == "OK"){
                     alert("刪除文章成功！");
                     location.reload();
