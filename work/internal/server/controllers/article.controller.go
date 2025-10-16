@@ -62,8 +62,9 @@ func (nh *ArticleHelper) del(id int) (e error) {
 }
 
 func (nh *ArticleHelper) update(row_id int, title, content string) error {
-	query := `UPDATE articles SET Title = ?, Content = ? WHERE RowID = ?;`
-	_, e := nh.db.Exec(query, title, content, row_id)
+	t := time.Now().UTC()
+	query := `UPDATE articles SET Title = ?, Content = ?, UpdateDt =? WHERE RowID = ?;`
+	_, e := nh.db.Exec(query, title, content, t, row_id)
 	if e != nil {
 		return e
 	}
