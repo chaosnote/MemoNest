@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
@@ -282,8 +281,8 @@ func (ac *ArticleController) add(c *gin.Context) {
 
 	article_id := fmt.Sprintf("%v", row_id)
 
-	s := sessions.Default(c)
-	account := s.Get(model.SK_ACCOUNT).(string)
+	helper := share.NewSessionHelper(c)
+	account := helper.GetAccount()
 	content := share.ProcessBase64Images(account, article_id, param.Content)
 	e = ac.helper.update(row_id, param.Title, content)
 	if e != nil {
@@ -305,7 +304,7 @@ func (ac *ArticleController) del(c *gin.Context) {
 		}
 	}()
 	var param struct {
-		Txt string `json:"id"`
+		ID string `json:"id"`
 	}
 	e = c.BindJSON(&param)
 	if e != nil {
@@ -313,13 +312,13 @@ func (ac *ArticleController) del(c *gin.Context) {
 	}
 	logger.Info(msg, zap.Any("params", param))
 
-	s := sessions.Default(c)
-	account := s.Get(model.SK_ACCOUNT).(string)
-	key := []byte(s.Get(model.SK_AES_KEY).(string))
-	output, _ := utils.AesDecrypt(param.Txt, key)
+	helper := share.NewSessionHelper(c)
+	account := helper.GetAccount()
+	aes_key := []byte(helper.GetAESKey())
+	plain_text, _ := utils.AesDecrypt(param.ID, aes_key)
 
 	var id int
-	id, e = strconv.Atoi(output)
+	id, e = strconv.Atoi(plain_text)
 	if e != nil {
 		return
 	}
@@ -344,15 +343,15 @@ func (ac *ArticleController) edit(c *gin.Context) {
 		}
 	}()
 
-	s := sessions.Default(c)
-	key := []byte(s.Get(model.SK_AES_KEY).(string))
-	txt, e := utils.AesDecrypt(c.Param("id"), key)
+	helper := share.NewSessionHelper(c)
+	aes_key := []byte(helper.GetAESKey())
+	plain_text, e := utils.AesDecrypt(c.Param("id"), aes_key)
 	if e != nil {
 		return
 	}
 
 	var id int
-	id, e = strconv.Atoi(txt)
+	id, e = strconv.Atoi(plain_text)
 	if e != nil {
 		return
 	}
@@ -416,10 +415,10 @@ func (ac *ArticleController) renew(c *gin.Context) {
 	}
 	logger.Info(msg, zap.Any("params", param))
 
-	s := sessions.Default(c)
-	account := s.Get(model.SK_ACCOUNT).(string)
-	key := []byte(s.Get(model.SK_AES_KEY).(string))
-	article_id, _ := utils.AesDecrypt(param.ID, key)
+	helper := share.NewSessionHelper(c)
+	account := helper.GetAccount()
+	aes_key := []byte(helper.GetAESKey())
+	article_id, _ := utils.AesDecrypt(param.ID, aes_key)
 
 	var row_id int
 	row_id, e = strconv.Atoi(article_id)
@@ -457,8 +456,8 @@ func (ac *ArticleController) list(c *gin.Context) {
 		list = ac.helper.list()
 	}
 
-	s := sessions.Default(c)
-	key := []byte(s.Get(model.SK_AES_KEY).(string))
+	helper := share.NewSessionHelper(c)
+	aes_key := []byte(helper.GetAESKey())
 
 	dir := filepath.Join("./assets", "templates")
 	config := utils.TemplateConfig{
@@ -471,11 +470,11 @@ func (ac *ArticleController) list(c *gin.Context) {
 				return t.In(loc).Format("2006-01-02 15:04")
 			},
 			"encrypt": func(id int) string {
-				output, _ := utils.AesEncrypt([]byte(fmt.Sprintf("%v", id)), key)
-				return string(output)
+				cipher_text, _ := utils.AesEncrypt([]byte(fmt.Sprintf("%v", id)), aes_key)
+				return string(cipher_text)
 			},
 			"trans": func(id int, data string) template.HTML {
-				output, _ := utils.AesEncrypt([]byte(fmt.Sprintf("%v", id)), key)
+				output, _ := utils.AesEncrypt([]byte(fmt.Sprintf("%v", id)), aes_key)
 				return template.HTML(strings.ReplaceAll(data, model.IMG_ENCRYPT, output))
 			},
 		},
@@ -494,7 +493,6 @@ func (ac *ArticleController) list(c *gin.Context) {
 	if e != nil {
 		return
 	}
-
 }
 
 func NewArticleController(rg *gin.RouterGroup, di service.DI) {

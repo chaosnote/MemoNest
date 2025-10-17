@@ -6,11 +6,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
-	"idv/chris/MemoNest/internal/model"
 	"idv/chris/MemoNest/internal/server/controllers/share"
 	"idv/chris/MemoNest/internal/server/middleware"
 	"idv/chris/MemoNest/internal/service"
@@ -35,12 +33,12 @@ func (ic *AssetController) image(c *gin.Context) {
 	name := c.Params.ByName("name")
 	logger.Info(msg, zap.String("id", id), zap.String("name", name))
 
-	s := sessions.Default(c)
-	key := []byte(s.Get(model.SK_AES_KEY).(string))
-	account := s.Get(model.SK_ACCOUNT).(string)
-	output, _ := utils.AesDecrypt(id, key)
+	helper := share.NewSessionHelper(c)
+	account := helper.GetAccount()
+	aes_key := []byte(helper.GetAESKey())
+	plain_text, _ := utils.AesDecrypt(id, aes_key)
 
-	file_path := share.GetImageStoragePath(account, output, name)
+	file_path := share.GetImageStoragePath(account, plain_text, name)
 
 	if _, e := os.Stat(file_path); os.IsNotExist(e) {
 		e = nil
