@@ -31,18 +31,18 @@
         <div class="d-flex justify-content-between align-items-center">
             <span>
                 {{ if .Children }}
-                    <span data-bs-toggle="collapse" data-bs-target="#node-{{.NodeID}}" style="cursor:pointer;">
+                    <span data-bs-toggle="collapse" data-bs-target="#node-{{gen_id .RowID}}" style="cursor:pointer;">
                         ⊞ {{ .PathName }}
                     </span>
                 {{ else }}
                     ⊟ {{ .PathName }}
                 {{ end }}
             </span>
-            <button class="btn btn-sm btn-outline-danger" onclick="del_node('{{.NodeID}}')">刪除</button>
+            <button class="btn btn-sm btn-outline-danger" onclick="del_node('{{encrypt .NodeID}}')">刪除</button>
         </div>
 
         {{ if .Children }}
-        <div class="collapse show mt-2 ms-3" id="node-{{.NodeID}}">
+        <div class="collapse show mt-2 ms-3" id="node-{{gen_id .RowID}}">
             {{ template "category" .Children }}
         </div>
         {{ end }}
@@ -71,7 +71,7 @@
             </div>
             <div class="modal-body">
                 <div class="d-flex flex-wrap gap-2">
-                    <button type="button" class="btn btn-outline-info" onclick="select_node('{{.RootID}}', 'Root')">Root</button>
+                    <button type="button" class="btn btn-outline-info" onclick="select_node('{{encrypt .RootID}}', 'Root')">Root</button>
                     {{range .NodeMap}}
                     <button class="btn btn-outline-info" onclick="select_node('{{.NodeID}}', '{{.PathName}}')">{{.Path}}</button>
                     {{end}}

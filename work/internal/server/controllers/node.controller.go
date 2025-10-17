@@ -149,8 +149,8 @@ func (nh *NodeHelper) del(nodeID string) error {
 	var lftIdx, rftIdx int
 	err = tx.QueryRow("SELECT LftIdx, RftIdx FROM categories WHERE NodeID = ?", nodeID).Scan(&lftIdx, &rftIdx)
 	if err != nil {
+		// 節點不存在，視為成功
 		if err == sql.ErrNoRows {
-			// 節點不存在，視為成功
 			return nil
 		}
 		return err
@@ -257,7 +257,11 @@ func (u *NodeController) del(c *gin.Context) {
 	}
 	logger.Info(msg, zap.Any("params", param))
 
-	e = u.helper.del(param.ID)
+	helper := share.NewSessionHelper(c)
+	aes_key := []byte(helper.GetAESKey())
+	node_id, _ := utils.AesDecrypt(param.ID, aes_key)
+
+	e = u.helper.del(node_id)
 	if e != nil {
 		return
 	}
@@ -266,10 +270,24 @@ func (u *NodeController) del(c *gin.Context) {
 
 func (tc *NodeController) list(c *gin.Context) {
 	dir := filepath.Join("./assets", "templates")
+
+	helper := share.NewSessionHelper(c)
+	aes_key := []byte(helper.GetAESKey())
+
 	config := utils.TemplateConfig{
 		Layout:  filepath.Join(dir, "layout", "share.html"),
 		Page:    []string{filepath.Join(dir, "page", "node", "list.html")},
 		Pattern: []string{},
+		Funcs: map[string]any{
+			"gen_id": func(id int) string {
+				cipher_text, _ := utils.AesEncrypt([]byte(fmt.Sprintf("%v", id)), aes_key)
+				return string(cipher_text)
+			},
+			"encrypt": func(id string) string {
+				cipher_text, _ := utils.AesEncrypt([]byte(id), aes_key)
+				return string(cipher_text)
+			},
+		},
 	}
 	tmpl, e := utils.RenderTemplate(config)
 	defer func() {

@@ -21,7 +21,7 @@ type session_store struct {
 
 func (ss session_store) Init(account string) {
 	ss.s.Set(sk_account, account)
-	ss.s.Set(sk_aes_key, utils.MD5Hash(account))
+	ss.s.Set(sk_aes_key, utils.MD5Hash(account)) // 可調整為 row_id
 	ss.s.Set(sk_is_login, true)
 	ss.s.Save()
 }
