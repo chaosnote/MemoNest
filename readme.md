@@ -22,3 +22,8 @@ ip -4 addr
 
 http://172.31.235.34:8080/
 ```
+
+``` ConEmu
+%windir%\system32\wsl.exe -cur_console:t:Linux -d Ubuntu-24.04 --cd "D:\History\Git\MemoNest\docker\"
+%windir%\system32\wsl.exe -cur_console:t:Golang -d Ubuntu-24.04 --cd "D:\History\Git\MemoNest\work\"
+```
