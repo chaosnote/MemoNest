@@ -43,7 +43,7 @@
             </div>
             <div class="ms-auto d-flex gap-2">
                 <button class="btn btn-sm btn-outline-success" onclick="start_edit('{{.El_UID}}')" id="edit-btn-{{.El_UID}}">修改</button>
-                <button class="btn btn-sm btn-outline-info" onclick="console.log('{{.El_UID}}')" id="move-btn-{{.El_UID}}" data-bs-toggle="modal" data-bs-target="#node_modal">搬移</button>
+                <button class="btn btn-sm btn-outline-info" onclick="start_move(2, '{{.El_NodeID}}')" id="move-btn-{{.El_UID}}" data-bs-toggle="modal" data-bs-target="#node_modal">搬移</button>
                 <button class="btn btn-sm btn-outline-primary d-none" onclick="confirm_edit('{{.El_UID}}', '{{.El_NodeID}}')" id="confirm-btn-{{.El_UID}}">確認</button>
                 <button class="btn btn-sm btn-outline-secondary d-none" onclick="cancel_edit('{{.El_UID}}')" id="cancel-btn-{{.El_UID}}">取消</button>
                 <button class="btn btn-sm btn-outline-danger" onclick="del_node('{{.El_NodeID}}')" id="delete-btn-{{.El_UID}}">刪除</button>
@@ -62,7 +62,7 @@
 {{define "content"}}
 <div class="mt-3 mb-3">
     <div class="d-flex align-items-center gap-2 mb-4">
-        <button type="button" class="btn btn-outline-primary flex-shrink-0" data-bs-toggle="modal" data-bs-target="#node_modal">挑選父節點</button>
+        <button type="button" class="btn btn-outline-primary flex-shrink-0" onclick="set_mode(1);" data-bs-toggle="modal" data-bs-target="#node_modal">挑選父節點</button>
         <span id="display_selected">尚未挑選父節點</span> <input type="text" class="form-control" id="mainTextInput" placeholder="輸入節點名稱">
         <button type="button" class="btn btn-success flex-shrink-0" onclick="add_node();">增加節點</button>
     </div>
@@ -129,15 +129,24 @@
             }
         });
     }
+
+    var mode = 1 ;
+    function set_mode(p_mode){
+        mode = p_mode ;
+    }
     
     function select_node(id, name){
         node_id = id ;
         $("#display_selected").text(name);
         const modalEl = document.getElementById('node_modal');
         const modal = bootstrap.Modal.getInstance(modalEl);
-        if (modal) {
+        if(modal){
             modal.hide();
         }
+        if(mode != 2){
+            return
+        }
+        confirm_move() ;
     }
     
     function del_node(id){
@@ -200,8 +209,36 @@
         $("#input-" + id).val(original_text);
     }
 
-    function move(id) {
-        console.log(id) ;
+    let target_node ;
+    function start_move(p_mode, id) {
+        set_mode(p_mode);
+        target_node = id ;
+    }
+
+    function confirm_move(){
+        console.log("觸發搬移", node_id, target_node) ;
+        const params = {
+            parent_id: node_id,
+            current_id: target_node
+        };
+
+        $.ajax({
+            url: "/api/v1/node/move",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(params),
+            success: function (response) {
+                if (response.Code !== "OK") {
+                    alert(response.Code);
+                    return;
+                }
+                location.reload();
+            },
+            error: function (xhr, status, error) {
+                console.error("搬移節點失敗：", error);
+                alert("搬移節點失敗，請稍後再試！");
+            }
+        });
     }
 
     function confirm_edit(el_id, node_id) {

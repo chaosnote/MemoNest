@@ -21,7 +21,7 @@ type NodeHelper struct {
 	db *sql.DB
 }
 
-func (nh *NodeHelper) addParentNode(pathName string) (*model.Category, error) {
+func (nh *NodeHelper) addParentNode(node_id, path_name string) (*model.Category, error) {
 	tx, err := nh.db.Begin()
 	if err != nil {
 		return nil, err
@@ -35,15 +35,17 @@ func (nh *NodeHelper) addParentNode(pathName string) (*model.Category, error) {
 		return nil, err
 	}
 
-	newNodeID := uuid.New().String()
-	parentID := uuid.Nil.String() // 根節點的 ParentID
+	if len(node_id) == 0 {
+		node_id = uuid.New().String()
+	}
+	parent_id := uuid.Nil.String() // 根節點的 ParentID
 	lftIdx := maxRftIdx + 1
 	rftIdx := maxRftIdx + 2
 
 	// 插入新節點
 	result, err := tx.Exec(
 		"INSERT INTO categories (NodeID, ParentID, PathName, LftIdx, RftIdx) VALUES (?, ?, ?, ?, ?)",
-		newNodeID, parentID, pathName, lftIdx, rftIdx,
+		node_id, parent_id, path_name, lftIdx, rftIdx,
 	)
 	if err != nil {
 		return nil, err
@@ -57,16 +59,16 @@ func (nh *NodeHelper) addParentNode(pathName string) (*model.Category, error) {
 
 	return &model.Category{
 		RowID:    int(rowID),
-		NodeID:   newNodeID,
-		ParentID: parentID,
-		PathName: pathName,
+		NodeID:   node_id,
+		ParentID: parent_id,
+		PathName: path_name,
 		LftIdx:   lftIdx,
 		RftIdx:   rftIdx,
 	}, nil
 }
 
 // addChildNode 插入一個新的分類節點
-func (nh *NodeHelper) addChildNode(parentID, pathName string) (*model.Category, error) {
+func (nh *NodeHelper) addChildNode(parent_id, node_id, path_name string) (*model.Category, error) {
 	tx, err := nh.db.Begin()
 	if err != nil {
 		return nil, err
@@ -75,10 +77,10 @@ func (nh *NodeHelper) addChildNode(parentID, pathName string) (*model.Category, 
 
 	// 1. 查詢父節點的 RftIdx
 	var parentRftIdx int
-	err = tx.QueryRow("SELECT RftIdx FROM categories WHERE NodeID = ?", parentID).Scan(&parentRftIdx)
+	err = tx.QueryRow("SELECT RftIdx FROM categories WHERE NodeID = ?", parent_id).Scan(&parentRftIdx)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("parent node with NodeID '%s' not found", parentID)
+			return nil, fmt.Errorf("parent node with NodeID '%s' not found", parent_id)
 		}
 		return nil, err
 	}
@@ -95,13 +97,15 @@ func (nh *NodeHelper) addChildNode(parentID, pathName string) (*model.Category, 
 	}
 
 	// 3. 插入新節點
-	newNodeID := uuid.New().String()
+	if len(node_id) == 0 {
+		node_id = uuid.New().String()
+	}
 	lftIdx := parentRftIdx
 	rftIdx := parentRftIdx + 1
 
 	result, err := tx.Exec(
 		"INSERT INTO categories (NodeID, ParentID, PathName, LftIdx, RftIdx) VALUES (?, ?, ?, ?, ?)",
-		newNodeID, parentID, pathName, lftIdx, rftIdx,
+		node_id, parent_id, path_name, lftIdx, rftIdx,
 	)
 	if err != nil {
 		return nil, err
@@ -115,21 +119,17 @@ func (nh *NodeHelper) addChildNode(parentID, pathName string) (*model.Category, 
 
 	return &model.Category{
 		RowID:    int(rowID),
-		NodeID:   newNodeID,
-		ParentID: parentID,
-		PathName: pathName,
+		NodeID:   node_id,
+		ParentID: parent_id,
+		PathName: path_name,
 		LftIdx:   lftIdx,
 		RftIdx:   rftIdx,
 	}, nil
 }
 
-// ---------------------------------------------------------
-// Nested Set 移除節點的核心邏輯
-// ---------------------------------------------------------
-
 // del 移除指定的分類節點及其所有後代節點
-func (nh *NodeHelper) del(nodeID string) error {
-	row := nh.db.QueryRow(`SELECT COUNT(*) AS Total FROM articles WHERE NodeID = ?;`, nodeID)
+func (nh *NodeHelper) del(node_id string) error {
+	row := nh.db.QueryRow(`SELECT COUNT(*) AS Total FROM articles WHERE NodeID = ?;`, node_id)
 	var total int
 	e := row.Scan(&total)
 	if e != nil {
@@ -147,7 +147,7 @@ func (nh *NodeHelper) del(nodeID string) error {
 
 	// 1. 查詢要刪除節點的 LftIdx 和 RftIdx
 	var lftIdx, rftIdx int
-	err = tx.QueryRow("SELECT LftIdx, RftIdx FROM categories WHERE NodeID = ?", nodeID).Scan(&lftIdx, &rftIdx)
+	err = tx.QueryRow("SELECT LftIdx, RftIdx FROM categories WHERE NodeID = ?", node_id).Scan(&lftIdx, &rftIdx)
 	if err != nil {
 		// 節點不存在，視為成功
 		if err == sql.ErrNoRows {
@@ -191,7 +191,28 @@ func (nh *NodeHelper) edit(node_id, label string) error {
 	return nil
 }
 
-func (nh *NodeHelper) getAll() (categories []model.Category) {
+func (nh *NodeHelper) move(parent_id, node_id, path_name string) error {
+	e := nh.del(node_id)
+	if e != nil {
+		return e
+	}
+
+	if parent_id == uuid.Nil.String() {
+		_, e = nh.addParentNode(node_id, path_name)
+		if e != nil {
+			return e
+		}
+	} else {
+		_, e = nh.addChildNode(parent_id, node_id, path_name)
+		if e != nil {
+			return e
+		}
+	}
+
+	return nil
+}
+
+func (nh *NodeHelper) getAllNode() (categories []model.Category) {
 	// 從資料庫中讀取所有分類，並按 LftIdx 排序
 	rows, err := nh.db.Query("SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM categories ORDER BY LftIdx ASC")
 	if err != nil {
@@ -207,6 +228,14 @@ func (nh *NodeHelper) getAll() (categories []model.Category) {
 		categories = append(categories, c)
 	}
 
+	return
+}
+
+func (nh *NodeHelper) getNode(node_id string) (c model.Category, e error) {
+	row := nh.db.QueryRow("SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM categories WHERE NodeID = ?", node_id)
+	if err := row.Scan(&c.RowID, &c.NodeID, &c.ParentID, &c.PathName, &c.LftIdx, &c.RftIdx); err != nil {
+		return
+	}
 	return
 }
 
@@ -250,12 +279,12 @@ func (u *NodeController) add(c *gin.Context) {
 
 	helper := share.NewSessionHelper(c)
 	aes_key := []byte(helper.GetAESKey())
-	node_id, _ := utils.AesDecrypt(param.ID, aes_key)
+	parent_id, _ := utils.AesDecrypt(param.ID, aes_key)
 
-	if node_id == uuid.Nil.String() {
-		_, e = u.helper.addParentNode(param.Label)
+	if parent_id == uuid.Nil.String() {
+		_, e = u.helper.addParentNode("", param.Label)
 	} else {
-		_, e = u.helper.addChildNode(node_id, param.Label)
+		_, e = u.helper.addChildNode(parent_id, "", param.Label)
 	}
 	if e != nil {
 		return
@@ -320,7 +349,7 @@ func (tc *NodeController) list(c *gin.Context) {
 		return
 	}
 
-	node_list, node_map := share.GenNodeInfo(tc.helper.getAll())
+	node_list, node_map := share.GenNodeInfo(tc.helper.getAllNode())
 	for _, node := range node_list {
 		tc.helper.assign_node(node, aes_key)
 	}
@@ -374,6 +403,67 @@ func (u *NodeController) edit(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": "編輯成功"})
 }
 
+func (u *NodeController) move(c *gin.Context) {
+	const msg = "move"
+	logger := utils.NewFileLogger("./dist/logs/node/edit", "console", 1)
+	var e error
+	defer func() {
+		if e != nil {
+			logger.Error(msg, zap.Error(e))
+			c.JSON(http.StatusOK, gin.H{"Code": e.Error()})
+		}
+	}()
+	var param struct {
+		ParentID  string `json:"parent_id"`
+		CurrentID string `json:"current_id"`
+	}
+	e = c.BindJSON(&param)
+	if e != nil {
+		return
+	}
+	logger.Info(msg, zap.Any("params", param))
+
+	helper := share.NewSessionHelper(c)
+	aes_key := []byte(helper.GetAESKey())
+	parent_id, _ := utils.AesDecrypt(param.ParentID, aes_key)
+	current_id, _ := utils.AesDecrypt(param.CurrentID, aes_key)
+
+	var has_node = false
+	if parent_id == uuid.Nil.String() {
+		has_node = true
+	} else {
+		parent_node, e := u.helper.getNode(parent_id)
+		if e != nil {
+			return
+		}
+		if parent_node.RowID != 0 {
+			has_node = true
+		}
+	}
+	if !has_node {
+		e = fmt.Errorf("無指定父節點")
+		return
+	}
+
+	current_node, e := u.helper.getNode(current_id)
+	if e != nil {
+		return
+	}
+	if current_node.RowID != 0 {
+		has_node = true
+	}
+	if !has_node {
+		e = fmt.Errorf("無指定子節點")
+		return
+	}
+
+	e = u.helper.move(parent_id, current_id, current_node.PathName)
+	if e != nil {
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": "編輯成功"})
+}
+
 //-----------------------------------------------
 
 func NewNodeController(rg *gin.RouterGroup, di service.DI) {
@@ -388,4 +478,5 @@ func NewNodeController(rg *gin.RouterGroup, di service.DI) {
 	r.POST("/add", c.add)
 	r.POST("/del", c.del)
 	r.POST("/edit", c.edit)
+	r.POST("/move", c.move)
 }

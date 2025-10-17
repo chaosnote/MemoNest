@@ -163,13 +163,14 @@ func (ah *ArticleHelper) composit(input string) (query string, args []interface{
 
 		if len(orPartsClean) == 1 {
 			// 單一關鍵字：Title 或 Content 任一欄位包含
-			conditions = append(conditions, "(a.Title LIKE ? OR a.Content LIKE ?)")
-			args = append(args, "%"+orPartsClean[0]+"%", "%"+orPartsClean[0]+"%")
+			pattern := "%" + orPartsClean[0] + "%"
+			conditions = append(conditions, "(a.Title LIKE ? OR a.Content LIKE ? OR c.PathName LIKE ?)")
+			args = append(args, pattern, pattern, pattern)
 		} else if len(orPartsClean) > 1 {
 			// 多關鍵字：Title 或 Content 任一欄位符合 REGEXP
 			pattern := strings.Join(orPartsClean, "|")
-			conditions = append(conditions, "(a.Title REGEXP ? OR a.Content REGEXP ?)")
-			args = append(args, pattern, pattern)
+			conditions = append(conditions, "(a.Title REGEXP ? OR a.Content REGEXP ? OR c.PathName REGEXP ?)")
+			args = append(args, pattern, pattern, pattern)
 		}
 	}
 
