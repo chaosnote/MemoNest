@@ -1,21 +1,28 @@
 package share
 
 import (
-	"idv/chris/MemoNest/internal/model"
 	"idv/chris/MemoNest/utils"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	sk_account  string = "account"
+	sk_aes_key  string = "aes_key"
+	sk_is_login string = "is_login"
+)
+
+//-----------------------------------------------
+
 type session_store struct {
 	s sessions.Session
 }
 
 func (ss session_store) Init(account string) {
-	ss.s.Set(model.SK_ACCOUNT, account)
-	ss.s.Set(model.SK_AES_KEY, utils.MD5Hash(account))
-	ss.s.Set(model.SK_IS_LOGIN, true)
+	ss.s.Set(sk_account, account)
+	ss.s.Set(sk_aes_key, utils.MD5Hash(account))
+	ss.s.Set(sk_is_login, true)
 	ss.s.Save()
 }
 
@@ -25,15 +32,15 @@ func (ss session_store) Clear() {
 }
 
 func (ss session_store) GetAESKey() string {
-	return ss.s.Get(model.SK_AES_KEY).(string)
+	return ss.s.Get(sk_aes_key).(string)
 }
 
 func (ss session_store) GetAccount() string {
-	return ss.s.Get(model.SK_ACCOUNT).(string)
+	return ss.s.Get(sk_account).(string)
 }
 
 func (ss session_store) IsLogin() bool {
-	flag, ok := ss.s.Get(model.SK_IS_LOGIN).(bool)
+	flag, ok := ss.s.Get(sk_is_login).(bool)
 	if !ok {
 		return false
 	}
