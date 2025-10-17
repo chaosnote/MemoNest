@@ -5,12 +5,14 @@ type CategoryModel struct {
 }
 
 type Category struct {
-	RowID    int
-	NodeID   string
-	ParentID string
-	PathName string
-	LftIdx   int
-	RftIdx   int
+	El_UID    string // view 階段使用
+	El_NodeID string // view 階段使用
+	RowID     int
+	NodeID    string
+	ParentID  string
+	PathName  string
+	LftIdx    int
+	RftIdx    int
 }
 
 // 定義一個新的結構體來表示巢狀的分類樹

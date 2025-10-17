@@ -182,6 +182,15 @@ func (nh *NodeHelper) del(nodeID string) error {
 	return tx.Commit()
 }
 
+// edit 編輯
+func (nh *NodeHelper) edit(node_id, label string) error {
+	_, err := nh.db.Exec(`UPDATE categories SET PathName = ? WHERE NodeID = ?;`, label, node_id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (nh *NodeHelper) getAll() (categories []model.Category) {
 	// 從資料庫中讀取所有分類，並按 LftIdx 排序
 	rows, err := nh.db.Query("SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM categories ORDER BY LftIdx ASC")
@@ -199,6 +208,18 @@ func (nh *NodeHelper) getAll() (categories []model.Category) {
 	}
 
 	return
+}
+
+func (nh *NodeHelper) assign_node(node *model.CategoryNode, aes_key []byte) {
+	sUID, _ := utils.AesEncrypt([]byte(fmt.Sprintf("%v", node.RowID)), aes_key)
+	node.El_UID = sUID
+
+	sNodeID, _ := utils.AesEncrypt([]byte(node.NodeID), aes_key)
+	node.El_NodeID = sNodeID
+
+	for _, child := range node.Children {
+		nh.assign_node(child, aes_key)
+	}
 }
 
 //-----------------------------------------------
@@ -283,10 +304,6 @@ func (tc *NodeController) list(c *gin.Context) {
 		Page:    []string{filepath.Join(dir, "page", "node", "list.html")},
 		Pattern: []string{},
 		Funcs: map[string]any{
-			"gen_id": func(id int) string {
-				cipher_text, _ := utils.AesEncrypt([]byte(fmt.Sprintf("%v", id)), aes_key)
-				return string(cipher_text)
-			},
 			"encrypt": func(id string) string {
 				cipher_text, _ := utils.AesEncrypt([]byte(id), aes_key)
 				return string(cipher_text)
@@ -304,6 +321,10 @@ func (tc *NodeController) list(c *gin.Context) {
 	}
 
 	node_list, node_map := share.GenNodeInfo(tc.helper.getAll())
+	for _, node := range node_list {
+		tc.helper.assign_node(node, aes_key)
+	}
+
 	menu_list, menu_map := share.GetMenu()
 	e = tmpl.ExecuteTemplate(c.Writer, "list.html", gin.H{
 		"Title":    "節點清單",
@@ -316,6 +337,41 @@ func (tc *NodeController) list(c *gin.Context) {
 	if e != nil {
 		return
 	}
+}
+
+func (u *NodeController) edit(c *gin.Context) {
+	const msg = "edit"
+	logger := utils.NewFileLogger("./dist/logs/node/edit", "console", 1)
+	var e error
+	defer func() {
+		if e != nil {
+			logger.Error(msg, zap.Error(e))
+			c.JSON(http.StatusOK, gin.H{"Code": e.Error()})
+		}
+	}()
+	var param struct {
+		ID    string `json:"id"`
+		Label string `json:"label"`
+	}
+	e = c.BindJSON(&param)
+	if e != nil {
+		return
+	}
+	logger.Info(msg, zap.Any("params", param))
+	if len(param.Label) == 0 {
+		e = fmt.Errorf("label 長度為零")
+		return
+	}
+
+	helper := share.NewSessionHelper(c)
+	aes_key := []byte(helper.GetAESKey())
+	node_id, _ := utils.AesDecrypt(param.ID, aes_key)
+
+	e = u.helper.edit(node_id, param.Label)
+	if e != nil {
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": "編輯成功"})
 }
 
 //-----------------------------------------------
@@ -331,4 +387,5 @@ func NewNodeController(rg *gin.RouterGroup, di service.DI) {
 	r.GET("/list", c.list)
 	r.POST("/add", c.add)
 	r.POST("/del", c.del)
+	r.POST("/edit", c.edit)
 }

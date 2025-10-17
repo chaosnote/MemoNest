@@ -5,7 +5,7 @@
     /* ------------------------------------------- */
     /* 主介面 - 文字顯示區樣式 */
     /* ------------------------------------------- */
-    #displaySelected {
+    #display_selected {
         border: 1px solid #ced4da;
         padding: .375rem .75rem;
         background-color: #e9ecef;
@@ -29,23 +29,28 @@
     {{ range . }}
     <li class="list-group-item">
         <div class="d-flex align-items-center">
-            <span>
+            <div>
                 {{ if .Children }}
-                <span data-bs-toggle="collapse" data-bs-target="#node-{{gen_id .RowID}}" style="cursor:pointer;">
-                    ⊞ {{ .PathName }}
-                </span>
+                    <div data-bs-toggle="collapse" data-bs-target="#node-{{.El_UID}}" style="cursor:pointer;">
+                    ⊞ <span id="label-{{.El_UID}}">{{.PathName}}</span>
+                    </div>
                 {{ else }}
-                ⊟ {{ .PathName }}
+                <div>
+                    ⊟ <span id="label-{{.El_UID}}">{{.PathName}}</span>
+                </div>
                 {{ end }}
-            </span>
+                <input type="text" class="form-control form-control-sm d-none" id="input-{{.El_UID}}" value="{{.PathName}}" style="width:auto; min-width:150px;">
+            </div>
             <div class="ms-auto d-flex gap-2">
-                <button class="btn btn-sm btn-outline-success" onclick="console.log('{{encrypt .NodeID}}')">修改名稱</button>
-                <button class="btn btn-sm btn-outline-danger" onclick="del_node('{{encrypt .NodeID}}')">刪除</button>
+                <button class="btn btn-sm btn-outline-success" onclick="start_edit('{{.El_UID}}')" id="edit-btn-{{.El_UID}}">修改</button>
+                <button class="btn btn-sm btn-outline-info" onclick="console.log('{{.El_UID}}')" id="move-btn-{{.El_UID}}" data-bs-toggle="modal" data-bs-target="#node_modal">搬移</button>
+                <button class="btn btn-sm btn-outline-primary d-none" onclick="confirm_edit('{{.El_UID}}', '{{.El_NodeID}}')" id="confirm-btn-{{.El_UID}}">確認</button>
+                <button class="btn btn-sm btn-outline-secondary d-none" onclick="cancel_edit('{{.El_UID}}')" id="cancel-btn-{{.El_UID}}">取消</button>
+                <button class="btn btn-sm btn-outline-danger" onclick="del_node('{{.El_NodeID}}')" id="delete-btn-{{.El_UID}}">刪除</button>
             </div>
         </div>
-
         {{ if .Children }}
-        <div class="collapse show mt-2 ms-3" id="node-{{gen_id .RowID}}">
+        <div class="collapse show mt-2 ms-2" id="node-{{.El_UID}}">
             {{ template "category" .Children }}
         </div>
         {{ end }}
@@ -57,15 +62,15 @@
 {{define "content"}}
 <div class="mt-3 mb-3">
     <div class="d-flex align-items-center gap-2 mb-4">
-        <button type="button" class="btn btn-outline-primary flex-shrink-0" data-bs-toggle="modal" data-bs-target="#nodeModal">挑選父節點</button>
-        <span id="displaySelected">尚未挑選父節點</span> <input type="text" class="form-control" id="mainTextInput" placeholder="輸入節點名稱">
+        <button type="button" class="btn btn-outline-primary flex-shrink-0" data-bs-toggle="modal" data-bs-target="#node_modal">挑選父節點</button>
+        <span id="display_selected">尚未挑選父節點</span> <input type="text" class="form-control" id="mainTextInput" placeholder="輸入節點名稱">
         <button type="button" class="btn btn-success flex-shrink-0" onclick="add_node();">增加節點</button>
     </div>
 </div>
 <div class="mb-3">
     {{ template "category" .List }}
 </div>
-<div class="modal fade" id="nodeModal" tabindex="-1" aria-hidden="true" onclick="onBlur(event)">
+<div class="modal fade" id="node_modal" tabindex="-1" aria-hidden="true" onclick="onBlur(event)">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
@@ -76,7 +81,7 @@
                 <div class="d-flex flex-wrap gap-2">
                     <button type="button" class="btn btn-outline-info" onclick="select_node('{{encrypt .RootID}}', 'Root')">Root</button>
                     {{range .NodeMap}}
-                    <button class="btn btn-outline-info" onclick="select_node('{{encrypt .NodeID}}', '{{.PathName}}')">{{.Path}}</button>
+                    <button class="btn btn-outline-info" onclick="select_node('{{.El_NodeID}}', '{{.PathName}}')">{{.Path}}</button>
                     {{end}}
                 </div>
             </div>
@@ -127,8 +132,8 @@
     
     function select_node(id, name){
         node_id = id ;
-        $("#displaySelected").text(name);
-        const modalEl = document.getElementById('nodeModal');
+        $("#display_selected").text(name);
+        const modalEl = document.getElementById('node_modal');
         const modal = bootstrap.Modal.getInstance(modalEl);
         if (modal) {
             modal.hide();
@@ -161,5 +166,83 @@
             }
         });
     }
+
+    function start_edit(id) {
+        $("#label-" + id).addClass("d-none");
+        $("#input-" + id).removeClass("d-none");
+
+        $("#edit-btn-" + id).addClass("d-none");
+        $("#delete-btn-" + id).addClass("d-none");
+
+        $("#confirm-btn-" + id).removeClass("d-none");
+        $("#cancel-btn-" + id).removeClass("d-none");
+
+        $("#move-btn-" + id).addClass("d-none");
+    }
+
+    function reset(id){
+        $("#label-" + id).removeClass("d-none");
+        $("#input-" + id).addClass("d-none");
+
+        $("#edit-btn-" + id).removeClass("d-none");
+        $("#delete-btn-" + id).removeClass("d-none");
+
+        $("#confirm-btn-" + id).addClass("d-none");
+        $("#cancel-btn-" + id).addClass("d-none");
+
+        $("#move-btn-" + id).removeClass("d-none");
+    }
+
+    function cancel_edit(id) {
+        reset(id) ;
+
+        const original_text = $("#label-" + id).text(); // 還原 input 內容
+        $("#input-" + id).val(original_text);
+    }
+
+    function move(id) {
+        console.log(id) ;
+    }
+
+    function confirm_edit(el_id, node_id) {
+        const original_text = $("#label-" + el_id).text();
+        const new_name = $("#input-" + el_id).val().trim();
+        try {
+            if (new_name === "") {
+                throw "名稱不能為空！" ;
+            }
+            if (new_name == original_text) {
+                throw "名稱值相同！" ;
+            }
+        } catch (err) {
+            alert(err);
+            reset(el_id) ;
+            return;
+        }
+
+        const params = {
+            id: node_id,
+            label: new_name
+        };
+
+        $.ajax({
+            url: "/api/v1/node/edit",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(params),
+            success: function (response) {
+                if (response.Code !== "OK") {
+                    alert(response.Code);
+                    return;
+                }
+                location.reload();
+            },
+            error: function (xhr, status, error) {
+                console.error("修改節點失敗：", error);
+                alert("修改節點失敗，請稍後再試！");
+            }
+        });
+    }
+
 </script>
 {{end}}
