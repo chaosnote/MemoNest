@@ -117,7 +117,8 @@ func (ah *ArticleHelper) list() (articles []model.Article) {
 			a.UpdateDt
 		FROM articles as a
 		JOIN categories as c ON a.NodeID = c.NodeID
-		ORDER BY a.UpdateDt DESC ;
+		ORDER BY a.UpdateDt DESC
+		LIMIT 10;
 	`)
 	if e != nil {
 		return
