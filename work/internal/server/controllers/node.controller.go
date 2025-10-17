@@ -227,10 +227,14 @@ func (u *NodeController) add(c *gin.Context) {
 	}
 	logger.Info(msg, zap.Any("params", param))
 
-	if param.ID == uuid.Nil.String() {
+	helper := share.NewSessionHelper(c)
+	aes_key := []byte(helper.GetAESKey())
+	node_id, _ := utils.AesDecrypt(param.ID, aes_key)
+
+	if node_id == uuid.Nil.String() {
 		_, e = u.helper.addParentNode(param.Label)
 	} else {
-		_, e = u.helper.addChildNode(param.ID, param.Label)
+		_, e = u.helper.addChildNode(node_id, param.Label)
 	}
 	if e != nil {
 		return
