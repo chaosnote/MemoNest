@@ -8,9 +8,9 @@ import (
 
 	"idv/chris/MemoNest/adapter/dependency"
 	"idv/chris/MemoNest/adapter/repository/mongo"
-	"idv/chris/MemoNest/adapter/repository/mysql"
 	"idv/chris/MemoNest/adapter/repository/nats_io"
 	"idv/chris/MemoNest/adapter/repository/redis"
+	"idv/chris/MemoNest/api/http"
 	"idv/chris/MemoNest/config"
 	"idv/chris/MemoNest/server"
 	"idv/chris/MemoNest/service"
@@ -19,6 +19,8 @@ import (
 
 func main() {
 	app := fx.New(
+		dependency.Module,
+
 		// 提供設定檔與各種 Client
 		fx.Provide(
 			// fx.Annotate(
@@ -34,7 +36,6 @@ func main() {
 			// },
 			config.NewAPPConfig,
 			redis.NewRedisDB,
-			mysql.NewMariaDB,
 			mongo.NewMongoDB,
 			nats_io.NewNatsIO,
 			service.NewFlagImpl,
@@ -43,8 +44,10 @@ func main() {
 			// 	fx.ParamTags(``, ``, `name:"system"`), // `` 為預設值、留意注入參數順序，需對應函式參數
 			// ),
 			service.NewTPAImpl,
-			dependency.Module,
-			server.NewGinEngine,
+
+			// Gin Server
+			http.NewServerRoute,
+			// Router
 		),
 
 		fx.WithLogger(func() fxevent.Logger {

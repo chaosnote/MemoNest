@@ -1,4 +1,4 @@
-package server
+package http
 
 import (
 	"github.com/gin-contrib/sessions"
@@ -10,8 +10,8 @@ import (
 	"idv/chris/MemoNest/utils"
 )
 
-// NewGinEngine 建立 Gin Engine 並加入中介層
-func NewGinEngine(cfg *config.APPConfig, store redis.Store) *gin.Engine {
+// NewServerRoute 建立 Gin Engine
+func NewServerRoute(cfg *config.APPConfig, store redis.Store) *gin.Engine {
 	logger := utils.NewFileLogger("./dist/logs/server", "console", 1)
 
 	gin.SetMode(cfg.Gin.Mode)
