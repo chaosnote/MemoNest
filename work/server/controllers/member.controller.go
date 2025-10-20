@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"idv/chris/MemoNest/server/controllers/share"
+	xxx "idv/chris/MemoNest/adapter/http"
 	"idv/chris/MemoNest/service"
 )
 
@@ -15,7 +15,7 @@ type MemberController struct{}
 func (u *MemberController) login(c *gin.Context) {
 	account := "tester" // 暫用
 
-	helper := share.NewSessionHelper(c)
+	helper := xxx.NewGinSession(c)
 	helper.Init(account)
 
 	c.Redirect(http.StatusSeeOther, "/api/v1/article/list")
@@ -24,7 +24,7 @@ func (u *MemberController) login(c *gin.Context) {
 // 使用者登出
 func (u *MemberController) logout(c *gin.Context) {
 	// 使用 gin 取得 POST JSON 資料
-	helper := share.NewSessionHelper(c)
+	helper := xxx.NewGinSession(c)
 	helper.Clear()
 }
 

@@ -8,9 +8,10 @@ import (
 	"idv/chris/MemoNest/config"
 	"idv/chris/MemoNest/server/middleware"
 	"idv/chris/MemoNest/utils"
+
+	"idv/chris/MemoNest/domain/repo"
 )
 
-// NewServerRoute 建立 Gin Engine
 func NewServerRoute(cfg *config.APPConfig, store redis.Store) *gin.Engine {
 	logger := utils.NewFileLogger("./dist/logs/server", "console", 1)
 
@@ -22,4 +23,8 @@ func NewServerRoute(cfg *config.APPConfig, store redis.Store) *gin.Engine {
 	r.Use(middleware.NewRecoveryMiddleware(logger))
 
 	return r
+}
+
+func RegisterRoutes(engine *gin.Engine, nodeRepo repo.NodeRepository) {
+	_ = engine.Group("/api/v1")
 }

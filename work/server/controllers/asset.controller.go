@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
+	xxx "idv/chris/MemoNest/adapter/http"
 	"idv/chris/MemoNest/server/controllers/share"
 	"idv/chris/MemoNest/server/middleware"
 	"idv/chris/MemoNest/service"
@@ -33,7 +34,7 @@ func (ic *AssetController) image(c *gin.Context) {
 	name := c.Params.ByName("name")
 	logger.Info(msg, zap.String("id", id), zap.String("name", name))
 
-	helper := share.NewSessionHelper(c)
+	helper := xxx.NewGinSession(c)
 	account := helper.GetAccount()
 	aes_key := []byte(helper.GetAESKey())
 	plain_text, _ := utils.AesDecrypt(id, aes_key)

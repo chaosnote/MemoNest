@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 
+	xxx "idv/chris/MemoNest/adapter/http"
 	"idv/chris/MemoNest/domain/repo"
 	"idv/chris/MemoNest/server/controllers/share"
 	"idv/chris/MemoNest/server/middleware"
@@ -40,7 +41,7 @@ func (u *NodeController) add(c *gin.Context) {
 	}
 	logger.Info(msg, zap.Any("params", param))
 
-	helper := share.NewSessionHelper(c)
+	helper := xxx.NewGinSession(c)
 	aes_key := []byte(helper.GetAESKey())
 	parent_id, _ := utils.AesDecrypt(param.ID, aes_key)
 
@@ -74,7 +75,7 @@ func (u *NodeController) del(c *gin.Context) {
 	}
 	logger.Info(msg, zap.Any("params", param))
 
-	helper := share.NewSessionHelper(c)
+	helper := xxx.NewGinSession(c)
 	aes_key := []byte(helper.GetAESKey())
 	node_id, _ := utils.AesDecrypt(param.ID, aes_key)
 
@@ -88,7 +89,7 @@ func (u *NodeController) del(c *gin.Context) {
 func (tc *NodeController) list(c *gin.Context) {
 	dir := filepath.Join("./web", "templates")
 
-	helper := share.NewSessionHelper(c)
+	helper := xxx.NewGinSession(c)
 	aes_key := []byte(helper.GetAESKey())
 
 	config := utils.TemplateConfig{
@@ -159,7 +160,7 @@ func (u *NodeController) edit(c *gin.Context) {
 		return
 	}
 
-	helper := share.NewSessionHelper(c)
+	helper := xxx.NewGinSession(c)
 	aes_key := []byte(helper.GetAESKey())
 	node_id, _ := utils.AesDecrypt(param.ID, aes_key)
 
@@ -190,7 +191,7 @@ func (u *NodeController) move(c *gin.Context) {
 	}
 	logger.Info(msg, zap.Any("params", param))
 
-	helper := share.NewSessionHelper(c)
+	helper := xxx.NewGinSession(c)
 	aes_key := []byte(helper.GetAESKey())
 	parent_id, _ := utils.AesDecrypt(param.ParentID, aes_key)
 	current_id, _ := utils.AesDecrypt(param.CurrentID, aes_key)

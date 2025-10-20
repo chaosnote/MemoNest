@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"idv/chris/MemoNest/server/controllers/share"
+	xxx "idv/chris/MemoNest/adapter/http"
 	"idv/chris/MemoNest/service"
 	"idv/chris/MemoNest/utils"
 )
@@ -17,7 +17,7 @@ type IndexController struct {
 
 func (ic *IndexController) entry(c *gin.Context) {
 	if !ic.Debug {
-		helper := share.NewSessionHelper(c)
+		helper := xxx.NewGinSession(c)
 		if helper.IsLogin() {
 			c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": "未登入"})
 			return

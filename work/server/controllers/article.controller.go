@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
+	xxx "idv/chris/MemoNest/adapter/http"
 	"idv/chris/MemoNest/domain/repo"
 	"idv/chris/MemoNest/model"
 	"idv/chris/MemoNest/server/controllers/share"
@@ -88,7 +89,7 @@ func (ac *ArticleController) add(c *gin.Context) {
 
 	article_id := fmt.Sprintf("%v", row_id)
 
-	helper := share.NewSessionHelper(c)
+	helper := xxx.NewGinSession(c)
 	account := helper.GetAccount()
 	content := share.ProcessBase64Images(account, article_id, param.Content)
 	e = ac.repo.Update(row_id, param.Title, content)
@@ -119,7 +120,7 @@ func (ac *ArticleController) del(c *gin.Context) {
 	}
 	logger.Info(msg, zap.Any("params", param))
 
-	helper := share.NewSessionHelper(c)
+	helper := xxx.NewGinSession(c)
 	account := helper.GetAccount()
 	aes_key := []byte(helper.GetAESKey())
 	plain_text, _ := utils.AesDecrypt(param.ID, aes_key)
@@ -150,7 +151,7 @@ func (ac *ArticleController) edit(c *gin.Context) {
 		}
 	}()
 
-	helper := share.NewSessionHelper(c)
+	helper := xxx.NewGinSession(c)
 	aes_key := []byte(helper.GetAESKey())
 	plain_text, e := utils.AesDecrypt(c.Param("id"), aes_key)
 	if e != nil {
@@ -225,7 +226,7 @@ func (ac *ArticleController) renew(c *gin.Context) {
 	}
 	logger.Info(msg, zap.Any("params", param))
 
-	helper := share.NewSessionHelper(c)
+	helper := xxx.NewGinSession(c)
 	account := helper.GetAccount()
 	aes_key := []byte(helper.GetAESKey())
 	article_id, _ := utils.AesDecrypt(param.ID, aes_key)
@@ -269,7 +270,7 @@ func (ac *ArticleController) list(c *gin.Context) {
 		return
 	}
 
-	helper := share.NewSessionHelper(c)
+	helper := xxx.NewGinSession(c)
 	aes_key := []byte(helper.GetAESKey())
 
 	dir := filepath.Join("./web", "templates")

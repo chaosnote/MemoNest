@@ -12,7 +12,6 @@ import (
 	"idv/chris/MemoNest/adapter/repository/redis"
 	"idv/chris/MemoNest/api/http"
 	"idv/chris/MemoNest/config"
-	"idv/chris/MemoNest/server"
 	"idv/chris/MemoNest/service"
 	"idv/chris/MemoNest/utils"
 )
@@ -55,7 +54,7 @@ func main() {
 		}),
 
 		// 啟動 HTTP Server
-		fx.Invoke(server.Register),
+		fx.Invoke(http.RegisterRoutes),
 	)
 
 	app.Run()
