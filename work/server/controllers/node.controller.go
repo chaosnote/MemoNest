@@ -323,7 +323,7 @@ func (u *NodeController) del(c *gin.Context) {
 }
 
 func (tc *NodeController) list(c *gin.Context) {
-	dir := filepath.Join("./assets", "templates")
+	dir := filepath.Join("./web", "templates")
 
 	helper := share.NewSessionHelper(c)
 	aes_key := []byte(helper.GetAESKey())

@@ -224,7 +224,7 @@ type ArticleController struct {
 }
 
 func (ac *ArticleController) fresh(c *gin.Context) {
-	dir := filepath.Join("./assets", "templates")
+	dir := filepath.Join("./web", "templates")
 	config := utils.TemplateConfig{
 		Layout:  filepath.Join(dir, "layout", "share.html"),
 		Page:    []string{filepath.Join(dir, "page", "article", "fresh.html")},
@@ -365,7 +365,7 @@ func (ac *ArticleController) edit(c *gin.Context) {
 	}
 	data := list[0]
 
-	dir := filepath.Join("./assets", "templates")
+	dir := filepath.Join("./web", "templates")
 	config := utils.TemplateConfig{
 		Layout:  filepath.Join(dir, "layout", "share.html"),
 		Page:    []string{filepath.Join(dir, "page", "article", "edit.html")},
@@ -461,7 +461,7 @@ func (ac *ArticleController) list(c *gin.Context) {
 	helper := share.NewSessionHelper(c)
 	aes_key := []byte(helper.GetAESKey())
 
-	dir := filepath.Join("./assets", "templates")
+	dir := filepath.Join("./web", "templates")
 	config := utils.TemplateConfig{
 		Layout:  filepath.Join(dir, "layout", "share.html"),
 		Page:    []string{filepath.Join(dir, "page", "article", "list.html")},

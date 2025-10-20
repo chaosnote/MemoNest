@@ -26,7 +26,7 @@ func (ic *IndexController) entry(c *gin.Context) {
 		return
 	}
 
-	dir := filepath.Join("./assets", "templates")
+	dir := filepath.Join("./web", "templates")
 	config := utils.TemplateConfig{
 		Layout:  filepath.Join(dir, "layout", "share.html"),
 		Page:    []string{filepath.Join(dir, "page", "index", "index.html")},
