@@ -5,11 +5,11 @@ import (
 
 	"github.com/gin-contrib/sessions/redis"
 
-	"idv/chris/MemoNest/model"
+	"idv/chris/MemoNest/config"
 )
 
 // NewRedisDB 建立 Redis 連線
-func NewRedisDB(cfg *model.APPConfig) (redis.Store, error) {
+func NewRedisDB(cfg *config.APPConfig) (redis.Store, error) {
 	store, err := redis.NewStoreWithDB(
 		10,                              // 連線池大小
 		"tcp",                           // 網路類型

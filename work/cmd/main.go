@@ -1,13 +1,15 @@
 package main
 
 import (
+	"go.uber.org/fx"
+	"go.uber.org/fx/fxevent"
+
+	// "go.uber.org/zap"
+
+	"idv/chris/MemoNest/config"
 	"idv/chris/MemoNest/server"
 	"idv/chris/MemoNest/service"
 	"idv/chris/MemoNest/utils"
-
-	"go.uber.org/fx"
-	"go.uber.org/fx/fxevent"
-	// "go.uber.org/zap"
 )
 
 func main() {
@@ -25,7 +27,7 @@ func main() {
 			// 	logger := utils.NewConsoleLogger("console", 1)
 			// 	return logger.Named("system")
 			// },
-			service.NewAPPConfig,
+			config.NewAPPConfig,
 			service.NewRedisDB,
 			service.NewMariaDB,
 			service.NewMongoDB,

@@ -6,12 +6,12 @@ import (
 	"github.com/nats-io/nats.go"
 	"go.uber.org/zap"
 
-	"idv/chris/MemoNest/model"
+	"idv/chris/MemoNest/config"
 	"idv/chris/MemoNest/utils"
 )
 
 // NewNatsIOImpl 建立 NATS 連線
-func NewNatsIOImpl(cfg *model.APPConfig) (*nats.Conn, error) {
+func NewNatsIOImpl(cfg *config.APPConfig) (*nats.Conn, error) {
 	logger := utils.NewFileLogger("./dist/logs/natsio", "console", 1)
 	c, e := nats.Connect(cfg.Natsio.URL,
 		nats.PingInterval(time.Second),

@@ -5,13 +5,13 @@ import (
 	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
 
-	"idv/chris/MemoNest/model"
+	"idv/chris/MemoNest/config"
 	"idv/chris/MemoNest/server/middleware"
 	"idv/chris/MemoNest/utils"
 )
 
 // NewGinEngine 建立 Gin Engine 並加入中介層
-func NewGinEngine(cfg *model.APPConfig, store redis.Store) *gin.Engine {
+func NewGinEngine(cfg *config.APPConfig, store redis.Store) *gin.Engine {
 	logger := utils.NewFileLogger("./dist/logs/server", "console", 1)
 
 	gin.SetMode(cfg.Gin.Mode)

@@ -7,11 +7,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"idv/chris/MemoNest/model"
+	"idv/chris/MemoNest/config"
 )
 
 // NewMongoDB 建立 MongoDB 連線
-func NewMongoDB(cfg *model.APPConfig) (*mongo.Client, error) {
+func NewMongoDB(cfg *config.APPConfig) (*mongo.Client, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 

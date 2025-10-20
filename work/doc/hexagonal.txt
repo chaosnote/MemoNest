@@ -30,8 +30,7 @@
 ├── cmd/
 │   └── main.go                   # fx 啟動點
 ├── config/
-│   ├── config.go                 # 設定載入邏輯
-│   └── config.yaml               # 設定檔（維持 JSON）
+│   └── config.go                 # 設定載入邏輯
 ├── domain/                       # Domain Layer - 核心邏輯
 │   ├── model/
 │   │   ├── article.go            # Article Entity
@@ -48,6 +47,8 @@
 │       ├── layout/
 │       ├── page/
 │       └── component/
+├── assets/
+│   └── config.json               # 設定檔（維持 JSON）
 └── tests/
     ├── migrations/
     └── mysql.go

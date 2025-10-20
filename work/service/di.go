@@ -8,14 +8,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/fx"
 
-	"idv/chris/MemoNest/model"
+	"idv/chris/MemoNest/config"
 )
 
 // DI 注入所有服務依賴 (Fx.In)
 type DI struct {
 	fx.In
 
-	Config  *model.APPConfig
+	Config  *config.APPConfig
 	RedisDB redis.Store
 	MariaDB *sql.DB
 	MongoDB *mongo.Client

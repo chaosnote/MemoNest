@@ -5,11 +5,11 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 
-	"idv/chris/MemoNest/model"
+	"idv/chris/MemoNest/config"
 )
 
 // NewMariaDB 建立 MariaDB 連線
-func NewMariaDB(cfg *model.APPConfig) (*sql.DB, error) {
+func NewMariaDB(cfg *config.APPConfig) (*sql.DB, error) {
 	db, e := sql.Open("mysql", cfg.Mariadb.DSN)
 	if e != nil {
 		return nil, e
