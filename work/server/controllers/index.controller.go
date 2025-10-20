@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	xxx "idv/chris/MemoNest/adapter/http"
-	"idv/chris/MemoNest/service"
+	"idv/chris/MemoNest/config"
 	"idv/chris/MemoNest/utils"
 )
 
@@ -50,9 +50,9 @@ func (ic *IndexController) health(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": "OK"})
 }
 
-func NewIndexController(engine *gin.Engine, di service.DI) {
+func NewIndexController(engine *gin.Engine, cfg *config.APPConfig) {
 	c := &IndexController{
-		Debug: di.Config.Gin.Mode == "debug",
+		Debug: cfg.Gin.Mode == "debug",
 	}
 
 	engine.GET("/", c.entry)

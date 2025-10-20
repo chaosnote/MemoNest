@@ -9,8 +9,8 @@ import (
 	"idv/chris/MemoNest/utils"
 )
 
-// IPCheckMiddleware 是用來檢查 IP 是否為私有 IP 的中間件
-func IPCheckMiddleware() gin.HandlerFunc {
+// IPCheck 是用來檢查 IP 是否為私有 IP 的中間件
+func IPCheck() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 從 context 取得請求的遠端 IP
 		clientIP := net.ParseIP(c.RemoteIP())

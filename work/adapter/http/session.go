@@ -9,26 +9,17 @@ import (
 )
 
 const (
-	SessionKeyAccount = "account"
-	SessionKeyAESKey  = "aes_key"
-	SessionKeyIsLogin = "is_login"
-	DefaultAccount    = "guest"
-	DefaultAESKey     = "default-key"
+	SK_Account = "account"
+	SK_AESKey  = "aes_key"
+	SK_IsLogin = "is_login"
 )
 
 type GinSession struct {
 	store sessions.Session
 }
 
-func NewGinSession(ctx *gin.Context) service.Session {
-	return &GinSession{store: sessions.Default(ctx)}
-}
-
-func (s *GinSession) Init(account string) {
-	s.store.Set(SessionKeyAccount, account)
-	s.store.Set(SessionKeyAESKey, utils.MD5Hash(account)) // 可改為 row_id
-	s.store.Set(SessionKeyIsLogin, true)
-	s.store.Save()
+func (s *GinSession) Init(ctx *gin.Context) {
+	s.store = sessions.Default(ctx)
 }
 
 func (s *GinSession) Clear() {
@@ -36,26 +27,39 @@ func (s *GinSession) Clear() {
 	s.store.Save()
 }
 
+func (s *GinSession) SetAccount(account string) {
+	s.store.Set(SK_Account, account)
+	s.store.Set(SK_AESKey, utils.MD5Hash(account)) // 可改為 row_id
+	s.store.Set(SK_IsLogin, true)
+	s.store.Save()
+}
+
 func (s *GinSession) GetAccount() string {
-	val := s.store.Get(SessionKeyAccount)
-	if str, ok := val.(string); ok {
+	val := s.store.Get(SK_Account)
+	str, ok := val.(string)
+	if ok {
 		return str
 	}
-	return DefaultAccount
+	return ""
 }
 
 func (s *GinSession) GetAESKey() string {
-	val := s.store.Get(SessionKeyAESKey)
-	if str, ok := val.(string); ok {
+	val := s.store.Get(SK_AESKey)
+	str, ok := val.(string)
+	if ok {
 		return str
 	}
-	return DefaultAESKey
+	return ""
 }
 
 func (s *GinSession) IsLogin() bool {
-	val := s.store.Get(SessionKeyIsLogin)
+	val := s.store.Get(SK_IsLogin)
 	if b, ok := val.(bool); ok {
 		return b
 	}
 	return false
+}
+
+func NewGinSession() service.Session {
+	return &GinSession{}
 }

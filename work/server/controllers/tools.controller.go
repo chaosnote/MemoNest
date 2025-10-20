@@ -1,17 +1,13 @@
 package controllers
 
 import (
-	"database/sql"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-
-	"idv/chris/MemoNest/service"
 )
 
 type ToolsHelper struct {
-	db *sql.DB
 }
 
 //-----------------------------------------------
@@ -27,11 +23,9 @@ func (tc *ToolsController) gen_uuid(c *gin.Context) {
 	})
 }
 
-func NewToolsController(rg *gin.RouterGroup, di service.DI) {
+func NewToolsController(rg *gin.RouterGroup) {
 	c := &ToolsController{
-		helper: &ToolsHelper{
-			db: di.MariaDB,
-		},
+		helper: &ToolsHelper{},
 	}
 	r := rg.Group("/tools")
 	r.GET("/uuid", c.gen_uuid)

@@ -59,6 +59,6 @@ func NewAssetController(engine *gin.Engine, di service.DI, img zzz.ImageProcesso
 	}
 
 	g := engine.Group("/asset/article")
-	g.Use(middleware.MustLoginMiddleware(di))
+	g.Use(middleware.AuthMiddleware(di))
 	g.GET("/image/:id/:name", c.image)
 }

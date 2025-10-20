@@ -7,8 +7,8 @@ import (
 	"go.uber.org/zap"
 )
 
-// NewRecoveryMiddleware 攔截 panic 並且記錄，回 500
-func NewRecoveryMiddleware(logger *zap.Logger) gin.HandlerFunc {
+// GinRecovery 攔截 panic 並且記錄，回 500
+func GinRecovery(logger *zap.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if r := recover(); r != nil {

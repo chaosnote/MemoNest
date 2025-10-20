@@ -1,28 +1,63 @@
 package http
 
 import (
+	"context"
+	"database/sql"
+	"fmt"
+	"net/http"
+
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
+	"github.com/nats-io/nats.go"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.uber.org/fx"
 
 	"idv/chris/MemoNest/adapter/http/middleware"
 	"idv/chris/MemoNest/config"
-	"idv/chris/MemoNest/utils"
-
 	"idv/chris/MemoNest/domain/repo"
+	"idv/chris/MemoNest/utils"
 )
 
-func NewServerRoute(cfg *config.APPConfig, store redis.Store) *gin.Engine {
+func NewServerRoute(
+	lc fx.Lifecycle,
+	cfg *config.APPConfig,
+	redis_store redis.Store,
+	maria_db *sql.DB,
+	mongo_db *mongo.Client,
+	nats_io *nats.Conn,
+) *gin.Engine {
+	utils.RSAInit("./dist/logs/crypt/rsa.txt", 1024, true)
+
 	logger := utils.NewFileLogger("./dist/logs/server", "console", 1)
 
 	gin.SetMode(cfg.Gin.Mode)
 
-	r := gin.New()
-	r.Use(sessions.Sessions("custom_session", store))
-	r.Use(middleware.NewLoggerMiddleware(logger))
-	r.Use(middleware.NewRecoveryMiddleware(logger))
+	engine := gin.New()
+	engine.Use(sessions.Sessions("custom_session", redis_store))
+	engine.Use(middleware.GinLogger(logger))
+	engine.Use(middleware.GinRecovery(logger))
 
-	return r
+	addr := fmt.Sprintf(":%s", cfg.Gin.Port)
+	srv := &http.Server{
+		Addr:    addr,
+		Handler: engine,
+	}
+
+	lc.Append(fx.Hook{
+		OnStart: func(context.Context) error {
+			go srv.ListenAndServe()
+			return nil
+		},
+		OnStop: func(ctx context.Context) error {
+			maria_db.Close()
+			mongo_db.Disconnect(ctx)
+			nats_io.Close()
+			return srv.Shutdown(ctx) // 可在此關閉資料庫連線、釋放資源
+		},
+	})
+
+	return engine
 }
 
 func RegisterRoutes(engine *gin.Engine, nodeRepo repo.NodeRepository) {

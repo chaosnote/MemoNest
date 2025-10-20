@@ -325,7 +325,7 @@ func NewArticleController(
 		img:  img,
 	}
 	r := rg.Group("/article")
-	r.Use(middleware.MustLoginMiddleware(di))
+	r.Use(middleware.AuthMiddleware(di))
 	r.GET("/fresh", c.fresh)
 	r.GET("/list", c.list)
 	r.POST("/add", c.add)

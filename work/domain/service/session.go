@@ -1,10 +1,13 @@
 package service
 
+import "github.com/gin-gonic/gin"
+
 type Session interface {
-	Init(account string)
+	Init(ctx *gin.Context)
 
 	Clear()
-	GetAESKey() string
-	GetAccount() string
 	IsLogin() bool
+	GetAESKey() string
+	SetAccount(string)
+	GetAccount() string
 }

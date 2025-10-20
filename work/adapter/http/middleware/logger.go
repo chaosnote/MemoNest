@@ -7,8 +7,8 @@ import (
 	"go.uber.org/zap"
 )
 
-// NewLoggerMiddleware 為 Gin 設計的 access logger middleware
-func NewLoggerMiddleware(logger *zap.Logger) gin.HandlerFunc {
+// GinLogger 為 Gin 設計的 access logger middleware
+func GinLogger(logger *zap.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 		path := c.Request.URL.Path
