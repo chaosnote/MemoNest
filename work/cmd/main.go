@@ -45,8 +45,10 @@ func main() {
 			return &fxevent.ZapLogger{Logger: utils.NewFileLogger("./dist/logs/fx", "console", 1)}
 		}),
 
-		// 啟動 HTTP Server
-		fx.Invoke(http.RegisterRoutes),
+		// 服務註冊
+		fx.Invoke(
+			http.NewIndexHandler,
+		),
 	)
 
 	app.Run()

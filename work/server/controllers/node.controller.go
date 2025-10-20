@@ -243,7 +243,7 @@ func NewNodeController(rg *gin.RouterGroup, di service.DI, repo repo.NodeReposit
 		tree: tree,
 	}
 	r := rg.Group("/node")
-	r.Use(middleware.AuthMiddleware(di))
+	r.Use(middleware.Auth(di))
 	r.GET("/list", c.list)
 	r.POST("/add", c.add)
 	r.POST("/del", c.del)

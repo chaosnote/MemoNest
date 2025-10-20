@@ -1,24 +1,25 @@
-package controllers
+package handle
 
 import (
+	"idv/chris/MemoNest/application/usecase"
+	"idv/chris/MemoNest/domain/service"
+	"idv/chris/MemoNest/utils"
 	"net/http"
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"
-
-	xxx "idv/chris/MemoNest/adapter/http"
-	"idv/chris/MemoNest/config"
-	"idv/chris/MemoNest/utils"
 )
 
-type IndexController struct {
-	Debug bool
+type IndexHandler struct {
+	Debug   bool
+	UC      *usecase.IndexUsecase
+	Session service.Session
 }
 
-func (ic *IndexController) entry(c *gin.Context) {
-	if !ic.Debug {
-		helper := xxx.NewGinSession(c)
-		if helper.IsLogin() {
+func (h *IndexHandler) Entry(c *gin.Context) {
+	if !h.Debug {
+		h.Session.Init(c)
+		if h.Session.IsLogin() {
 			c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": "未登入"})
 			return
 		}
@@ -46,15 +47,6 @@ func (ic *IndexController) entry(c *gin.Context) {
 	}
 }
 
-func (ic *IndexController) health(c *gin.Context) {
+func (h *IndexHandler) Health(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": "OK"})
-}
-
-func NewIndexController(engine *gin.Engine, cfg *config.APPConfig) {
-	c := &IndexController{
-		Debug: cfg.Gin.Mode == "debug",
-	}
-
-	engine.GET("/", c.entry)
-	engine.GET("/health", c.health)
 }

@@ -14,8 +14,10 @@ import (
 	"go.uber.org/fx"
 
 	"idv/chris/MemoNest/adapter/http/middleware"
+	"idv/chris/MemoNest/api/http/handle"
+	"idv/chris/MemoNest/application/usecase"
 	"idv/chris/MemoNest/config"
-	"idv/chris/MemoNest/domain/repo"
+	"idv/chris/MemoNest/domain/service"
 	"idv/chris/MemoNest/utils"
 )
 
@@ -60,6 +62,17 @@ func NewServerRoute(
 	return engine
 }
 
-func RegisterRoutes(engine *gin.Engine, nodeRepo repo.NodeRepository) {
-	_ = engine.Group("/api/v1")
+func NewIndexHandler(
+	cfg *config.APPConfig,
+	engine *gin.Engine,
+	uc *usecase.IndexUsecase,
+	session service.Session,
+) {
+	ih := &handle.IndexHandler{
+		Debug:   cfg.Gin.Mode == "debug",
+		UC:      uc,
+		Session: session,
+	}
+	engine.GET("/", ih.Entry)
+	engine.GET("/health", ih.Health)
 }
