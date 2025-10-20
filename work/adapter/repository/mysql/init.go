@@ -14,6 +14,8 @@ func NewMariaDB(cfg *config.APPConfig) (*sql.DB, error) {
 	if e != nil {
 		return nil, e
 	}
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(5)
 
 	if e = db.Ping(); e != nil {
 		return nil, e
