@@ -5,8 +5,8 @@ import (
 	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
 
+	"idv/chris/MemoNest/adapter/http/middleware"
 	"idv/chris/MemoNest/config"
-	"idv/chris/MemoNest/server/middleware"
 	"idv/chris/MemoNest/utils"
 
 	"idv/chris/MemoNest/domain/repo"

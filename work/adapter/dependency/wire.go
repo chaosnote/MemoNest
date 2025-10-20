@@ -21,6 +21,7 @@ var Module = fx.Options(
 			mysql.NewArticleRepo,
 			fx.As(new(repo.ArticleRepository)),
 		),
+		//
 		fx.Annotate(
 			infra.NewMenuProvider,
 			fx.As(new(service.MenuProvider)),

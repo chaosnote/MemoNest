@@ -10,10 +10,10 @@ import (
 	"go.uber.org/zap"
 
 	xxx "idv/chris/MemoNest/adapter/http"
+	"idv/chris/MemoNest/adapter/http/middleware"
 	"idv/chris/MemoNest/adapter/infra"
 	"idv/chris/MemoNest/domain/repo"
 	zzz "idv/chris/MemoNest/domain/service"
-	"idv/chris/MemoNest/server/middleware"
 	"idv/chris/MemoNest/service"
 	"idv/chris/MemoNest/utils"
 )
