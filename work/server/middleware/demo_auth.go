@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"idv/chris/MemoNest/internal/service"
+	"idv/chris/MemoNest/service"
 )
 
 func DemoAuthMiddleware(deps service.DI) gin.HandlerFunc {

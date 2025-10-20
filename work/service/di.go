@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/fx"
 
-	"idv/chris/MemoNest/internal/model"
+	"idv/chris/MemoNest/model"
 )
 
 // DI 注入所有服務依賴 (Fx.In)

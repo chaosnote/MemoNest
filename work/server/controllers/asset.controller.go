@@ -9,9 +9,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
-	"idv/chris/MemoNest/internal/server/controllers/share"
-	"idv/chris/MemoNest/internal/server/middleware"
-	"idv/chris/MemoNest/internal/service"
+	"idv/chris/MemoNest/server/controllers/share"
+	"idv/chris/MemoNest/server/middleware"
+	"idv/chris/MemoNest/service"
 	"idv/chris/MemoNest/utils"
 )
 

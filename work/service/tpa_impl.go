@@ -3,7 +3,7 @@ package service
 import (
 	"github.com/go-resty/resty/v2"
 
-	"idv/chris/MemoNest/internal/model"
+	"idv/chris/MemoNest/model"
 )
 
 // TPAImpl Third Party API Implement

@@ -6,8 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"idv/chris/MemoNest/internal/server/controllers/share"
-	"idv/chris/MemoNest/internal/service"
+	"idv/chris/MemoNest/server/controllers/share"
+	"idv/chris/MemoNest/service"
 	"idv/chris/MemoNest/utils"
 )
 

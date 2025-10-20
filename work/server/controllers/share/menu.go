@@ -2,7 +2,7 @@ package share
 
 import (
 	"fmt"
-	"idv/chris/MemoNest/internal/model"
+	"idv/chris/MemoNest/model"
 )
 
 const (

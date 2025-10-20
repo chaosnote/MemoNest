@@ -7,7 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"idv/chris/MemoNest/internal/model"
+	"idv/chris/MemoNest/model"
 )
 
 // NewMongoDB 建立 MongoDB 連線

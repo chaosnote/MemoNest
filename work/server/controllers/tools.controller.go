@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
-	"idv/chris/MemoNest/internal/service"
+	"idv/chris/MemoNest/service"
 )
 
 type ToolsHelper struct {

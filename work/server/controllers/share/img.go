@@ -3,7 +3,7 @@ package share
 import (
 	"encoding/base64"
 	"fmt"
-	"idv/chris/MemoNest/internal/model"
+	"idv/chris/MemoNest/model"
 	"os"
 	"path/filepath"
 	"regexp"

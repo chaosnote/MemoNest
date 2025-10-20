@@ -5,7 +5,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 
-	"idv/chris/MemoNest/internal/model"
+	"idv/chris/MemoNest/model"
 )
 
 // NewMariaDB 建立 MariaDB 連線

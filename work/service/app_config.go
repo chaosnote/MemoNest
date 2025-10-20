@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"os"
 
-	"idv/chris/MemoNest/internal/model"
+	"idv/chris/MemoNest/model"
 	"idv/chris/MemoNest/utils"
 
 	"go.uber.org/zap"

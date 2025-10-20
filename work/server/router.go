@@ -3,8 +3,8 @@ package server
 import (
 	"github.com/gin-gonic/gin"
 
-	"idv/chris/MemoNest/internal/server/controllers"
-	"idv/chris/MemoNest/internal/service"
+	"idv/chris/MemoNest/server/controllers"
+	"idv/chris/MemoNest/service"
 )
 
 // RegisterRoutes 註冊所有路由

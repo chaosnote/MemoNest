@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-contrib/sessions/redis"
 
-	"idv/chris/MemoNest/internal/model"
+	"idv/chris/MemoNest/model"
 )
 
 // NewRedisDB 建立 Redis 連線

@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/fx"
 
-	"idv/chris/MemoNest/internal/service"
+	"idv/chris/MemoNest/service"
 	"idv/chris/MemoNest/utils"
 )
 

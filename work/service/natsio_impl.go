@@ -6,7 +6,7 @@ import (
 	"github.com/nats-io/nats.go"
 	"go.uber.org/zap"
 
-	"idv/chris/MemoNest/internal/model"
+	"idv/chris/MemoNest/model"
 	"idv/chris/MemoNest/utils"
 )
 

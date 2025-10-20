@@ -1,8 +1,8 @@
 package main
 
 import (
-	"idv/chris/MemoNest/internal/server"
-	"idv/chris/MemoNest/internal/service"
+	"idv/chris/MemoNest/server"
+	"idv/chris/MemoNest/service"
 	"idv/chris/MemoNest/utils"
 
 	"go.uber.org/fx"

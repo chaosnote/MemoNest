@@ -1,7 +1,7 @@
 package share
 
 import (
-	"idv/chris/MemoNest/internal/model"
+	"idv/chris/MemoNest/model"
 	"strings"
 
 	"github.com/google/uuid"
