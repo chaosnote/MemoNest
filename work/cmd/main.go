@@ -6,6 +6,10 @@ import (
 
 	// "go.uber.org/zap"
 
+	"idv/chris/MemoNest/adapter/repository/mongo"
+	"idv/chris/MemoNest/adapter/repository/mysql"
+	"idv/chris/MemoNest/adapter/repository/nats_io"
+	"idv/chris/MemoNest/adapter/repository/redis"
 	"idv/chris/MemoNest/config"
 	"idv/chris/MemoNest/server"
 	"idv/chris/MemoNest/service"
@@ -28,10 +32,10 @@ func main() {
 			// 	return logger.Named("system")
 			// },
 			config.NewAPPConfig,
-			service.NewRedisDB,
-			service.NewMariaDB,
-			service.NewMongoDB,
-			service.NewNatsIOImpl,
+			redis.NewRedisDB,
+			mysql.NewMariaDB,
+			mongo.NewMongoDB,
+			nats_io.NewNatsIO,
 			service.NewFlagImpl,
 			// fx.Annotate(
 			// 	service.NewNatsIOClient,

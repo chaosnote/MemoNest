@@ -1,4 +1,4 @@
-package service
+package nats_io
 
 import (
 	"time"
@@ -10,8 +10,8 @@ import (
 	"idv/chris/MemoNest/utils"
 )
 
-// NewNatsIOImpl 建立 NATS 連線
-func NewNatsIOImpl(cfg *config.APPConfig) (*nats.Conn, error) {
+// NewNatsIO 建立 NATS 連線
+func NewNatsIO(cfg *config.APPConfig) (*nats.Conn, error) {
 	logger := utils.NewFileLogger("./dist/logs/natsio", "console", 1)
 	c, e := nats.Connect(cfg.Natsio.URL,
 		nats.PingInterval(time.Second),
