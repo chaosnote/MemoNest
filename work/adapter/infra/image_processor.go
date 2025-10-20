@@ -1,9 +1,8 @@
-package share
+package infra
 
 import (
 	"encoding/base64"
 	"fmt"
-	"idv/chris/MemoNest/model"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -12,9 +11,14 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
+
+	"idv/chris/MemoNest/model"
 )
 
-func ProcessBase64Images(account, article_id, content string) string {
+type ImageProcessor struct {
+}
+
+func (ip *ImageProcessor) ProcessBase64Images(account, article_id, content string) string {
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(content))
 	if err != nil {
 		return content
@@ -36,7 +40,7 @@ func ProcessBase64Images(account, article_id, content string) string {
 
 			filename := fmt.Sprintf("img_%d.png", idx)
 			idx++
-			path := GetImageStoragePath(account, article_id, filename)
+			path := ip.GetImageStoragePath(account, article_id, filename)
 			os.MkdirAll(filepath.Dir(path), 0755)
 			os.WriteFile(path, data, 0644)
 
@@ -48,7 +52,7 @@ func ProcessBase64Images(account, article_id, content string) string {
 	return output
 }
 
-func GetImageStoragePath(account, article_id, filename string) string {
+func (ip *ImageProcessor) GetImageStoragePath(account, article_id, filename string) string {
 	// exePath, _ := os.Executable()
 	// fmt.Println("DIR", exePath)
 	// baseDir := filepath.Dir(exePath)
@@ -56,9 +60,9 @@ func GetImageStoragePath(account, article_id, filename string) string {
 	return filepath.Join(baseDir, "uploads", account, "article", article_id, filename)
 }
 
-func CleanupUnusedImages(account, article_id, html string) {
-	used := ExtractImageFilenamesFromHTML(html)
-	dir := filepath.Dir(GetImageStoragePath(account, article_id, "dummy"))
+func (ip *ImageProcessor) CleanupUnusedImages(account, article_id, html string) {
+	used := ip.ExtractImageFilenamesFromHTML(html)
+	dir := filepath.Dir(ip.GetImageStoragePath(account, article_id, "dummy"))
 	files, _ := os.ReadDir(dir)
 	for _, f := range files {
 		if !slices.Contains(used, f.Name()) {
@@ -67,7 +71,7 @@ func CleanupUnusedImages(account, article_id, html string) {
 	}
 }
 
-func ExtractImageFilenamesFromHTML(content string) []string {
+func (ip *ImageProcessor) ExtractImageFilenamesFromHTML(content string) []string {
 	re := regexp.MustCompile(fmt.Sprintf(`<img[^>]+src="%s(?:/[^/]+)?/([^"]+)"`, model.IMG_SRC))
 	matches := re.FindAllStringSubmatch(content, -1)
 	var filenames []string
@@ -77,8 +81,12 @@ func ExtractImageFilenamesFromHTML(content string) []string {
 	return filenames
 }
 
-func DelImageDir(account, article_id string) {
+func (ip *ImageProcessor) DelImageDir(account, article_id string) {
 	baseDir := "./dist"
 	dir := filepath.Join(baseDir, "uploads", account, "article", article_id)
 	os.RemoveAll(dir)
+}
+
+func NewImageProcessor() *ImageProcessor {
+	return &ImageProcessor{}
 }

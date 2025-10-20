@@ -13,9 +13,10 @@ import (
 	"go.uber.org/zap"
 
 	xxx "idv/chris/MemoNest/adapter/http"
+	"idv/chris/MemoNest/adapter/infra"
 	"idv/chris/MemoNest/domain/repo"
+	zzz "idv/chris/MemoNest/domain/service"
 	"idv/chris/MemoNest/model"
-	"idv/chris/MemoNest/server/controllers/share"
 	"idv/chris/MemoNest/server/middleware"
 	"idv/chris/MemoNest/service"
 	"idv/chris/MemoNest/utils"
@@ -23,6 +24,9 @@ import (
 
 type ArticleController struct {
 	repo repo.ArticleRepository
+	menu zzz.MenuProvider
+	tree zzz.NodeTree
+	img  zzz.ImageProcessor
 }
 
 func (ac *ArticleController) fresh(c *gin.Context) {
@@ -47,12 +51,11 @@ func (ac *ArticleController) fresh(c *gin.Context) {
 	if e != nil {
 		return
 	}
-	_, node_map := share.GenNodeInfo(tmp_list)
-	menu_list, menu_map := share.GetMenu()
+	_, node_map := ac.tree.GenInfo(tmp_list)
 	e = tmpl.ExecuteTemplate(c.Writer, "fresh.html", gin.H{
 		"Title":        "增加文章",
-		"Menu":         menu_list,
-		"Children":     menu_list[menu_map[share.MK_ARTICLE]].Children,
+		"Menu":         ac.menu.GetList(),
+		"Children":     ac.menu.GetList()[ac.menu.GetMap()[infra.MP_ARTICLE]].Children,
 		"NodeMap":      node_map,
 		"ArticleTitle": "請輸入文章標題",
 	})
@@ -91,12 +94,12 @@ func (ac *ArticleController) add(c *gin.Context) {
 
 	helper := xxx.NewGinSession(c)
 	account := helper.GetAccount()
-	content := share.ProcessBase64Images(account, article_id, param.Content)
+	content := ac.img.ProcessBase64Images(account, article_id, param.Content)
 	e = ac.repo.Update(row_id, param.Title, content)
 	if e != nil {
 		return
 	}
-	share.CleanupUnusedImages(account, article_id, content)
+	ac.img.CleanupUnusedImages(account, article_id, content)
 
 	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": ""})
 }
@@ -135,7 +138,7 @@ func (ac *ArticleController) del(c *gin.Context) {
 		return
 	}
 
-	share.DelImageDir(account, fmt.Sprintf("%v", id))
+	ac.img.DelImageDir(account, fmt.Sprintf("%v", id))
 
 	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": ""})
 }
@@ -190,11 +193,10 @@ func (ac *ArticleController) edit(c *gin.Context) {
 	if e != nil {
 		return
 	}
-	menu_list, menu_map := share.GetMenu()
 	e = tmpl.ExecuteTemplate(c.Writer, "edit.html", gin.H{
 		"Title":          "修改文章",
-		"Menu":           menu_list,
-		"Children":       menu_list[menu_map[share.MK_ARTICLE]].Children,
+		"Menu":           ac.menu.GetList(),
+		"Children":       ac.menu.GetList()[ac.menu.GetMap()[infra.MP_ARTICLE]].Children,
 		"ID":             c.Param("id"),
 		"PathName":       data.PathName,
 		"ArticleTitle":   data.Title,
@@ -237,12 +239,12 @@ func (ac *ArticleController) renew(c *gin.Context) {
 		return
 	}
 
-	content := share.ProcessBase64Images(account, article_id, param.Content)
+	content := ac.img.ProcessBase64Images(account, article_id, param.Content)
 	e = ac.repo.Update(row_id, param.Title, content)
 	if e != nil {
 		return
 	}
-	share.CleanupUnusedImages(account, article_id, content)
+	ac.img.CleanupUnusedImages(account, article_id, content)
 
 	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": ""})
 }
@@ -297,11 +299,10 @@ func (ac *ArticleController) list(c *gin.Context) {
 	if e != nil {
 		return
 	}
-	menu_list, menu_map := share.GetMenu()
 	e = tmpl.ExecuteTemplate(c.Writer, "list.html", gin.H{
 		"Title":    "文章清單",
-		"Menu":     menu_list,
-		"Children": menu_list[menu_map[share.MK_ARTICLE]].Children,
+		"Menu":     ac.menu.GetList(),
+		"Children": ac.menu.GetList()[ac.menu.GetMap()[infra.MP_ARTICLE]].Children,
 		"List":     list,
 	})
 	if e != nil {
@@ -309,9 +310,19 @@ func (ac *ArticleController) list(c *gin.Context) {
 	}
 }
 
-func NewArticleController(rg *gin.RouterGroup, di service.DI, repo repo.ArticleRepository) {
+func NewArticleController(
+	rg *gin.RouterGroup,
+	di service.DI,
+	repo repo.ArticleRepository,
+	menu zzz.MenuProvider,
+	tree zzz.NodeTree,
+	img zzz.ImageProcessor,
+) {
 	c := &ArticleController{
 		repo: repo,
+		menu: menu,
+		tree: tree,
+		img:  img,
 	}
 	r := rg.Group("/article")
 	r.Use(middleware.MustLoginMiddleware(di))

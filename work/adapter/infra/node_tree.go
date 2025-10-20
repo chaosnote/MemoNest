@@ -1,13 +1,17 @@
-package share
+package infra
 
 import (
-	"idv/chris/MemoNest/model"
 	"strings"
 
 	"github.com/google/uuid"
+
+	"idv/chris/MemoNest/model"
 )
 
-func GenNodeInfo(source []model.Category) ([]*model.CategoryNode, map[string]*model.CategoryNode) {
+type NodeTree struct {
+}
+
+func (nt *NodeTree) GenInfo(source []model.Category) ([]*model.CategoryNode, map[string]*model.CategoryNode) {
 	root_id := uuid.Nil.String()
 	node_map := make(map[string]*model.CategoryNode)
 
@@ -50,4 +54,8 @@ func GenNodeInfo(source []model.Category) ([]*model.CategoryNode, map[string]*mo
 	}
 
 	return node_list, node_map
+}
+
+func NewNodeTree() *NodeTree {
+	return &NodeTree{}
 }

@@ -10,13 +10,14 @@ import (
 	"go.uber.org/zap"
 
 	xxx "idv/chris/MemoNest/adapter/http"
-	"idv/chris/MemoNest/server/controllers/share"
+	zzz "idv/chris/MemoNest/domain/service"
 	"idv/chris/MemoNest/server/middleware"
 	"idv/chris/MemoNest/service"
 	"idv/chris/MemoNest/utils"
 )
 
 type AssetController struct {
+	img zzz.ImageProcessor
 }
 
 func (ic *AssetController) image(c *gin.Context) {
@@ -39,7 +40,7 @@ func (ic *AssetController) image(c *gin.Context) {
 	aes_key := []byte(helper.GetAESKey())
 	plain_text, _ := utils.AesDecrypt(id, aes_key)
 
-	file_path := share.GetImageStoragePath(account, plain_text, name)
+	file_path := ic.img.GetImageStoragePath(account, plain_text, name)
 
 	if _, e := os.Stat(file_path); os.IsNotExist(e) {
 		e = nil
@@ -52,8 +53,10 @@ func (ic *AssetController) image(c *gin.Context) {
 	c.File(file_path)
 }
 
-func NewAssetController(engine *gin.Engine, di service.DI) {
-	c := &AssetController{}
+func NewAssetController(engine *gin.Engine, di service.DI, img zzz.ImageProcessor) {
+	c := &AssetController{
+		img: img,
+	}
 
 	g := engine.Group("/asset/article")
 	g.Use(middleware.MustLoginMiddleware(di))

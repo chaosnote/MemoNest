@@ -10,8 +10,9 @@ import (
 	"go.uber.org/zap"
 
 	xxx "idv/chris/MemoNest/adapter/http"
+	"idv/chris/MemoNest/adapter/infra"
 	"idv/chris/MemoNest/domain/repo"
-	"idv/chris/MemoNest/server/controllers/share"
+	zzz "idv/chris/MemoNest/domain/service"
 	"idv/chris/MemoNest/server/middleware"
 	"idv/chris/MemoNest/service"
 	"idv/chris/MemoNest/utils"
@@ -19,6 +20,8 @@ import (
 
 type NodeController struct {
 	repo repo.NodeRepository
+	menu zzz.MenuProvider
+	tree zzz.NodeTree
 }
 
 func (u *NodeController) add(c *gin.Context) {
@@ -117,16 +120,15 @@ func (tc *NodeController) list(c *gin.Context) {
 	if e != nil {
 		return
 	}
-	node_list, node_map := share.GenNodeInfo(tmp_list)
+	node_list, node_map := tc.tree.GenInfo(tmp_list)
 	for _, node := range node_list {
 		tc.repo.AssignNode(node, aes_key)
 	}
 
-	menu_list, menu_map := share.GetMenu()
 	e = tmpl.ExecuteTemplate(c.Writer, "list.html", gin.H{
 		"Title":    "節點清單",
-		"Menu":     menu_list,
-		"Children": menu_list[menu_map[share.MK_NODE]].Children,
+		"Menu":     tc.menu.GetList(),
+		"Children": tc.menu.GetList()[tc.menu.GetMap()[infra.MP_NODE]].Children,
 		"NodeMap":  node_map,
 		"List":     node_list,
 		"RootID":   uuid.Nil.String(),
@@ -234,9 +236,11 @@ func (u *NodeController) move(c *gin.Context) {
 
 //-----------------------------------------------
 
-func NewNodeController(rg *gin.RouterGroup, di service.DI, repo repo.NodeRepository) {
+func NewNodeController(rg *gin.RouterGroup, di service.DI, repo repo.NodeRepository, menu zzz.MenuProvider, tree zzz.NodeTree) {
 	c := &NodeController{
 		repo: repo,
+		menu: menu,
+		tree: tree,
 	}
 	r := rg.Group("/node")
 	r.Use(middleware.MustLoginMiddleware(di))
