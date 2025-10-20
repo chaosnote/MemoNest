@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"database/sql"
 	"fmt"
 	"net/http"
 	"path/filepath"
@@ -10,251 +9,15 @@ import (
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 
-	"idv/chris/MemoNest/model"
+	"idv/chris/MemoNest/domain/repo"
 	"idv/chris/MemoNest/server/controllers/share"
 	"idv/chris/MemoNest/server/middleware"
 	"idv/chris/MemoNest/service"
 	"idv/chris/MemoNest/utils"
 )
 
-type NodeHelper struct {
-	db *sql.DB
-}
-
-func (nh *NodeHelper) addParentNode(node_id, path_name string) (*model.Category, error) {
-	tx, err := nh.db.Begin()
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback() // 如果有錯誤發生，確保交易回滾
-
-	// 找到最大的 RftIdx，作為新根節點的 LftIdx
-	var maxRftIdx int
-	err = tx.QueryRow("SELECT COALESCE(MAX(RftIdx), 0) FROM categories").Scan(&maxRftIdx)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(node_id) == 0 {
-		node_id = uuid.New().String()
-	}
-	parent_id := uuid.Nil.String() // 根節點的 ParentID
-	lftIdx := maxRftIdx + 1
-	rftIdx := maxRftIdx + 2
-
-	// 插入新節點
-	result, err := tx.Exec(
-		"INSERT INTO categories (NodeID, ParentID, PathName, LftIdx, RftIdx) VALUES (?, ?, ?, ?, ?)",
-		node_id, parent_id, path_name, lftIdx, rftIdx,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	rowID, _ := result.LastInsertId()
-	err = tx.Commit()
-	if err != nil {
-		return nil, err
-	}
-
-	return &model.Category{
-		RowID:    int(rowID),
-		NodeID:   node_id,
-		ParentID: parent_id,
-		PathName: path_name,
-		LftIdx:   lftIdx,
-		RftIdx:   rftIdx,
-	}, nil
-}
-
-// addChildNode 插入一個新的分類節點
-func (nh *NodeHelper) addChildNode(parent_id, node_id, path_name string) (*model.Category, error) {
-	tx, err := nh.db.Begin()
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback()
-
-	// 1. 查詢父節點的 RftIdx
-	var parentRftIdx int
-	err = tx.QueryRow("SELECT RftIdx FROM categories WHERE NodeID = ?", parent_id).Scan(&parentRftIdx)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("parent node with NodeID '%s' not found", parent_id)
-		}
-		return nil, err
-	}
-
-	// 2. 更新所有受影響的節點，為新節點騰出空間
-	_, err = tx.Exec("UPDATE categories SET RftIdx = RftIdx + 2 WHERE RftIdx >= ?", parentRftIdx)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = tx.Exec("UPDATE categories SET LftIdx = LftIdx + 2 WHERE LftIdx >= ?", parentRftIdx)
-	if err != nil {
-		return nil, err
-	}
-
-	// 3. 插入新節點
-	if len(node_id) == 0 {
-		node_id = uuid.New().String()
-	}
-	lftIdx := parentRftIdx
-	rftIdx := parentRftIdx + 1
-
-	result, err := tx.Exec(
-		"INSERT INTO categories (NodeID, ParentID, PathName, LftIdx, RftIdx) VALUES (?, ?, ?, ?, ?)",
-		node_id, parent_id, path_name, lftIdx, rftIdx,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	rowID, _ := result.LastInsertId()
-	err = tx.Commit()
-	if err != nil {
-		return nil, err
-	}
-
-	return &model.Category{
-		RowID:    int(rowID),
-		NodeID:   node_id,
-		ParentID: parent_id,
-		PathName: path_name,
-		LftIdx:   lftIdx,
-		RftIdx:   rftIdx,
-	}, nil
-}
-
-// del 移除指定的分類節點及其所有後代節點
-func (nh *NodeHelper) del(node_id string) error {
-	row := nh.db.QueryRow(`SELECT COUNT(*) AS Total FROM articles WHERE NodeID = ?;`, node_id)
-	var total int
-	e := row.Scan(&total)
-	if e != nil {
-		return e
-	}
-	if total != 0 {
-		return fmt.Errorf("該節點仍有文章(筆數: %v)", total)
-	}
-
-	tx, err := nh.db.Begin()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
-	// 1. 查詢要刪除節點的 LftIdx 和 RftIdx
-	var lftIdx, rftIdx int
-	err = tx.QueryRow("SELECT LftIdx, RftIdx FROM categories WHERE NodeID = ?", node_id).Scan(&lftIdx, &rftIdx)
-	if err != nil {
-		// 節點不存在，視為成功
-		if err == sql.ErrNoRows {
-			return nil
-		}
-		return err
-	}
-
-	// 刪除範圍的寬度
-	width := rftIdx - lftIdx + 1
-
-	// 2. 刪除節點及其所有後代節點 (LftIdx 介於 LftIdx 和 RftIdx 之間的)
-	_, err = tx.Exec("DELETE FROM categories WHERE LftIdx >= ? AND RftIdx <= ?", lftIdx, rftIdx)
-	if err != nil {
-		return err
-	}
-
-	// 3. 調整剩餘節點的索引，填補被刪除節點留下的空隙
-	// 將所有 RftIdx > rftIdx 的右索引減去 width
-	_, err = tx.Exec("UPDATE categories SET RftIdx = RftIdx - ? WHERE RftIdx > ?", width, rftIdx)
-	if err != nil {
-		return err
-	}
-
-	// 將所有 LftIdx > rftIdx 的左索引減去 width
-	_, err = tx.Exec("UPDATE categories SET LftIdx = LftIdx - ? WHERE LftIdx > ?", width, rftIdx)
-	if err != nil {
-		return err
-	}
-
-	// 提交事務
-	return tx.Commit()
-}
-
-// edit 編輯
-func (nh *NodeHelper) edit(node_id, label string) error {
-	_, err := nh.db.Exec(`UPDATE categories SET PathName = ? WHERE NodeID = ?;`, label, node_id)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (nh *NodeHelper) move(parent_id, node_id, path_name string) error {
-	e := nh.del(node_id)
-	if e != nil {
-		return e
-	}
-
-	if parent_id == uuid.Nil.String() {
-		_, e = nh.addParentNode(node_id, path_name)
-		if e != nil {
-			return e
-		}
-	} else {
-		_, e = nh.addChildNode(parent_id, node_id, path_name)
-		if e != nil {
-			return e
-		}
-	}
-
-	return nil
-}
-
-func (nh *NodeHelper) getAllNode() (categories []model.Category) {
-	// 從資料庫中讀取所有分類，並按 LftIdx 排序
-	rows, err := nh.db.Query("SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM categories ORDER BY LftIdx ASC")
-	if err != nil {
-		return
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var c model.Category
-		if err := rows.Scan(&c.RowID, &c.NodeID, &c.ParentID, &c.PathName, &c.LftIdx, &c.RftIdx); err != nil {
-			return
-		}
-		categories = append(categories, c)
-	}
-
-	return
-}
-
-func (nh *NodeHelper) getNode(node_id string) (c model.Category, e error) {
-	row := nh.db.QueryRow("SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM categories WHERE NodeID = ?", node_id)
-	if err := row.Scan(&c.RowID, &c.NodeID, &c.ParentID, &c.PathName, &c.LftIdx, &c.RftIdx); err != nil {
-		return
-	}
-	return
-}
-
-func (nh *NodeHelper) assign_node(node *model.CategoryNode, aes_key []byte) {
-	sUID, _ := utils.AesEncrypt([]byte(fmt.Sprintf("%v", node.RowID)), aes_key)
-	node.El_UID = sUID
-
-	sNodeID, _ := utils.AesEncrypt([]byte(node.NodeID), aes_key)
-	node.El_NodeID = sNodeID
-
-	for _, child := range node.Children {
-		nh.assign_node(child, aes_key)
-	}
-}
-
-//-----------------------------------------------
-
 type NodeController struct {
-	helper *NodeHelper
+	repo repo.NodeRepository
 }
 
 func (u *NodeController) add(c *gin.Context) {
@@ -282,9 +45,9 @@ func (u *NodeController) add(c *gin.Context) {
 	parent_id, _ := utils.AesDecrypt(param.ID, aes_key)
 
 	if parent_id == uuid.Nil.String() {
-		_, e = u.helper.addParentNode("", param.Label)
+		_, e = u.repo.AddParentNode("", param.Label)
 	} else {
-		_, e = u.helper.addChildNode(parent_id, "", param.Label)
+		_, e = u.repo.AddChildNode(parent_id, "", param.Label)
 	}
 	if e != nil {
 		return
@@ -315,7 +78,7 @@ func (u *NodeController) del(c *gin.Context) {
 	aes_key := []byte(helper.GetAESKey())
 	node_id, _ := utils.AesDecrypt(param.ID, aes_key)
 
-	e = u.helper.del(node_id)
+	e = u.repo.Delete(node_id)
 	if e != nil {
 		return
 	}
@@ -349,9 +112,13 @@ func (tc *NodeController) list(c *gin.Context) {
 		return
 	}
 
-	node_list, node_map := share.GenNodeInfo(tc.helper.getAllNode())
+	tmp_list, e := tc.repo.GetAllNode()
+	if e != nil {
+		return
+	}
+	node_list, node_map := share.GenNodeInfo(tmp_list)
 	for _, node := range node_list {
-		tc.helper.assign_node(node, aes_key)
+		tc.repo.AssignNode(node, aes_key)
 	}
 
 	menu_list, menu_map := share.GetMenu()
@@ -396,7 +163,7 @@ func (u *NodeController) edit(c *gin.Context) {
 	aes_key := []byte(helper.GetAESKey())
 	node_id, _ := utils.AesDecrypt(param.ID, aes_key)
 
-	e = u.helper.edit(node_id, param.Label)
+	e = u.repo.Edit(node_id, param.Label)
 	if e != nil {
 		return
 	}
@@ -432,7 +199,7 @@ func (u *NodeController) move(c *gin.Context) {
 	if parent_id == uuid.Nil.String() {
 		has_node = true
 	} else {
-		parent_node, e := u.helper.getNode(parent_id)
+		parent_node, e := u.repo.GetNode(parent_id)
 		if e != nil {
 			return
 		}
@@ -445,7 +212,7 @@ func (u *NodeController) move(c *gin.Context) {
 		return
 	}
 
-	current_node, e := u.helper.getNode(current_id)
+	current_node, e := u.repo.GetNode(current_id)
 	if e != nil {
 		return
 	}
@@ -457,7 +224,7 @@ func (u *NodeController) move(c *gin.Context) {
 		return
 	}
 
-	e = u.helper.move(parent_id, current_id, current_node.PathName)
+	e = u.repo.Move(parent_id, current_id, current_node.PathName)
 	if e != nil {
 		return
 	}
@@ -466,11 +233,9 @@ func (u *NodeController) move(c *gin.Context) {
 
 //-----------------------------------------------
 
-func NewNodeController(rg *gin.RouterGroup, di service.DI) {
+func NewNodeController(rg *gin.RouterGroup, di service.DI, repo repo.NodeRepository) {
 	c := &NodeController{
-		helper: &NodeHelper{
-			db: di.MariaDB,
-		},
+		repo: repo,
 	}
 	r := rg.Group("/node")
 	r.Use(middleware.MustLoginMiddleware(di))

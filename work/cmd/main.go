@@ -6,6 +6,7 @@ import (
 
 	// "go.uber.org/zap"
 
+	"idv/chris/MemoNest/adapter/dependency"
 	"idv/chris/MemoNest/adapter/repository/mongo"
 	"idv/chris/MemoNest/adapter/repository/mysql"
 	"idv/chris/MemoNest/adapter/repository/nats_io"
@@ -42,6 +43,7 @@ func main() {
 			// 	fx.ParamTags(``, ``, `name:"system"`), // `` 為預設值、留意注入參數順序，需對應函式參數
 			// ),
 			service.NewTPAImpl,
+			dependency.Module,
 			server.NewGinEngine,
 		),
 
