@@ -39,25 +39,27 @@ type APPConfig struct {
 	} `json:"api"`
 }
 
-func Load(file_path string) (cfg APPConfig) {
+func Load(file_path string) (cfg *APPConfig, err error) {
 	data, err := os.ReadFile(file_path)
 	if err != nil {
-		panic(err)
+		return
 	}
 
-	err = json.Unmarshal(data, &cfg)
+	var tmp_config APPConfig
+	err = json.Unmarshal(data, &tmp_config)
 	if err != nil {
-		panic(err)
+		return
 	}
+	cfg = &tmp_config
 	return
 }
 
 // NewAPPConfig 讀取設定檔並返回 APPConfig
-func NewAPPConfig() (*APPConfig, error) {
-	cfg := Load("./assets/config.json")
+func NewAPPConfig() (cfg *APPConfig, err error) {
+	cfg, err = Load("./assets/config.json")
 
 	logger := utils.NewConsoleLogger("console", 1)
 	logger.Debug("server", zap.Any("addr", "http://172.31.235.34:8080/"))
 
-	return &cfg, nil
+	return
 }
