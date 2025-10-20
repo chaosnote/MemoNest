@@ -1,0 +1,53 @@
+.
+├── adapter/                      # Adapter Layer - Infrastructure
+│   ├── dependency/               # DI 綁定（fx 或 wire）
+│   │   └── wire.go
+│   └── repository/               # Repository 實作
+│       └── mysql/
+│           ├── article.go        # ArticleRepository MySQL 實作
+│           └── category.go       # CategoryRepository MySQL 實作
+├── api/                          # API Layer - HTTP/gRPC
+│   ├── dto/
+│   │   └── article.go            # Add/Update/Delete DTO
+│   └── http/
+│       ├── handle/
+│       │   └── article.go        # HTTP handler for Article
+│       ├── middleware/           # Gin middleware
+│       └── validator/            # Request validation（如有）
+├── application/                  # Application Layer - Usecases
+│   └── article/
+│       ├── add.go                # AddArticle usecase
+│       ├── update.go             # UpdateArticle usecase
+│       ├── delete.go             # DeleteArticle usecase
+│       ├── get.go                # GetArticle usecase
+│       └── list.go               # ListArticle usecase
+│   └── node/
+│       ├── add.go                # AddNodeUsecase
+│       ├── edit.go               # EditNodeUsecase
+│       ├── delete.go             # DeleteNodeUsecase
+│       ├── move.go               # MoveNodeUsecase
+│       └── list.go               # ListNodeTreeUsecase（回傳巢狀結構）
+├── cmd/
+│   └── main.go                   # fx 啟動點
+├── config/
+│   ├── config.go                 # 設定載入邏輯
+│   └── config.yaml               # 設定檔（維持 JSON）
+├── domain/                       # Domain Layer - 核心邏輯
+│   ├── model/
+│   │   ├── article.go            # Article Entity
+│   │   ├── category.go           # Category Entity
+│   │   └── menu.go               # Menu Entity
+│   ├── repo/
+│   │   ├── article.go            # ArticleRepository interface
+│   │   └── category.go           # CategoryRepository interface
+│   ├── service/                  # Domain Service（如有驗證、轉換）
+│   └── vo/
+│       └── config.go             # 設定 Value Object
+├── web/                          # Web Layer（非 Hexagonal 核心，但可保留）
+│   └── template/
+│       ├── layout/
+│       ├── page/
+│       └── component/
+└── tests/
+    ├── migrations/
+    └── mysql.go
