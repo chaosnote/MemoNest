@@ -9,7 +9,7 @@ import (
 )
 
 // RegisterRoutes 註冊所有路由
-func RegisterRoutes(engine *gin.Engine, di service.DI, repo repo.NodeRepository) {
+func RegisterRoutes(engine *gin.Engine, di service.DI, repo_node repo.NodeRepository, repo_article repo.ArticleRepository) {
 	controllers.NewIndexController(engine, di)
 	controllers.NewAssetController(engine, di)
 
@@ -17,6 +17,6 @@ func RegisterRoutes(engine *gin.Engine, di service.DI, repo repo.NodeRepository)
 	g := engine.Group(prefix)
 	controllers.NewMemberController(g, di)
 	controllers.NewToolsController(g, di)
-	controllers.NewNodeController(g, di, repo)
-	controllers.NewArticleController(g, di)
+	controllers.NewNodeController(g, di, repo_node)
+	controllers.NewArticleController(g, di, repo_article)
 }

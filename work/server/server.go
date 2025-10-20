@@ -14,11 +14,11 @@ import (
 )
 
 // Register 啟動 HTTP 服務
-func Register(lc fx.Lifecycle, engine *gin.Engine, deps service.DI, repo repo.NodeRepository) {
+func Register(lc fx.Lifecycle, engine *gin.Engine, deps service.DI, repo_node repo.NodeRepository, repo_article repo.ArticleRepository) {
 	utils.RSAInit("./dist/logs/crypt/rsa.txt", 1024, true)
 
 	// 註冊路由
-	RegisterRoutes(engine, deps, repo)
+	RegisterRoutes(engine, deps, repo_node, repo_article)
 
 	addr := fmt.Sprintf(":%s", deps.Config.Gin.Port)
 	srv := &http.Server{

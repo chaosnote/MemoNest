@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"database/sql"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -13,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
+	"idv/chris/MemoNest/domain/repo"
 	"idv/chris/MemoNest/model"
 	"idv/chris/MemoNest/server/controllers/share"
 	"idv/chris/MemoNest/server/middleware"
@@ -20,207 +20,8 @@ import (
 	"idv/chris/MemoNest/utils"
 )
 
-type ArticleHelper struct {
-	db *sql.DB
-}
-
-func (ah *ArticleHelper) getAllNode() (categories []model.Category) {
-	rows, err := ah.db.Query("SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM categories ORDER BY LftIdx ASC")
-	if err != nil {
-		return
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var c model.Category
-		if err := rows.Scan(&c.RowID, &c.NodeID, &c.ParentID, &c.PathName, &c.LftIdx, &c.RftIdx); err != nil {
-			return
-		}
-		categories = append(categories, c)
-	}
-
-	return
-}
-
-func (ah *ArticleHelper) add(node_id string) (id int, e error) {
-	t := time.Now().UTC()
-	row := ah.db.QueryRow("CALL insert_article(?, ?, ?, ?, ?) ;", "", "", t, t, node_id)
-	e = row.Scan(&id)
-	if e != nil {
-		return
-	}
-	return
-}
-
-func (ah *ArticleHelper) del(id int) (e error) {
-	_, e = ah.db.Exec(`DELETE from articles where RowID = ? ;`, id)
-	if e != nil {
-		return
-	}
-	return
-}
-
-func (ah *ArticleHelper) update(row_id int, title, content string) error {
-	t := time.Now().UTC()
-	query := `UPDATE articles SET Title = ?, Content = ?, UpdateDt =? WHERE RowID = ?;`
-	_, e := ah.db.Exec(query, title, content, t, row_id)
-	if e != nil {
-		return e
-	}
-	return nil
-}
-
-func (ah *ArticleHelper) get(id int) (articles []model.Article) {
-	rows, e := ah.db.Query(`
-		SELECT 
-			a.RowID AS ArticleRowID,
-			a.Title,
-			a.Content,
-			a.NodeID,
-			c.PathName,
-			a.UpdateDt
-		FROM articles as a
-		JOIN categories as c ON a.NodeID = c.NodeID
-		WHERE a.RowID = ? ;
-	`, id)
-	if e != nil {
-		return
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var article model.Article
-		e = rows.Scan(
-			&article.RowID,
-			&article.Title,
-			&article.Content,
-			&article.NodeID,
-			&article.PathName,
-			&article.UpdateDt,
-		)
-		if e != nil {
-			return
-		}
-		articles = append(articles, article)
-	}
-	return
-}
-
-func (ah *ArticleHelper) list() (articles []model.Article) {
-	rows, e := ah.db.Query(`
-		SELECT 
-			a.RowID AS ArticleRowID,
-			a.Title,
-			a.Content,
-			a.NodeID,
-			c.PathName,
-			a.UpdateDt
-		FROM articles as a
-		JOIN categories as c ON a.NodeID = c.NodeID
-		ORDER BY a.UpdateDt DESC
-		LIMIT 10;
-	`)
-	if e != nil {
-		return
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var article model.Article
-		e = rows.Scan(
-			&article.RowID,
-			&article.Title,
-			&article.Content,
-			&article.NodeID,
-			&article.PathName,
-			&article.UpdateDt,
-		)
-		if e != nil {
-			return
-		}
-		articles = append(articles, article)
-	}
-	return
-}
-
-func (ah *ArticleHelper) composit(input string) (query string, args []interface{}) {
-	input = strings.TrimSpace(input)
-	if input == "" {
-		return "", nil
-	}
-
-	andParts := strings.Split(input, "&")
-	var conditions []string
-
-	for _, part := range andParts {
-		orParts := strings.Split(part, "+")
-		orPartsClean := []string{}
-		for _, kw := range orParts {
-			kw = strings.TrimSpace(kw)
-			if kw != "" {
-				orPartsClean = append(orPartsClean, kw)
-			}
-		}
-
-		if len(orPartsClean) == 1 {
-			// 單一關鍵字：Title 或 Content 任一欄位包含
-			pattern := "%" + orPartsClean[0] + "%"
-			conditions = append(conditions, "(a.Title LIKE ? OR a.Content LIKE ? OR c.PathName LIKE ?)")
-			args = append(args, pattern, pattern, pattern)
-		} else if len(orPartsClean) > 1 {
-			// 多關鍵字：Title 或 Content 任一欄位符合 REGEXP
-			pattern := strings.Join(orPartsClean, "|")
-			conditions = append(conditions, "(a.Title REGEXP ? OR a.Content REGEXP ? OR c.PathName REGEXP ?)")
-			args = append(args, pattern, pattern, pattern)
-		}
-	}
-
-	query = `
-        SELECT 
-            a.RowID AS ArticleRowID,
-            a.Title,
-            a.Content,
-            a.NodeID,
-            c.PathName,
-            a.UpdateDt
-        FROM articles AS a
-        JOIN categories AS c ON a.NodeID = c.NodeID
-        WHERE ` + strings.Join(conditions, " AND ") + `
-        ORDER BY a.UpdateDt DESC
-    `
-	return
-}
-
-func (ah *ArticleHelper) query(input string) (articles []model.Article) {
-	cmd, args := ah.composit(input)
-	rows, e := ah.db.Query(cmd, args...)
-	if e != nil {
-		return
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var article model.Article
-		e = rows.Scan(
-			&article.RowID,
-			&article.Title,
-			&article.Content,
-			&article.NodeID,
-			&article.PathName,
-			&article.UpdateDt,
-		)
-		if e != nil {
-			return
-		}
-		articles = append(articles, article)
-	}
-	return
-}
-
-//-----------------------------------------------
-
 type ArticleController struct {
-	helper *ArticleHelper
+	repo repo.ArticleRepository
 }
 
 func (ac *ArticleController) fresh(c *gin.Context) {
@@ -241,7 +42,11 @@ func (ac *ArticleController) fresh(c *gin.Context) {
 		return
 	}
 
-	_, node_map := share.GenNodeInfo(ac.helper.getAllNode())
+	tmp_list, e := ac.repo.GetAllNode()
+	if e != nil {
+		return
+	}
+	_, node_map := share.GenNodeInfo(tmp_list)
 	menu_list, menu_map := share.GetMenu()
 	e = tmpl.ExecuteTemplate(c.Writer, "fresh.html", gin.H{
 		"Title":        "增加文章",
@@ -276,7 +81,7 @@ func (ac *ArticleController) add(c *gin.Context) {
 	}
 	logger.Info(msg, zap.Any("params", param))
 	var row_id int
-	row_id, e = ac.helper.add(param.NodeID)
+	row_id, e = ac.repo.Add(param.NodeID)
 	if e != nil {
 		return
 	}
@@ -286,7 +91,7 @@ func (ac *ArticleController) add(c *gin.Context) {
 	helper := share.NewSessionHelper(c)
 	account := helper.GetAccount()
 	content := share.ProcessBase64Images(account, article_id, param.Content)
-	e = ac.helper.update(row_id, param.Title, content)
+	e = ac.repo.Update(row_id, param.Title, content)
 	if e != nil {
 		return
 	}
@@ -324,7 +129,7 @@ func (ac *ArticleController) del(c *gin.Context) {
 	if e != nil {
 		return
 	}
-	e = ac.helper.del(id)
+	e = ac.repo.Delete(id)
 	if e != nil {
 		return
 	}
@@ -358,7 +163,10 @@ func (ac *ArticleController) edit(c *gin.Context) {
 		return
 	}
 
-	list := ac.helper.get(id)
+	list, e := ac.repo.Get(id)
+	if e != nil {
+		return
+	}
 	if len(list) == 0 {
 		e = fmt.Errorf("無指定資料")
 		return
@@ -429,7 +237,7 @@ func (ac *ArticleController) renew(c *gin.Context) {
 	}
 
 	content := share.ProcessBase64Images(account, article_id, param.Content)
-	e = ac.helper.update(row_id, param.Title, content)
+	e = ac.repo.Update(row_id, param.Title, content)
 	if e != nil {
 		return
 	}
@@ -453,9 +261,12 @@ func (ac *ArticleController) list(c *gin.Context) {
 
 	var list []model.Article
 	if len(q) > 0 {
-		list = ac.helper.query(q)
+		list, e = ac.repo.Query(q)
 	} else {
-		list = ac.helper.list()
+		list, e = ac.repo.List()
+	}
+	if e != nil {
+		return
 	}
 
 	helper := share.NewSessionHelper(c)
@@ -497,11 +308,9 @@ func (ac *ArticleController) list(c *gin.Context) {
 	}
 }
 
-func NewArticleController(rg *gin.RouterGroup, di service.DI) {
+func NewArticleController(rg *gin.RouterGroup, di service.DI, repo repo.ArticleRepository) {
 	c := &ArticleController{
-		helper: &ArticleHelper{
-			db: di.MariaDB,
-		},
+		repo: repo,
 	}
 	r := rg.Group("/article")
 	r.Use(middleware.MustLoginMiddleware(di))

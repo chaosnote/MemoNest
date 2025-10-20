@@ -10,9 +10,14 @@ import (
 var Module = fx.Options(
 	fx.Provide(
 		mysql.NewMariaDB,
+		//
 		fx.Annotate(
 			mysql.NewNodeRepo,
 			fx.As(new(repo.NodeRepository)),
+		),
+		fx.Annotate(
+			mysql.NewArticleRepo,
+			fx.As(new(repo.ArticleRepository)),
 		),
 	),
 )
