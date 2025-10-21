@@ -48,5 +48,5 @@ func (h *IndexHandler) Entry(c *gin.Context) {
 }
 
 func (h *IndexHandler) Health(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": "OK"})
+	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": ""})
 }
