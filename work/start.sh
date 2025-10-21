@@ -1,3 +1,3 @@
 #!/bin/bash
 
-clear & go run ./cmd/.
+clear & go run ./cmd/. -debug

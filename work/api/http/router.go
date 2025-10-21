@@ -13,6 +13,7 @@ import (
 	"github.com/nats-io/nats.go"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/fx"
+	"go.uber.org/zap"
 
 	"idv/chris/MemoNest/adapter/http/middleware"
 	"idv/chris/MemoNest/api/http/handle"
@@ -27,6 +28,7 @@ const API_VER = "/api/v1"
 func NewServerRoute(
 	lc fx.Lifecycle,
 	cfg *config.APPConfig,
+	cli *config.CLIFlags,
 	redis_store redis.Store,
 	maria_db *sql.DB,
 	mongo_db *mongo.Client,
@@ -34,7 +36,12 @@ func NewServerRoute(
 ) *gin.Engine {
 	utils.RSAInit("./dist/logs/crypt/rsa.txt", 1024, true)
 
-	logger := utils.NewFileLogger("./dist/logs/server", "console", 1)
+	var logger *zap.Logger
+	if cli.Debug {
+		logger = utils.NewConsoleLogger("console", 1)
+	} else {
+		logger = utils.NewFileLogger("./dist/logs/server", "console", 1)
+	}
 
 	gin.SetMode(cfg.Gin.Mode)
 
@@ -96,9 +103,31 @@ func NewToolHandler(
 func NewMemberHandler(
 	engine *gin.Engine,
 	uc *usecase.MemberUsecase,
+	session service.Session,
 ) {
-	c := &handle.MemberHandler{}
+	h := &handle.MemberHandler{
+		UC:      uc,
+		Session: session,
+	}
 	r := engine.Group(filepath.Join(API_VER, "/member"))
-	r.GET("/login", c.Login)
-	r.GET("/logout", c.Logout)
+	r.GET("/login", h.Login)
+	r.GET("/logout", h.Logout)
+}
+
+func NewNodeHandler(
+	engine *gin.Engine,
+	uc *usecase.NodeUsecase,
+	session service.Session,
+) {
+	h := &handle.NodeHandler{
+		UC:      uc,
+		Session: session,
+	}
+	r := engine.Group(filepath.Join(API_VER, "/node"))
+	r.Use(middleware.Auth(session))
+	r.GET("/list", h.List)
+	r.POST("/add", h.Add)
+	r.POST("/del", h.Del)
+	r.POST("/edit", h.Edit)
+	r.POST("/move", h.Move)
 }

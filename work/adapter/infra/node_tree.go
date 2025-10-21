@@ -11,7 +11,7 @@ import (
 type NodeTree struct {
 }
 
-func (nt *NodeTree) GenInfo(source []model.Category) ([]*model.CategoryNode, map[string]*model.CategoryNode) {
+func (nt *NodeTree) GetInfo(source []model.Category) ([]*model.CategoryNode, map[string]*model.CategoryNode) {
 	root_id := uuid.Nil.String()
 	node_map := make(map[string]*model.CategoryNode)
 

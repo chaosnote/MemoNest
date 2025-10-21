@@ -50,6 +50,7 @@ func main() {
 			http.NewIndexHandler,
 			http.NewToolHandler,
 			http.NewMemberHandler,
+			http.NewNodeHandler,
 		),
 	)
 
