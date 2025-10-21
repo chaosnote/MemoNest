@@ -1,13 +1,15 @@
 package repo
 
-import "idv/chris/MemoNest/model"
+import (
+	"idv/chris/MemoNest/domain/entity"
+)
 
 type ArticleRepository interface {
 	Add(nodeID string) (int, error)
 	Update(rowID int, title, content string) error
 	Delete(id int) error
-	Get(id int) ([]model.Article, error)
-	List() ([]model.Article, error)
-	Query(input string) ([]model.Article, error)
-	GetAllNode() ([]model.Category, error)
+	Get(id int) ([]entity.Article, error)
+	List() ([]entity.Article, error)
+	Query(input string) ([]entity.Article, error)
+	GetAllNode() ([]entity.Category, error)
 }

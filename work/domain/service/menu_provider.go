@@ -1,6 +1,6 @@
 package service
 
-import "idv/chris/MemoNest/model"
+import "idv/chris/MemoNest/domain/model"
 
 type MenuProvider interface {
 	GetList() []model.Menu

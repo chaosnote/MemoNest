@@ -2,11 +2,12 @@ package usecase
 
 import (
 	"fmt"
+	"strconv"
+
 	"idv/chris/MemoNest/domain/entity"
+	"idv/chris/MemoNest/domain/model"
 	"idv/chris/MemoNest/domain/repo"
 	"idv/chris/MemoNest/domain/service"
-	"idv/chris/MemoNest/model"
-	"strconv"
 )
 
 type ArticleUsecase struct {
@@ -50,7 +51,7 @@ func (u *ArticleUsecase) Del(account, plain_text string) (err error) {
 	return
 }
 
-func (u *ArticleUsecase) Edit(plain_text string) (data model.Article, err error) {
+func (u *ArticleUsecase) Edit(plain_text string) (data entity.Article, err error) {
 	var id int
 	id, err = strconv.Atoi(plain_text)
 	if err != nil {
@@ -86,7 +87,7 @@ func (u *ArticleUsecase) Renew(account, article_id, article_title, article_conte
 	return
 }
 
-func (u *ArticleUsecase) List(query string) (list []model.Article, err error) {
+func (u *ArticleUsecase) List(query string) (list []entity.Article, err error) {
 	if len(query) > 0 {
 		list, err = u.Repo.Query(query)
 	} else {
@@ -96,7 +97,7 @@ func (u *ArticleUsecase) List(query string) (list []model.Article, err error) {
 	return
 }
 
-func (u *ArticleUsecase) GetViewModel(aes_key []byte, menu_id string) (mo entity.ArticleViewModel, err error) {
+func (u *ArticleUsecase) GetViewModel(aes_key []byte, menu_id string) (mo model.ArticleView, err error) {
 	tmp_list, err := u.Repo.GetAllNode()
 	if err != nil {
 		return

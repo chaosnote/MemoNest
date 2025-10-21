@@ -1,10 +1,12 @@
 package entity
 
-import "idv/chris/MemoNest/model"
+import "time"
 
-type ArticleViewModel struct {
-	NodeList     []*model.CategoryNode
-	NodeMap      map[string]*model.CategoryNode
-	Menu         []model.Menu
-	MenuChildren []model.MenuItem
+type Article struct {
+	RowID    int
+	Title    string
+	Content  string
+	NodeID   string
+	PathName string
+	UpdateDt time.Time
 }

@@ -3,11 +3,6 @@ package handle
 import (
 	"fmt"
 	"html/template"
-	"idv/chris/MemoNest/adapter/infra"
-	"idv/chris/MemoNest/application/usecase"
-	"idv/chris/MemoNest/domain/service"
-	"idv/chris/MemoNest/model"
-	"idv/chris/MemoNest/utils"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -15,6 +10,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+
+	"idv/chris/MemoNest/adapter/infra"
+	"idv/chris/MemoNest/application/usecase"
+	"idv/chris/MemoNest/domain/model"
+	"idv/chris/MemoNest/domain/service"
+	"idv/chris/MemoNest/utils"
 )
 
 type ArticleHandler struct {

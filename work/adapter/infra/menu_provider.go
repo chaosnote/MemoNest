@@ -3,7 +3,7 @@ package infra
 import (
 	"fmt"
 
-	"idv/chris/MemoNest/model"
+	"idv/chris/MemoNest/domain/model"
 )
 
 const (

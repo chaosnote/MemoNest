@@ -6,15 +6,15 @@ import (
 
 	"github.com/google/uuid"
 
+	"idv/chris/MemoNest/domain/entity"
 	"idv/chris/MemoNest/domain/repo"
-	"idv/chris/MemoNest/model"
 )
 
 type NodeRepo struct {
 	db *sql.DB
 }
 
-func (nh *NodeRepo) AddParentNode(node_id, path_name string) (*model.Category, error) {
+func (nh *NodeRepo) AddParentNode(node_id, path_name string) (*entity.Category, error) {
 	tx, err := nh.db.Begin()
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func (nh *NodeRepo) AddParentNode(node_id, path_name string) (*model.Category, e
 		return nil, err
 	}
 
-	return &model.Category{
+	return &entity.Category{
 		RowID:    int(rowID),
 		NodeID:   node_id,
 		ParentID: parent_id,
@@ -61,7 +61,7 @@ func (nh *NodeRepo) AddParentNode(node_id, path_name string) (*model.Category, e
 }
 
 // AddChildNode 插入一個新的分類節點
-func (nh *NodeRepo) AddChildNode(parent_id, node_id, path_name string) (*model.Category, error) {
+func (nh *NodeRepo) AddChildNode(parent_id, node_id, path_name string) (*entity.Category, error) {
 	tx, err := nh.db.Begin()
 	if err != nil {
 		return nil, err
@@ -110,7 +110,7 @@ func (nh *NodeRepo) AddChildNode(parent_id, node_id, path_name string) (*model.C
 		return nil, err
 	}
 
-	return &model.Category{
+	return &entity.Category{
 		RowID:    int(rowID),
 		NodeID:   node_id,
 		ParentID: parent_id,
@@ -205,7 +205,7 @@ func (nh *NodeRepo) Move(parent_id, node_id, path_name string) error {
 	return nil
 }
 
-func (nh *NodeRepo) GetAllNode() (categories []model.Category, err error) {
+func (nh *NodeRepo) GetAllNode() (categories []entity.Category, err error) {
 	// 從資料庫中讀取所有分類，並按 LftIdx 排序
 	rows, err := nh.db.Query("SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM categories ORDER BY LftIdx ASC")
 	if err != nil {
@@ -214,7 +214,7 @@ func (nh *NodeRepo) GetAllNode() (categories []model.Category, err error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var c model.Category
+		var c entity.Category
 		if err := rows.Scan(&c.RowID, &c.NodeID, &c.ParentID, &c.PathName, &c.LftIdx, &c.RftIdx); err != nil {
 			return categories, err
 		}
@@ -224,7 +224,7 @@ func (nh *NodeRepo) GetAllNode() (categories []model.Category, err error) {
 	return
 }
 
-func (nh *NodeRepo) GetNode(node_id string) (c model.Category, e error) {
+func (nh *NodeRepo) GetNode(node_id string) (c entity.Category, e error) {
 	row := nh.db.QueryRow("SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM categories WHERE NodeID = ?", node_id)
 	if err := row.Scan(&c.RowID, &c.NodeID, &c.ParentID, &c.PathName, &c.LftIdx, &c.RftIdx); err != nil {
 		return

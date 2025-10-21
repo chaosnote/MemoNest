@@ -6,14 +6,15 @@ import (
 
 	"github.com/google/uuid"
 
-	"idv/chris/MemoNest/model"
+	"idv/chris/MemoNest/domain/entity"
+	"idv/chris/MemoNest/domain/model"
 	"idv/chris/MemoNest/utils"
 )
 
 type NodeTree struct {
 }
 
-func (nt *NodeTree) GetInfo(source []model.Category) ([]*model.CategoryNode, map[string]*model.CategoryNode) {
+func (nt *NodeTree) GetInfo(source []entity.Category) ([]*model.CategoryNode, map[string]*model.CategoryNode) {
 	root_id := uuid.Nil.String()
 	node_map := make(map[string]*model.CategoryNode)
 

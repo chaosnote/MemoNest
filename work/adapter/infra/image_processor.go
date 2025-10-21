@@ -12,7 +12,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 
-	"idv/chris/MemoNest/model"
+	"idv/chris/MemoNest/domain/model"
 )
 
 type ImageProcessor struct {

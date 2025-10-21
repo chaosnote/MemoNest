@@ -2,17 +2,18 @@ package mysql
 
 import (
 	"database/sql"
-	"idv/chris/MemoNest/domain/repo"
-	"idv/chris/MemoNest/model"
 	"strings"
 	"time"
+
+	"idv/chris/MemoNest/domain/entity"
+	"idv/chris/MemoNest/domain/repo"
 )
 
 type ArticleRepo struct {
 	db *sql.DB
 }
 
-func (ah *ArticleRepo) GetAllNode() (categories []model.Category, err error) {
+func (ah *ArticleRepo) GetAllNode() (categories []entity.Category, err error) {
 	rows, err := ah.db.Query("SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM categories ORDER BY LftIdx ASC")
 	if err != nil {
 		return
@@ -20,7 +21,7 @@ func (ah *ArticleRepo) GetAllNode() (categories []model.Category, err error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var c model.Category
+		var c entity.Category
 		if err := rows.Scan(&c.RowID, &c.NodeID, &c.ParentID, &c.PathName, &c.LftIdx, &c.RftIdx); err != nil {
 			return categories, err
 		}
@@ -58,7 +59,7 @@ func (ah *ArticleRepo) Update(row_id int, title, content string) error {
 	return nil
 }
 
-func (ah *ArticleRepo) Get(id int) (articles []model.Article, err error) {
+func (ah *ArticleRepo) Get(id int) (articles []entity.Article, err error) {
 	rows, err := ah.db.Query(`
 		SELECT 
 			a.RowID AS ArticleRowID,
@@ -77,7 +78,7 @@ func (ah *ArticleRepo) Get(id int) (articles []model.Article, err error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var article model.Article
+		var article entity.Article
 		err = rows.Scan(
 			&article.RowID,
 			&article.Title,
@@ -94,7 +95,7 @@ func (ah *ArticleRepo) Get(id int) (articles []model.Article, err error) {
 	return
 }
 
-func (ah *ArticleRepo) List() (articles []model.Article, err error) {
+func (ah *ArticleRepo) List() (articles []entity.Article, err error) {
 	rows, err := ah.db.Query(`
 		SELECT 
 			a.RowID AS ArticleRowID,
@@ -114,7 +115,7 @@ func (ah *ArticleRepo) List() (articles []model.Article, err error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var article model.Article
+		var article entity.Article
 		err = rows.Scan(
 			&article.RowID,
 			&article.Title,
@@ -179,7 +180,7 @@ func (ah *ArticleRepo) composit(input string) (query string, args []interface{})
 	return
 }
 
-func (ah *ArticleRepo) Query(input string) (articles []model.Article, err error) {
+func (ah *ArticleRepo) Query(input string) (articles []entity.Article, err error) {
 	cmd, args := ah.composit(input)
 	rows, err := ah.db.Query(cmd, args...)
 	if err != nil {
@@ -188,7 +189,7 @@ func (ah *ArticleRepo) Query(input string) (articles []model.Article, err error)
 	defer rows.Close()
 
 	for rows.Next() {
-		var article model.Article
+		var article entity.Article
 		err = rows.Scan(
 			&article.RowID,
 			&article.Title,

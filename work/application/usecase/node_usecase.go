@@ -2,12 +2,13 @@ package usecase
 
 import (
 	"fmt"
-	"idv/chris/MemoNest/domain/entity"
-	"idv/chris/MemoNest/domain/repo"
-	"idv/chris/MemoNest/domain/service"
-	"idv/chris/MemoNest/model"
 
 	"github.com/google/uuid"
+
+	"idv/chris/MemoNest/domain/entity"
+	"idv/chris/MemoNest/domain/model"
+	"idv/chris/MemoNest/domain/repo"
+	"idv/chris/MemoNest/domain/service"
 )
 
 type NodeUsecase struct {
@@ -29,7 +30,7 @@ func (u *NodeUsecase) Delete(node_id string) error {
 	return u.Repo.Delete(node_id)
 }
 
-func (u *NodeUsecase) List() ([]model.Category, error) {
+func (u *NodeUsecase) List() ([]entity.Category, error) {
 	return u.Repo.GetAllNode()
 }
 
@@ -42,7 +43,7 @@ func (u *NodeUsecase) Move(parent_id, node_id string) (err error) {
 	if parent_id == uuid.Nil.String() {
 		has_node = true
 	} else {
-		var parent_node model.Category
+		var parent_node entity.Category
 		parent_node, err = u.Repo.GetNode(parent_id)
 		if err != nil {
 			return
@@ -71,7 +72,7 @@ func (u *NodeUsecase) Move(parent_id, node_id string) (err error) {
 	return u.Repo.Move(parent_id, node_id, current_node.PathName)
 }
 
-func (u *NodeUsecase) GetViewModel(aes_key []byte, menu_id string) (mo entity.NodeViewModel, err error) {
+func (u *NodeUsecase) GetViewModel(aes_key []byte, menu_id string) (mo model.NodeView, err error) {
 	tmp_list, err := u.Repo.GetAllNode()
 	if err != nil {
 		return
