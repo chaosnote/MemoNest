@@ -29,7 +29,8 @@ var Module = fx.Options(
 		fx.Annotate(infra.NewMenuProvider, fx.As(new(service.MenuProvider))),
 		fx.Annotate(infra.NewNodeTree, fx.As(new(service.NodeTree))),
 		fx.Annotate(infra.NewImageProcessor, fx.As(new(service.ImageProcessor))),
-		//
+		// usecase
 		usecase.NewIndexUsecase,
+		usecase.NewToolUsecase,
 	),
 )

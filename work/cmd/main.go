@@ -48,6 +48,7 @@ func main() {
 		// 服務註冊
 		fx.Invoke(
 			http.NewIndexHandler,
+			http.NewToolHandler,
 		),
 	)
 

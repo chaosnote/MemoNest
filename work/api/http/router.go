@@ -68,11 +68,22 @@ func NewIndexHandler(
 	uc *usecase.IndexUsecase,
 	session service.Session,
 ) {
-	ih := &handle.IndexHandler{
+	h := &handle.IndexHandler{
 		Debug:   cfg.Gin.Mode == "debug",
 		UC:      uc,
 		Session: session,
 	}
-	engine.GET("/", ih.Entry)
-	engine.GET("/health", ih.Health)
+	engine.GET("/", h.Entry)
+	engine.GET("/health", h.Health)
+}
+
+func NewToolHandler(
+	engine *gin.Engine,
+	uc *usecase.ToolUsecase,
+) {
+	h := &handle.ToolHandler{
+		UC: uc,
+	}
+	r := engine.Group("/tools")
+	r.GET("/uuid", h.GenUUID)
 }
