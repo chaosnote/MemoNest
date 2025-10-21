@@ -34,5 +34,7 @@ var Module = fx.Options(
 		usecase.NewToolUsecase,
 		usecase.NewMemberUsecase,
 		usecase.NewNodeUsecase,
+		usecase.NewAssetUsecase,
+		usecase.NewArticleUsecase,
 	),
 )

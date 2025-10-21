@@ -6,7 +6,6 @@ require (
 	github.com/PuerkitoBio/goquery v1.10.3
 	github.com/gin-contrib/sessions v1.0.4
 	github.com/gin-gonic/gin v1.11.0
-	github.com/go-resty/resty/v2 v2.16.5
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/google/uuid v1.6.0
 	github.com/nats-io/nats.go v1.46.0

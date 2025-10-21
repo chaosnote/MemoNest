@@ -71,7 +71,7 @@ func (u *NodeUsecase) Move(parent_id, node_id string) (err error) {
 	return u.Repo.Move(parent_id, node_id, current_node.PathName)
 }
 
-func (u *NodeUsecase) GetViewModel(aes_key []byte, menu_id string) (mo entity.ArticleViewModel, err error) {
+func (u *NodeUsecase) GetViewModel(aes_key []byte, menu_id string) (mo entity.NodeViewModel, err error) {
 	tmp_list, err := u.Repo.GetAllNode()
 	if err != nil {
 		return
@@ -79,7 +79,7 @@ func (u *NodeUsecase) GetViewModel(aes_key []byte, menu_id string) (mo entity.Ar
 
 	node_list, node_map := u.Tree.GetInfo(tmp_list)
 	for _, node := range node_list {
-		u.Repo.AssignNode(node, aes_key)
+		u.Tree.Assign(node, aes_key)
 	}
 
 	mo.NodeList = node_list

@@ -1,11 +1,13 @@
 package infra
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/google/uuid"
 
 	"idv/chris/MemoNest/model"
+	"idv/chris/MemoNest/utils"
 )
 
 type NodeTree struct {
@@ -54,6 +56,18 @@ func (nt *NodeTree) GetInfo(source []model.Category) ([]*model.CategoryNode, map
 	}
 
 	return node_list, node_map
+}
+
+func (nh *NodeTree) Assign(node *model.CategoryNode, aes_key []byte) {
+	sUID, _ := utils.AesEncrypt([]byte(fmt.Sprintf("%v", node.RowID)), aes_key)
+	node.El_UID = sUID
+
+	sNodeID, _ := utils.AesEncrypt([]byte(node.NodeID), aes_key)
+	node.El_NodeID = sNodeID
+
+	for _, child := range node.Children {
+		nh.Assign(child, aes_key)
+	}
 }
 
 func NewNodeTree() *NodeTree {

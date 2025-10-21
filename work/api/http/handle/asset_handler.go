@@ -1,0 +1,54 @@
+package handle
+
+import (
+	"mime"
+	"net/http"
+	"os"
+	"path/filepath"
+
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+
+	"idv/chris/MemoNest/application/usecase"
+	"idv/chris/MemoNest/domain/service"
+	"idv/chris/MemoNest/utils"
+)
+
+type AssetHandler struct {
+	UC      *usecase.AssetUsecase
+	Session service.Session
+}
+
+func (h *AssetHandler) Image(c *gin.Context) {
+	const msg = "image"
+	logger := utils.NewFileLogger("./dist/logs/article/image", "console", 1)
+	var e error
+	defer func() {
+		if e != nil {
+			logger.Error(msg, zap.Error(e))
+			return
+		}
+	}()
+
+	id := c.Params.ByName("id")
+	name := c.Params.ByName("name")
+	logger.Info(msg, zap.String("id", id), zap.String("name", name))
+
+	h.Session.Init(c)
+	aes_key := []byte(h.Session.GetAESKey())
+	account := h.Session.GetAccount()
+	plain_text, e := utils.AesDecrypt(id, aes_key)
+	if e != nil {
+		return
+	}
+
+	file_path := h.UC.GetImageStoragePath(account, plain_text, name)
+	if _, e := os.Stat(file_path); os.IsNotExist(e) {
+		c.Status(http.StatusNotFound)
+		return
+	}
+
+	mime := mime.TypeByExtension(filepath.Ext(file_path))
+	c.Header("Content-Type", mime)
+	c.File(file_path)
+}

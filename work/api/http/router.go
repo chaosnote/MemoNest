@@ -131,3 +131,37 @@ func NewNodeHandler(
 	r.POST("/edit", h.Edit)
 	r.POST("/move", h.Move)
 }
+
+func NewAssetHandler(
+	engine *gin.Engine,
+	uc *usecase.AssetUsecase,
+	session service.Session,
+) {
+	h := &handle.AssetHandler{
+		UC:      uc,
+		Session: session,
+	}
+
+	r := engine.Group("/asset/article")
+	r.Use(middleware.Auth(session))
+	r.GET("/image/:id/:name", h.Image)
+}
+
+func NewArticleHandler(
+	engine *gin.Engine,
+	uc *usecase.ArticleUsecase,
+	session service.Session,
+) {
+	h := &handle.ArticleHandler{
+		UC:      uc,
+		Session: session,
+	}
+	r := engine.Group(filepath.Join(API_VER, "/article"))
+	r.Use(middleware.Auth(session))
+	r.GET("/fresh", h.Fresh)
+	r.GET("/list", h.List)
+	r.POST("/add", h.Add)
+	r.POST("/del", h.Del)
+	r.POST("/renew", h.Renew)
+	r.GET("/edit/:id", h.Edit)
+}

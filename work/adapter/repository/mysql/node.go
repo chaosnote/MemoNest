@@ -8,7 +8,6 @@ import (
 
 	"idv/chris/MemoNest/domain/repo"
 	"idv/chris/MemoNest/model"
-	"idv/chris/MemoNest/utils"
 )
 
 type NodeRepo struct {
@@ -231,18 +230,6 @@ func (nh *NodeRepo) GetNode(node_id string) (c model.Category, e error) {
 		return
 	}
 	return
-}
-
-func (nh *NodeRepo) AssignNode(node *model.CategoryNode, aes_key []byte) {
-	sUID, _ := utils.AesEncrypt([]byte(fmt.Sprintf("%v", node.RowID)), aes_key)
-	node.El_UID = sUID
-
-	sNodeID, _ := utils.AesEncrypt([]byte(node.NodeID), aes_key)
-	node.El_NodeID = sNodeID
-
-	for _, child := range node.Children {
-		nh.AssignNode(child, aes_key)
-	}
 }
 
 func NewNodeRepo(db *sql.DB) repo.NodeRepository {

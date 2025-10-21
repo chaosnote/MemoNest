@@ -51,6 +51,8 @@ func main() {
 			http.NewToolHandler,
 			http.NewMemberHandler,
 			http.NewNodeHandler,
+			http.NewAssetHandler,
+			http.NewArticleHandler,
 		),
 	)
 

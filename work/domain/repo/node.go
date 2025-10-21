@@ -10,5 +10,4 @@ type NodeRepository interface {
 	Move(parentID, nodeID, pathName string) error
 	GetAllNode() ([]model.Category, error)
 	GetNode(nodeID string) (model.Category, error)
-	AssignNode(node *model.CategoryNode, aesKey []byte)
 }
