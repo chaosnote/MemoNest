@@ -4,9 +4,11 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 
 	"idv/chris/MemoNest/application/usecase"
 	"idv/chris/MemoNest/domain/service"
+	"idv/chris/MemoNest/utils"
 )
 
 type MemberHandler struct {
@@ -16,12 +18,33 @@ type MemberHandler struct {
 
 // 使用者(註冊/登入)
 func (h *MemberHandler) Login(c *gin.Context) {
-	account := "tester" // 暫用
+	const msg = "login"
+	logger := utils.NewFileLogger("./dist/logs/member/login", "console", 1)
+	var err error
+	defer func() {
+		if err != nil {
+			logger.Error(msg, zap.Error(err))
+			c.JSON(http.StatusOK, gin.H{"Code": err.Error()})
+		}
+	}()
+	var param struct {
+		Account  string `json:"account" form:"account"`
+		Password string `json:"password" form:"password"`
+	}
+	err = c.ShouldBind(&param)
+	if err != nil {
+		return
+	}
 
-	h.Session.Init(c)
-	h.Session.SetAccount(account)
-
-	c.Redirect(http.StatusSeeOther, "/api/v1/article/list")
+	// 驗證帳號與密碼
+	flag := h.UC.Login(param.Account, param.Password)
+	if flag {
+		h.Session.Init(c)
+		h.Session.SetAccount(param.Account)
+		c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": ""})
+	} else {
+		c.JSON(http.StatusOK, gin.H{"Code": "失敗原因", "message": ""})
+	}
 }
 
 // 使用者登出

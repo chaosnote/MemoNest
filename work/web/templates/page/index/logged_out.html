@@ -1,15 +1,113 @@
 {{template "share" .}}
 
 {{define "css"}}
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+
+    .login-container {
+        max-width: 400px;
+        margin: 80px auto;
+        padding: 30px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+</style>
 {{end}}
 
 {{define "content"}}
-    <div class="mt-2 gap-2">
-        {{range .Login}}
-        <a class="btn btn-outline-success" href="{{.}}" target="_blank">{{.}}</a>
-        {{end}}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white text-center">
+          <h4 class="mb-0">登入系統</h4>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label for="account" class="form-label">帳號</label>
+            <input type="text" class="form-control" id="account" placeholder="請輸入帳號" value="{{.Setting.Account}}">
+            <div class="invalid-feedback">請輸入帳號</div>
+          </div>
+          <div class="mb-3">
+            <label for="password" class="form-label">密碼</label>
+            <input type="password" class="form-control" id="password" placeholder="請輸入密碼" value="{{.Setting.Password}}">
+            <div class="invalid-feedback">請輸入密碼</div>
+          </div>
+          <div class="mb-3 text-danger" id="errorMessage" style="display:none;">
+            帳號或密碼錯誤，請重新輸入。
+          </div>
+          <button id="loginBtn" class="btn btn-primary w-100">
+            <span class="spinner-border spinner-border-sm me-2 d-none" role="status" id="loadingSpinner"></span>
+            登入
+          </button>
+        </div>
+        {{/**
+        <div class="card-footer text-center">
+          <a href="/forgot-password" class="text-decoration-none me-3">忘記密碼？</a>
+          <a href="/register" class="text-decoration-none">註冊新帳號</a>
+        </div>
+        */}}
+      </div>
     </div>
+  </div>
+</div>
 {{end}}
 
 {{define "js"}}
+<script>
+    $(function () {
+        $('#loginBtn').on('click', function () {
+            const account = $('#account').val().trim();
+            const password = $('#password').val().trim();
+            let valid = true;
+
+            // 清除先前狀態
+            $('#account, #password').removeClass('is-invalid');
+            $('#errorMessage').hide();
+
+            if (!account) {
+                $('#account').addClass('is-invalid');
+                valid = false;
+            }
+            if (!password) {
+                $('#password').addClass('is-invalid');
+                valid = false;
+            }
+            if (!valid) return;
+
+            // 顯示 loading
+            $('#loginBtn').prop('disabled', true);
+            $('#loadingSpinner').removeClass('d-none');
+
+            // 模擬 AJAX 登入
+            $.ajax({
+                url: '/api/v1/member/login',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ account, password }),
+                success: function (response) {
+                    if (!response.hasOwnProperty('Code')) {
+                        location.href = "/";
+                        return;
+                    }
+                    if (response.Code == "OK") {
+                        location.href = "/";
+                        return;
+                    }
+                    $('#errorMessage').text(response.Code || '登入失敗').show();
+                },
+                error: function () {
+                    $('#errorMessage').text('伺服器錯誤，請稍後再試').show();
+                },
+                complete: function () {
+                    $('#loginBtn').prop('disabled', false);
+                    $('#loadingSpinner').addClass('d-none');
+                }
+            });
+        });
+    });
+</script>
 {{end}}

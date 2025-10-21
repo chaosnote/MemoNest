@@ -110,7 +110,7 @@ func NewMemberHandler(
 		Session: session,
 	}
 	r := engine.Group(filepath.Join(API_VER, "/member"))
-	r.GET("/login", h.Login)
+	r.POST("/login", h.Login)
 	r.GET("/logout", h.Logout)
 }
 
