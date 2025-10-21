@@ -10,4 +10,6 @@ type Session interface {
 	GetAESKey() string
 	SetAccount(string)
 	GetAccount() string
+
+	Refresh()
 }

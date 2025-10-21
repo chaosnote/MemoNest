@@ -2,7 +2,9 @@ package redis
 
 import (
 	"fmt"
+	"net/http"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/redis"
 
 	"idv/chris/MemoNest/config"
@@ -19,6 +21,17 @@ func NewRedisDB(cfg *config.APPConfig) (redis.Store, error) {
 		fmt.Sprintf("%v", cfg.Redis.DB), // 指定 DB
 		[]byte("secret-key"),            // Session 密鑰
 	)
+	if err != nil {
+		return nil, err
+	}
 
-	return store, err
+	store.Options(sessions.Options{
+		MaxAge:   300,                     // 存活時間（秒）
+		Path:     "/",                     // 全站有效
+		HttpOnly: true,                    // 禁止 JS 存取 cookie
+		SameSite: http.SameSiteStrictMode, // 防止 CSRF
+	})
+	// Secure:true,    // 只允許 HTTPS 傳輸
+
+	return store, nil
 }

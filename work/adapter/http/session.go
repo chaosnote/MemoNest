@@ -60,6 +60,12 @@ func (s *GinSession) IsLogin() bool {
 	return false
 }
 
+func (s *GinSession) Refresh() {
+	s.store.Save()
+}
+
+//-----------------------------------------------
+
 func NewGinSession() service.Session {
 	return &GinSession{}
 }

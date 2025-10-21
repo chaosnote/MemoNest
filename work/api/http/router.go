@@ -15,8 +15,8 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 
-	"idv/chris/MemoNest/adapter/http/middleware"
 	"idv/chris/MemoNest/api/http/handle"
+	"idv/chris/MemoNest/api/http/middleware"
 	"idv/chris/MemoNest/application/usecase"
 	"idv/chris/MemoNest/config"
 	"idv/chris/MemoNest/domain/service"
