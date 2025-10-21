@@ -49,6 +49,7 @@ func main() {
 		fx.Invoke(
 			http.NewIndexHandler,
 			http.NewToolHandler,
+			http.NewMemberHandler,
 		),
 	)
 

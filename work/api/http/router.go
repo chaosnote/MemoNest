@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"path/filepath"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/redis"
@@ -20,6 +21,8 @@ import (
 	"idv/chris/MemoNest/domain/service"
 	"idv/chris/MemoNest/utils"
 )
+
+const API_VER = "/api/v1"
 
 func NewServerRoute(
 	lc fx.Lifecycle,
@@ -80,10 +83,22 @@ func NewIndexHandler(
 func NewToolHandler(
 	engine *gin.Engine,
 	uc *usecase.ToolUsecase,
+	session service.Session,
 ) {
 	h := &handle.ToolHandler{
 		UC: uc,
 	}
 	r := engine.Group("/tools")
+	r.Use(middleware.Auth(session))
 	r.GET("/uuid", h.GenUUID)
+}
+
+func NewMemberHandler(
+	engine *gin.Engine,
+	uc *usecase.MemberUsecase,
+) {
+	c := &handle.MemberHandler{}
+	r := engine.Group(filepath.Join(API_VER, "/member"))
+	r.GET("/login", c.Login)
+	r.GET("/logout", c.Logout)
 }
