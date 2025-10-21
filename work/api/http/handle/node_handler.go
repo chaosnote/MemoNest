@@ -88,11 +88,10 @@ func (h *NodeHandler) Del(c *gin.Context) {
 }
 
 func (h *NodeHandler) List(c *gin.Context) {
-	dir := filepath.Join("./web", "templates")
-
 	h.Session.Init(c)
 	aes_key := []byte(h.Session.GetAESKey())
 
+	dir := filepath.Join("./web", "templates")
 	config := utils.TemplateConfig{
 		Layout:  filepath.Join(dir, "layout", "share.html"),
 		Page:    []string{filepath.Join(dir, "page", "node", "list.html")},

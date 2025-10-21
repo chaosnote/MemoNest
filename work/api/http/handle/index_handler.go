@@ -30,7 +30,7 @@ func (h *IndexHandler) Entry(c *gin.Context) {
 	dir := filepath.Join("./web", "templates")
 	config := utils.TemplateConfig{
 		Layout:  filepath.Join(dir, "layout", "share.html"),
-		Page:    []string{filepath.Join(dir, "page", "index", "index.html")},
+		Page:    []string{filepath.Join(dir, "page", "index", "logged_in.html")},
 		Pattern: []string{},
 	}
 
@@ -38,7 +38,7 @@ func (h *IndexHandler) Entry(c *gin.Context) {
 	if e != nil {
 		return
 	}
-	e = tmpl.ExecuteTemplate(c.Writer, "index.html", gin.H{
+	e = tmpl.ExecuteTemplate(c.Writer, "logged_in.html", gin.H{
 		"Title": "測試頁",
 		"Login": []string{"/api/v1/member/login", "/api/v1/member/logout"},
 	})
