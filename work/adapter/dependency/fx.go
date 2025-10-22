@@ -21,10 +21,11 @@ var Module = fx.Options(
 		redis.NewRedisDB,
 		mongo.NewMongoDB,
 		nats_io.NewNatsIO,
-		// repository（保留 fx.As，因為是 interface 實作）
+		// repository
 		fx.Annotate(mysql.NewNodeRepo, fx.As(new(repo.NodeRepository))),
 		fx.Annotate(mysql.NewArticleRepo, fx.As(new(repo.ArticleRepository))),
-		// domain service adapter 實作（保留 fx.As）
+		fx.Annotate(mysql.NewMemberRepo, fx.As(new(repo.MemberRepository))),
+		// domain service adapter 實作
 		fx.Annotate(http.NewGinSession, fx.As(new(service.Session))),
 		fx.Annotate(infra.NewMenuProvider, fx.As(new(service.MenuProvider))),
 		fx.Annotate(infra.NewNodeTree, fx.As(new(service.NodeTree))),

@@ -31,7 +31,7 @@ func (h *IndexHandler) Entry(c *gin.Context) {
 
 	mo := model.IndexView{}
 	if h.Debug {
-		mo.Account = "tester"
+		mo.Account = "chris"
 		mo.Password = "123456"
 	}
 	logger.Info(msg, zap.Any("view_model", mo))

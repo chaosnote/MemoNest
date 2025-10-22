@@ -2,7 +2,6 @@ package handle
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -37,15 +36,15 @@ func (h *MemberHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// 驗證帳號與密碼
-	flag := h.UC.Login(param.Account, param.Password)
-	if flag {
-		h.Session.Init(c)
-		h.Session.SetAccount(param.Account)
-		c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": ""})
-	} else {
-		c.JSON(http.StatusOK, gin.H{"Code": "失敗原因", "message": ""})
+	_, err = h.UC.Login(param.Account, param.Password, c.ClientIP())
+	if err != nil {
+		return
 	}
+
+	h.Session.Init(c)
+	h.Session.SetAccount(param.Account)
+
+	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": ""})
 }
 
 // 使用者登出
@@ -55,7 +54,6 @@ func (h *MemberHandler) Logout(c *gin.Context) {
 }
 
 func (h *MemberHandler) Register(c *gin.Context) {
-	time.Sleep(5 * time.Second)
 	const msg = "register"
 	logger := utils.NewFileLogger("./dist/logs/member/register", "console", 1)
 	var err error
@@ -65,5 +63,18 @@ func (h *MemberHandler) Register(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{"Code": err.Error()})
 		}
 	}()
-	c.JSON(http.StatusOK, gin.H{"Code": "測試", "message": ""})
+	var param struct {
+		Account  string `json:"account" form:"account"`
+		Password string `json:"password" form:"password"`
+	}
+	err = c.ShouldBind(&param)
+	if err != nil {
+		return
+	}
+
+	_, err = h.UC.Register(param.Account, param.Password, c.ClientIP())
+	if err != nil {
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": ""})
 }

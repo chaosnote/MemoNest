@@ -3,12 +3,57 @@ DROP TABLE IF EXISTS `member` ;
 CREATE TABLE IF NOT EXISTS `member` ( 
     `RowID` INT NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT '列 ID / 內部 ID', 
     `Account` VARCHAR(20) NOT NULL UNIQUE COMMENT '帳號', 
-    `Password` VARCHAR(20) NOT NULL COMMENT '密碼的雜湊值', 
-    `LastIP` VARCHAR(45) NULL COMMENT '最後登入 IP 地址', 
+    `Password` VARCHAR(32) NOT NULL COMMENT '密碼的雜湊值', 
+    `LastIP` VARCHAR(45) NULL COMMENT '最後登入 IP 地址',
+    `IsEnabled` TINYINT(1) NOT NULL DEFAULT 1 COMMENT '帳號是否啟用 1=啟用, 0=停用',
     `CreatedAt` DATETIME NOT NULL COMMENT '建立時間', 
     `UpdatedAt` DATETIME NOT NULL COMMENT '更新時間', 
     INDEX idx_account (`Account`) 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '會員資訊表';
+
+-------------------------------------------------
+
+DROP PROCEDURE IF EXISTS `sp_login`;
+
+DELIMITER $$
+
+CREATE PROCEDURE `sp_login` (
+  IN p_account VARCHAR(50),
+  IN p_password VARCHAR(100),
+  IN p_ip VARCHAR(45)
+)
+BEGIN
+  DECLARE error_message TEXT;
+  DECLARE member_exists INT DEFAULT 0;
+
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION
+  BEGIN
+    SET error_message = CONCAT('登入失敗，帳號 "', p_account, '" 發生錯誤於：', @debug_step);
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = error_message;
+  END;
+
+  SET @debug_step = 'check member';
+  SELECT COUNT(*) INTO member_exists
+  FROM `member`
+  WHERE `Account` = p_account AND `Password` = p_password;
+
+  IF member_exists = 0 THEN
+    SET error_message = CONCAT('帳號或密碼錯誤：', p_account);
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = error_message;
+  END IF;
+
+  SET @debug_step = 'update last_ip';
+  UPDATE `member`
+  SET `LastIP` = p_ip,
+      `UpdatedAt` = UTC_TIMESTAMP()
+  WHERE `Account` = p_account;
+
+  SET @debug_step = 'return member';
+  SELECT * FROM `member` WHERE `Account` = p_account;
+END$$
+
+DELIMITER ;
+
 
 -------------------------------------------------
 
@@ -105,10 +150,11 @@ BEGIN
 
   SET @debug_step = 'commit';
   COMMIT;
+
+  SELECT * from `member` where `Account` = p_account;
 END$$
 
 DELIMITER ;
-
 
 -------------------------------------------------
 

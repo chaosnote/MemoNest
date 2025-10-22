@@ -7,6 +7,7 @@ type Member struct {
 	Account   string
 	Password  string
 	LastIP    string
+	IsEnabled bool
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

@@ -55,55 +55,59 @@
 
 {{define "js"}}
 <script>
-$(function () {
-  $('#login_btn').on('click', function () {
-    const account = $('#account').val().trim();
-    const password = $('#password').val().trim();
-    let valid = true;
+  $(function () {
+    $('#login_btn').on('click', function () {
+      const account = $('#account').val().trim();
+      const password = $('#password').val().trim();
+      let valid = true;
 
-    // 清除先前狀態
-    $('#account, #password').removeClass('is-invalid');
-    $('#error_message').hide();
+      // 清除先前狀態
+      $('#account, #password').removeClass('is-invalid');
+      $('#error_message').hide();
 
-    if (!account) {
-      $('#account').addClass('is-invalid');
-      valid = false;
-    }
-    if (!password) {
-      $('#password').addClass('is-invalid');
-      valid = false;
-    }
-    if (!valid) return;
+      const account_regex = /^[a-zA-Z][a-zA-Z0-9]{4,9}$/;
+      const password_regex = /^[a-zA-Z0-9]{6,10}$/;
 
-    // 顯示 loading
-    $('#login_btn').prop('disabled', true);
-    $('#loading_spinner').removeClass('d-none');
-
-    $.ajax({
-      url: '/api/v1/member/login',
-      method: 'POST',
-      contentType: 'application/json',
-      data: JSON.stringify({ account, password }),
-      success: function (response) {
-        if (!response.hasOwnProperty('Code')) {
-          location.href = "/";
-          return;
-        }
-        if (response.Code == "OK") {
-          location.href = "/";
-          return;
-        }
-        $('#error_message').text(response.Code || '登入失敗').show();
-      },
-      error: function () {
-        $('#error_message').text('伺服器錯誤，請稍後再試').show();
-      },
-      complete: function () {
-        $('#login_btn').prop('disabled', false);
-        $('#loading_spinner').addClass('d-none');
+      if (!account_regex.test(account)) {
+        $('#account').addClass('is-invalid');
+        valid = false;
       }
+      if (!password_regex.test(password)) {
+        $('#password').addClass('is-invalid');
+        valid = false;
+      }
+
+      if (!valid) return;
+
+      // 顯示 loading
+      $('#login_btn').prop('disabled', true);
+      $('#loading_spinner').removeClass('d-none');
+
+      $.ajax({
+        url: '/api/v1/member/login',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ account, password }),
+        success: function (response) {
+          if (!response.hasOwnProperty('Code')) {
+            location.href = "/";
+            return;
+          }
+          if (response.Code == "OK") {
+            location.href = "/";
+            return;
+          }
+          $('#error_message').text(response.Code || '登入失敗').show();
+        },
+        error: function () {
+          $('#error_message').text('伺服器錯誤，請稍後再試').show();
+        },
+        complete: function () {
+          $('#login_btn').prop('disabled', false);
+          $('#loading_spinner').addClass('d-none');
+        }
+      });
     });
   });
-});
 </script>
 {{end}}

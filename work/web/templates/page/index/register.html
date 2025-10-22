@@ -10,7 +10,7 @@
       <div class="mb-3">
         <div class="input-group">
           <span class="input-group-text">帳號</span>
-          <input type="text" class="form-control" id="account" name="account" placeholder="第一碼需為英文，只允許英文與數字，長度為 6 到 10" value="{{.Setting.Account}}">
+          <input type="text" class="form-control" id="account" name="account" placeholder="第一碼需為英文，只允許英文與數字，長度為 5 到 10" value="{{.Setting.Account}}">
         </div>
         <div class="invalid-feedback">請輸入帳號</div>
       </div>
@@ -64,7 +64,7 @@
 
       $errorBox.hide().text('');
 
-      const account_regex = /^[a-zA-Z][a-zA-Z0-9]{5,9}$/;
+      const account_regex = /^[a-zA-Z][a-zA-Z0-9]{4,9}$/;
       const password_regex = /^[a-zA-Z0-9]{6,10}$/;
 
       if (!account_regex.test(account)) {
