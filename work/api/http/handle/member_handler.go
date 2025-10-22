@@ -52,3 +52,16 @@ func (h *MemberHandler) Logout(c *gin.Context) {
 	h.Session.Init(c)
 	h.Session.Clear()
 }
+
+func (h *MemberHandler) Register(c *gin.Context) {
+	const msg = "register"
+	logger := utils.NewFileLogger("./dist/logs/member/register", "console", 1)
+	var err error
+	defer func() {
+		if err != nil {
+			logger.Error(msg, zap.Error(err))
+			c.JSON(http.StatusOK, gin.H{"Code": err.Error()})
+		}
+	}()
+	c.JSON(http.StatusOK, gin.H{"Code": "測試", "message": ""})
+}

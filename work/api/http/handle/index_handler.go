@@ -75,6 +75,35 @@ func (h *IndexHandler) Entry(c *gin.Context) {
 	}
 }
 
+func (h *IndexHandler) Register(c *gin.Context) {
+	const msg = "register"
+	logger := utils.NewFileLogger("./dist/logs/index/register", "console", 1)
+	var err error
+	defer func() {
+		if err != nil {
+			logger.Error(msg, zap.Error(err))
+			c.JSON(http.StatusOK, gin.H{"Code": err.Error()})
+		}
+	}()
+
+	dir := filepath.Join("./web", "templates")
+	config := utils.TemplateConfig{
+		Layout:  filepath.Join(dir, "layout", "share.html"),
+		Page:    []string{filepath.Join(dir, "page", "index", "register.html")},
+		Pattern: []string{},
+	}
+	tmpl, e := utils.RenderTemplate(config)
+	if e != nil {
+		return
+	}
+	e = tmpl.ExecuteTemplate(c.Writer, "register.html", gin.H{
+		"Title": "首頁",
+	})
+	if e != nil {
+		return
+	}
+}
+
 func (h *IndexHandler) Health(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": ""})
 }

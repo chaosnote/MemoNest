@@ -85,6 +85,7 @@ func NewIndexHandler(
 	}
 	engine.GET("/", h.Entry)
 	engine.GET("/health", h.Health)
+	engine.GET("/register", h.Register)
 }
 
 func NewToolHandler(
@@ -112,6 +113,7 @@ func NewMemberHandler(
 	r := engine.Group(filepath.Join(API_VER, "/member"))
 	r.POST("/login", h.Login)
 	r.GET("/logout", h.Logout)
+	r.POST("/register", h.Register)
 }
 
 func NewNodeHandler(
