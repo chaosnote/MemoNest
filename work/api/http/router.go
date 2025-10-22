@@ -34,7 +34,7 @@ func NewServerRoute(
 	mongo_db *mongo.Client,
 	nats_io *nats.Conn,
 ) *gin.Engine {
-	utils.RSAInit("./dist/logs/crypt/rsa.txt", 1024, true)
+	// utils.RSAInit("./dist/logs/crypt/rsa.txt", 1024, true)
 
 	var logger *zap.Logger
 	if cli.Debug {
