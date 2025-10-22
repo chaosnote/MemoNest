@@ -14,8 +14,8 @@ type NodeRepo struct {
 	db *sql.DB
 }
 
-func (nh *NodeRepo) AddParentNode(node_id, path_name string) (*entity.Category, error) {
-	tx, err := nh.db.Begin()
+func (r *NodeRepo) AddParentNode(node_id, path_name string) (*entity.Category, error) {
+	tx, err := r.db.Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -61,8 +61,8 @@ func (nh *NodeRepo) AddParentNode(node_id, path_name string) (*entity.Category, 
 }
 
 // AddChildNode 插入一個新的分類節點
-func (nh *NodeRepo) AddChildNode(parent_id, node_id, path_name string) (*entity.Category, error) {
-	tx, err := nh.db.Begin()
+func (r *NodeRepo) AddChildNode(parent_id, node_id, path_name string) (*entity.Category, error) {
+	tx, err := r.db.Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -121,8 +121,8 @@ func (nh *NodeRepo) AddChildNode(parent_id, node_id, path_name string) (*entity.
 }
 
 // Delete 移除指定的分類節點及其所有後代節點
-func (nh *NodeRepo) Delete(node_id string) error {
-	row := nh.db.QueryRow(`SELECT COUNT(*) AS Total FROM articles WHERE NodeID = ?;`, node_id)
+func (r *NodeRepo) Delete(node_id string) error {
+	row := r.db.QueryRow(`SELECT COUNT(*) AS Total FROM articles WHERE NodeID = ?;`, node_id)
 	var total int
 	e := row.Scan(&total)
 	if e != nil {
@@ -132,7 +132,7 @@ func (nh *NodeRepo) Delete(node_id string) error {
 		return fmt.Errorf("該節點仍有文章(筆數: %v)", total)
 	}
 
-	tx, err := nh.db.Begin()
+	tx, err := r.db.Begin()
 	if err != nil {
 		return err
 	}
@@ -176,27 +176,27 @@ func (nh *NodeRepo) Delete(node_id string) error {
 }
 
 // Edit 編輯
-func (nh *NodeRepo) Edit(node_id, label string) error {
-	_, err := nh.db.Exec(`UPDATE categories SET PathName = ? WHERE NodeID = ?;`, label, node_id)
+func (r *NodeRepo) Edit(node_id, label string) error {
+	_, err := r.db.Exec(`UPDATE categories SET PathName = ? WHERE NodeID = ?;`, label, node_id)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (nh *NodeRepo) Move(parent_id, node_id, path_name string) error {
-	e := nh.Delete(node_id)
+func (r *NodeRepo) Move(parent_id, node_id, path_name string) error {
+	e := r.Delete(node_id)
 	if e != nil {
 		return e
 	}
 
 	if parent_id == uuid.Nil.String() {
-		_, e = nh.AddParentNode(node_id, path_name)
+		_, e = r.AddParentNode(node_id, path_name)
 		if e != nil {
 			return e
 		}
 	} else {
-		_, e = nh.AddChildNode(parent_id, node_id, path_name)
+		_, e = r.AddChildNode(parent_id, node_id, path_name)
 		if e != nil {
 			return e
 		}
@@ -205,9 +205,9 @@ func (nh *NodeRepo) Move(parent_id, node_id, path_name string) error {
 	return nil
 }
 
-func (nh *NodeRepo) GetAllNode() (categories []entity.Category, err error) {
+func (r *NodeRepo) GetAllNode() (categories []entity.Category, err error) {
 	// 從資料庫中讀取所有分類，並按 LftIdx 排序
-	rows, err := nh.db.Query("SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM categories ORDER BY LftIdx ASC")
+	rows, err := r.db.Query("SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM categories ORDER BY LftIdx ASC")
 	if err != nil {
 		return
 	}
@@ -224,8 +224,8 @@ func (nh *NodeRepo) GetAllNode() (categories []entity.Category, err error) {
 	return
 }
 
-func (nh *NodeRepo) GetNode(node_id string) (c entity.Category, e error) {
-	row := nh.db.QueryRow("SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM categories WHERE NodeID = ?", node_id)
+func (r *NodeRepo) GetNode(node_id string) (c entity.Category, e error) {
+	row := r.db.QueryRow("SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM categories WHERE NodeID = ?", node_id)
 	if err := row.Scan(&c.RowID, &c.NodeID, &c.ParentID, &c.PathName, &c.LftIdx, &c.RftIdx); err != nil {
 		return
 	}

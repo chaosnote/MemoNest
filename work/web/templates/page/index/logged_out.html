@@ -18,87 +18,92 @@
 {{end}}
 
 {{define "content"}}
-<div class="card-body">
-  <div class="mb-3">
-    <div class="input-group">
-      <span class="input-group-text">帳號</span>
-      <input type="text" class="form-control" id="account" name="account" placeholder="請輸入帳號" value="{{.Setting.Account}}">
+<div class="d-flex justify-content-center mt-5">
+  <div class="card shadow-sm" style="width: 100%; max-width: 500px;">
+    <div class="card-body">
+      <div class="mb-3">
+        <div class="input-group">
+          <span class="input-group-text">帳號</span>
+          <input type="text" class="form-control" id="account" name="account" placeholder="請輸入帳號" value="{{.Setting.Account}}">
+        </div>
+        <div class="invalid-feedback">請輸入帳號</div>
+      </div>
+
+      <div class="mb-3">
+        <div class="input-group">
+          <span class="input-group-text">密碼</span>
+          <input type="password" class="form-control" id="password" name="password" placeholder="請輸入密碼" value="{{.Setting.Password}}">
+        </div>
+        <div class="invalid-feedback">請輸入密碼</div>
+      </div>
+
+      <div class="mb-3 text-danger" id="error_message" style="display:none;">
+        帳號或密碼錯誤，請重新輸入。
+      </div>
+
+      <button id="login_btn" class="btn btn-primary w-100">
+        <span class="spinner-border spinner-border-sm me-2 d-none" role="status" id="loading_spinner"></span>登入
+      </button>
+
+      <div class="mt-3 text-center">
+        尚未註冊？<a href="/register">前往註冊</a>
+      </div>
     </div>
-    <div class="invalid-feedback">請輸入帳號</div>
-  </div>
-
-  <div class="mb-3">
-    <div class="input-group">
-      <span class="input-group-text">密碼</span>
-      <input type="password" class="form-control" id="password" name="password" placeholder="請輸入密碼" value="{{.Setting.Password}}">
-    </div>
-    <div class="invalid-feedback">請輸入密碼</div>
-  </div>
-
-  <div class="mb-3 text-danger" id="errorMessage" style="display:none;">帳號或密碼錯誤，請重新輸入。</div>
-
-  <button id="loginBtn" class="btn btn-primary w-100">
-    <span class="spinner-border spinner-border-sm me-2 d-none" role="status" id="loadingSpinner"></span>登入
-  </button>
-
-  <div class="mt-3 text-center">
-    尚未註冊？<a href="/register">前往註冊</a>
   </div>
 </div>
 {{end}}
 
 {{define "js"}}
 <script>
-    $(function () {
-        $('#loginBtn').on('click', function () {
-            const account = $('#account').val().trim();
-            const password = $('#password').val().trim();
-            let valid = true;
+$(function () {
+  $('#login_btn').on('click', function () {
+    const account = $('#account').val().trim();
+    const password = $('#password').val().trim();
+    let valid = true;
 
-            // 清除先前狀態
-            $('#account, #password').removeClass('is-invalid');
-            $('#errorMessage').hide();
+    // 清除先前狀態
+    $('#account, #password').removeClass('is-invalid');
+    $('#error_message').hide();
 
-            if (!account) {
-                $('#account').addClass('is-invalid');
-                valid = false;
-            }
-            if (!password) {
-                $('#password').addClass('is-invalid');
-                valid = false;
-            }
-            if (!valid) return;
+    if (!account) {
+      $('#account').addClass('is-invalid');
+      valid = false;
+    }
+    if (!password) {
+      $('#password').addClass('is-invalid');
+      valid = false;
+    }
+    if (!valid) return;
 
-            // 顯示 loading
-            $('#loginBtn').prop('disabled', true);
-            $('#loadingSpinner').removeClass('d-none');
+    // 顯示 loading
+    $('#login_btn').prop('disabled', true);
+    $('#loading_spinner').removeClass('d-none');
 
-            // 模擬 AJAX 登入
-            $.ajax({
-                url: '/api/v1/member/login',
-                method: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({ account, password }),
-                success: function (response) {
-                    if (!response.hasOwnProperty('Code')) {
-                        location.href = "/";
-                        return;
-                    }
-                    if (response.Code == "OK") {
-                        location.href = "/";
-                        return;
-                    }
-                    $('#errorMessage').text(response.Code || '登入失敗').show();
-                },
-                error: function () {
-                    $('#errorMessage').text('伺服器錯誤，請稍後再試').show();
-                },
-                complete: function () {
-                    $('#loginBtn').prop('disabled', false);
-                    $('#loadingSpinner').addClass('d-none');
-                }
-            });
-        });
+    $.ajax({
+      url: '/api/v1/member/login',
+      method: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify({ account, password }),
+      success: function (response) {
+        if (!response.hasOwnProperty('Code')) {
+          location.href = "/";
+          return;
+        }
+        if (response.Code == "OK") {
+          location.href = "/";
+          return;
+        }
+        $('#error_message').text(response.Code || '登入失敗').show();
+      },
+      error: function () {
+        $('#error_message').text('伺服器錯誤，請稍後再試').show();
+      },
+      complete: function () {
+        $('#login_btn').prop('disabled', false);
+        $('#loading_spinner').addClass('d-none');
+      }
     });
+  });
+});
 </script>
 {{end}}

@@ -2,6 +2,7 @@ package handle
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -54,6 +55,7 @@ func (h *MemberHandler) Logout(c *gin.Context) {
 }
 
 func (h *MemberHandler) Register(c *gin.Context) {
+	time.Sleep(5 * time.Second)
 	const msg = "register"
 	logger := utils.NewFileLogger("./dist/logs/member/register", "console", 1)
 	var err error

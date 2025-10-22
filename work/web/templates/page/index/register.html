@@ -4,92 +4,113 @@
 {{end}}
 
 {{define "content"}}
-<div class="card-body">
-  <div class="mb-3">
-    <div class="input-group">
-      <span class="input-group-text">帳號</span>
-      <input type="text" class="form-control" id="account" name="account" placeholder="請輸入帳號" value="{{.Setting.Account}}">
+<div class="d-flex justify-content-center mt-5">
+  <div class="card shadow-sm" style="width: 100%; max-width: 500px;">
+    <div class="card-body">
+      <div class="mb-3">
+        <div class="input-group">
+          <span class="input-group-text">帳號</span>
+          <input type="text" class="form-control" id="account" name="account" placeholder="第一碼需為英文，只允許英文與數字，長度為 6 到 10" value="{{.Setting.Account}}">
+        </div>
+        <div class="invalid-feedback">請輸入帳號</div>
+      </div>
+
+      <div class="mb-3">
+        <div class="input-group">
+          <span class="input-group-text">密碼</span>
+          <input type="password" class="form-control" id="password" name="password" placeholder="只允許英文與數字，長度為 6 到 10" value="{{.Setting.Password}}">
+        </div>
+        <div class="invalid-feedback">請輸入密碼</div>
+      </div>
+
+      <div class="mb-3">
+        <div class="input-group">
+          <span class="input-group-text">確認</span>
+          <input type="password" class="form-control" id="confirm" name="confirm" placeholder="再次輸入密碼">
+        </div>
+        <div class="invalid-feedback">請再次輸入密碼</div>
+      </div>
+
+      <div class="mb-3 text-danger" id="error_message" style="display:none;">
+        註冊失敗，請確認輸入內容。
+      </div>
+
+      <button id="register_btn" class="btn btn-primary w-100">
+        <span class="spinner-border spinner-border-sm me-2 d-none" role="status" id="loading_spinner"></span>
+        註冊
+      </button>
+
+      <div class="mt-3 text-center">
+        已有帳號？<a href="/">返回登入</a>
+      </div>
     </div>
-    <div class="invalid-feedback">請輸入帳號</div>
-  </div>
-
-  <div class="mb-3">
-    <div class="input-group">
-      <span class="input-group-text">密碼</span>
-      <input type="password" class="form-control" id="password" name="password" placeholder="請輸入密碼" value="{{.Setting.Password}}">
-    </div>
-    <div class="invalid-feedback">請輸入密碼</div>
-  </div>
-
-  <div class="mb-3">
-    <div class="input-group">
-      <span class="input-group-text">確認</span>
-      <input type="password" class="form-control" id="confirm" name="confirm" placeholder="再次輸入密碼">
-    </div>
-    <div class="invalid-feedback">請再次輸入密碼</div>
-  </div>
-
-  <div class="mb-3 text-danger" id="errorMessage" style="display:none;">
-    註冊失敗，請確認輸入內容。
-  </div>
-
-  <button id="registerBtn" class="btn btn-primary w-100">
-    <span class="spinner-border spinner-border-sm me-2 d-none" role="status" id="loadingSpinner"></span>
-    註冊
-  </button>
-
-  <div class="mt-3 text-center">
-    已有帳號？<a href="/">返回登入</a>
   </div>
 </div>
 {{end}}
 
 {{define "js"}}
 <script>
-$(document).ready(function () {
-  $('#register-form').on('submit', function (e) {
-    e.preventDefault(); // 防止預設送出
+  $(function () {
+    const $btn = $('#register_btn');
+    const $spinner = $('#loading_spinner');
+    const $errorBox = $('#error_message');
 
-    const account = $('#account').val().trim();
-    const password = $('#password').val();
-    const confirm = $('#confirm').val();
-    const errorBox = $('#error-message');
+    $btn.on('click', function (e) {
+      e.preventDefault();
 
-    errorBox.hide().text('');
+      const account = $('#account').val().trim();
+      const password = $('#password').val();
+      const confirm = $('#confirm').val();
 
-    if (account === '') {
-      errorBox.text('請輸入帳號').show();
-      return;
-    }
+      $errorBox.hide().text('');
 
-    if (password.length < 6) {
-      errorBox.text('密碼至少需 6 字元').show();
-      return;
-    }
+      const account_regex = /^[a-zA-Z][a-zA-Z0-9]{5,9}$/;
+      const password_regex = /^[a-zA-Z0-9]{6,10}$/;
 
-    if (password !== confirm) {
-      errorBox.text('兩次輸入的密碼不一致').show();
-      return;
-    }
-
-    // ✅ 若要改為 AJAX 註冊，可使用以下：
-    $.ajax({
-      url: '/api/v1/member/register',
-      method: 'POST',
-      contentType: 'application/json',
-      data: JSON.stringify({ account, password }),
-      success: function (res) {
-        if (res.Code === 'OK') {
-          window.location.href = '/login';
-        } else {
-          errorBox.text(res.Code).show();
-        }
-      },
-      error: function () {
-        errorBox.text('註冊失敗，請稍後再試').show();
+      if (!account_regex.test(account)) {
+        $errorBox.text('帳號格式錯誤').show();
+        return;
       }
+
+      if (!password_regex.test(password)) {
+        $errorBox.text('密碼格式錯誤').show();
+        return;
+      }
+
+      if (password !== confirm) {
+        $errorBox.text('兩次輸入的密碼不一致').show();
+        return;
+      }
+
+      $btn.prop('disabled', true);
+      $spinner.removeClass('d-none');
+
+      $.ajax({
+        url: '/api/v1/member/register',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ account, password }),
+        success: function (response) {
+          if (!response.hasOwnProperty('Code')) {
+            $errorBox.text("請求出現錯誤,請稍侯再嘗試").show();
+            return;
+          }
+          if (response.Code == "OK") {
+            alert("註冊成功");
+            location.href = "/";
+            return;
+          }
+          $errorBox.text(response.Code).show();
+        },
+        error: function () {
+          $errorBox.text('註冊失敗，請稍後再試').show();
+        },
+        complete: function () {
+          $btn.prop('disabled', false);
+          $spinner.addClass('d-none');
+        }
+      });
     });
   });
-});
 </script>
 {{end}}

@@ -13,8 +13,8 @@ type ArticleRepo struct {
 	db *sql.DB
 }
 
-func (ah *ArticleRepo) GetAllNode() (categories []entity.Category, err error) {
-	rows, err := ah.db.Query("SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM categories ORDER BY LftIdx ASC")
+func (r *ArticleRepo) GetAllNode() (categories []entity.Category, err error) {
+	rows, err := r.db.Query("SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM categories ORDER BY LftIdx ASC")
 	if err != nil {
 		return
 	}
@@ -31,9 +31,9 @@ func (ah *ArticleRepo) GetAllNode() (categories []entity.Category, err error) {
 	return
 }
 
-func (ah *ArticleRepo) Add(node_id string) (id int, e error) {
+func (r *ArticleRepo) Add(node_id string) (id int, e error) {
 	t := time.Now().UTC()
-	row := ah.db.QueryRow("CALL insert_article(?, ?, ?, ?, ?) ;", "", "", t, t, node_id)
+	row := r.db.QueryRow("CALL insert_article(?, ?, ?, ?, ?) ;", "", "", t, t, node_id)
 	e = row.Scan(&id)
 	if e != nil {
 		return
@@ -41,26 +41,26 @@ func (ah *ArticleRepo) Add(node_id string) (id int, e error) {
 	return
 }
 
-func (ah *ArticleRepo) Delete(id int) (e error) {
-	_, e = ah.db.Exec(`DELETE from articles where RowID = ? ;`, id)
+func (r *ArticleRepo) Delete(id int) (e error) {
+	_, e = r.db.Exec(`DELETE from articles where RowID = ? ;`, id)
 	if e != nil {
 		return
 	}
 	return
 }
 
-func (ah *ArticleRepo) Update(row_id int, title, content string) error {
+func (r *ArticleRepo) Update(row_id int, title, content string) error {
 	t := time.Now().UTC()
 	query := `UPDATE articles SET Title = ?, Content = ?, UpdateDt =? WHERE RowID = ?;`
-	_, e := ah.db.Exec(query, title, content, t, row_id)
+	_, e := r.db.Exec(query, title, content, t, row_id)
 	if e != nil {
 		return e
 	}
 	return nil
 }
 
-func (ah *ArticleRepo) Get(id int) (articles []entity.Article, err error) {
-	rows, err := ah.db.Query(`
+func (r *ArticleRepo) Get(id int) (articles []entity.Article, err error) {
+	rows, err := r.db.Query(`
 		SELECT 
 			a.RowID AS ArticleRowID,
 			a.Title,
@@ -95,8 +95,8 @@ func (ah *ArticleRepo) Get(id int) (articles []entity.Article, err error) {
 	return
 }
 
-func (ah *ArticleRepo) List() (articles []entity.Article, err error) {
-	rows, err := ah.db.Query(`
+func (r *ArticleRepo) List() (articles []entity.Article, err error) {
+	rows, err := r.db.Query(`
 		SELECT 
 			a.RowID AS ArticleRowID,
 			a.Title,
@@ -132,7 +132,7 @@ func (ah *ArticleRepo) List() (articles []entity.Article, err error) {
 	return
 }
 
-func (ah *ArticleRepo) composit(input string) (query string, args []interface{}) {
+func (r *ArticleRepo) composit(input string) (query string, args []interface{}) {
 	input = strings.TrimSpace(input)
 	if input == "" {
 		return "", nil
@@ -180,9 +180,9 @@ func (ah *ArticleRepo) composit(input string) (query string, args []interface{})
 	return
 }
 
-func (ah *ArticleRepo) Query(input string) (articles []entity.Article, err error) {
-	cmd, args := ah.composit(input)
-	rows, err := ah.db.Query(cmd, args...)
+func (r *ArticleRepo) Query(input string) (articles []entity.Article, err error) {
+	cmd, args := r.composit(input)
+	rows, err := r.db.Query(cmd, args...)
 	if err != nil {
 		return
 	}
