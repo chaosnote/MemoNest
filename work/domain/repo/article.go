@@ -5,8 +5,8 @@ import (
 )
 
 type ArticleRepository interface {
-	Add(nodeID string) (int, error)
-	Update(rowID int, title, content string) error
+	Add(node_id string) (int, error)
+	Update(row_id int, title, content string) error
 	Delete(id int) error
 	Get(id int) ([]entity.Article, error)
 	List() ([]entity.Article, error)

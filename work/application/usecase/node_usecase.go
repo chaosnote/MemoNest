@@ -17,34 +17,34 @@ type NodeUsecase struct {
 	Menu service.MenuProvider
 }
 
-func (u *NodeUsecase) Add(parent_id, node_id, path_name string) (err error) {
+func (u *NodeUsecase) Add(account, parent_id, node_id, path_name string) (err error) {
 	if parent_id == uuid.Nil.String() {
-		_, err = u.Repo.AddParentNode("", path_name)
+		_, err = u.Repo.AddParentNode(account, "", path_name)
 	} else {
-		_, err = u.Repo.AddChildNode(parent_id, "", path_name)
+		_, err = u.Repo.AddChildNode(account, parent_id, "", path_name)
 	}
 	return err
 }
 
-func (u *NodeUsecase) Delete(node_id string) error {
-	return u.Repo.Delete(node_id)
+func (u *NodeUsecase) Delete(account, node_id string) error {
+	return u.Repo.Delete(account, node_id)
 }
 
-func (u *NodeUsecase) List() ([]entity.Category, error) {
-	return u.Repo.GetAllNode()
+func (u *NodeUsecase) List(account string) ([]entity.Category, error) {
+	return u.Repo.GetAllNode(account)
 }
 
-func (u *NodeUsecase) Edit(node_id, path_name string) error {
-	return u.Repo.Edit(node_id, path_name)
+func (u *NodeUsecase) Edit(account, node_id, path_name string) error {
+	return u.Repo.Edit(account, node_id, path_name)
 }
 
-func (u *NodeUsecase) Move(parent_id, node_id string) (err error) {
+func (u *NodeUsecase) Move(account, parent_id, node_id string) (err error) {
 	var has_node = false
 	if parent_id == uuid.Nil.String() {
 		has_node = true
 	} else {
 		var parent_node entity.Category
-		parent_node, err = u.Repo.GetNode(parent_id)
+		parent_node, err = u.Repo.GetNode(account, parent_id)
 		if err != nil {
 			return
 		}
@@ -57,7 +57,7 @@ func (u *NodeUsecase) Move(parent_id, node_id string) (err error) {
 		return
 	}
 
-	current_node, err := u.Repo.GetNode(node_id)
+	current_node, err := u.Repo.GetNode(account, node_id)
 	if err != nil {
 		return
 	}
@@ -69,11 +69,11 @@ func (u *NodeUsecase) Move(parent_id, node_id string) (err error) {
 		return
 	}
 
-	return u.Repo.Move(parent_id, node_id, current_node.PathName)
+	return u.Repo.Move(account, parent_id, node_id, current_node.PathName)
 }
 
-func (u *NodeUsecase) GetViewModel(aes_key []byte, menu_id string) (mo model.NodeView, err error) {
-	tmp_list, err := u.Repo.GetAllNode()
+func (u *NodeUsecase) GetViewModel(account string, aes_key []byte, menu_id string) (mo model.NodeView, err error) {
+	tmp_list, err := u.Repo.GetAllNode(account)
 	if err != nil {
 		return
 	}

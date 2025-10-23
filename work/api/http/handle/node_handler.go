@@ -47,7 +47,7 @@ func (h *NodeHandler) Add(c *gin.Context) {
 		return
 	}
 
-	e = h.UC.Add(parent_id, "", param.Label)
+	e = h.UC.Add(h.Session.GetAccount(), parent_id, "", param.Label)
 	if e != nil {
 		return
 	}
@@ -80,7 +80,7 @@ func (h *NodeHandler) Del(c *gin.Context) {
 		return
 	}
 
-	e = h.UC.Delete(node_id)
+	e = h.UC.Delete(h.Session.GetAccount(), node_id)
 	if e != nil {
 		return
 	}
@@ -112,8 +112,8 @@ func (h *NodeHandler) List(c *gin.Context) {
 	if err != nil {
 		return
 	}
-
-	mo, err := h.UC.GetViewModel(aes_key, infra.MP_NODE)
+	h.Session.Init(c)
+	mo, err := h.UC.GetViewModel(h.Session.GetAccount(), aes_key, infra.MP_NODE)
 	if err != nil {
 		return
 	}
@@ -159,7 +159,7 @@ func (h *NodeHandler) Edit(c *gin.Context) {
 	aes_key := []byte(h.Session.GetAESKey())
 	node_id, _ := utils.AesDecrypt(param.ID, aes_key)
 
-	e = h.UC.Edit(node_id, param.Label)
+	e = h.UC.Edit(h.Session.GetAccount(), node_id, param.Label)
 	if e != nil {
 		return
 	}
@@ -197,7 +197,7 @@ func (h *NodeHandler) Move(c *gin.Context) {
 		return
 	}
 
-	err = h.UC.Move(parent_id, current_id)
+	err = h.UC.Move(h.Session.GetAccount(), parent_id, current_id)
 	if err != nil {
 		return
 	}

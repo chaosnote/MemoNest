@@ -13,7 +13,7 @@ type MemberUsecase struct {
 	Repo repo.MemberRepository
 }
 
-func (u *MemberUsecase) check(account, password, last_ip string) (err error) {
+func (u *MemberUsecase) check(account, password string) (err error) {
 	var account_regex = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9]{4,9}$`)
 	var password_regex = regexp.MustCompile(`^[a-zA-Z0-9]{6,10}$`)
 
@@ -29,7 +29,7 @@ func (u *MemberUsecase) check(account, password, last_ip string) (err error) {
 }
 
 func (u *MemberUsecase) Login(account, password, last_ip string) (mo entity.Member, err error) {
-	err = u.check(account, password, last_ip)
+	err = u.check(account, password)
 	if err != nil {
 		return
 	}
@@ -48,7 +48,7 @@ func (u *MemberUsecase) Login(account, password, last_ip string) (mo entity.Memb
 }
 
 func (u *MemberUsecase) Register(account, password, last_ip string) (mo entity.Member, err error) {
-	err = u.check(account, password, last_ip)
+	err = u.check(account, password)
 	if err != nil {
 		return
 	}
