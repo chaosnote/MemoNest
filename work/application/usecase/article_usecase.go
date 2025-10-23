@@ -19,7 +19,7 @@ type ArticleUsecase struct {
 
 func (u *ArticleUsecase) Add(account, node_id, article_title, article_content string) (err error) {
 	var row_id int
-	row_id, err = u.Repo.Add(node_id)
+	row_id, err = u.Repo.Add(account, node_id)
 	if err != nil {
 		return
 	}
@@ -27,7 +27,7 @@ func (u *ArticleUsecase) Add(account, node_id, article_title, article_content st
 	article_id := fmt.Sprintf("%v", row_id)
 
 	article_content = u.Img.ProcessBase64Images(account, article_id, article_content)
-	err = u.Repo.Update(row_id, article_title, article_content)
+	err = u.Repo.Update(account, row_id, article_title, article_content)
 	if err != nil {
 		return
 	}
@@ -42,7 +42,7 @@ func (u *ArticleUsecase) Del(account, plain_text string) (err error) {
 	if err != nil {
 		return
 	}
-	err = u.Repo.Delete(id)
+	err = u.Repo.Delete(account, id)
 	if err != nil {
 		return
 	}
@@ -51,14 +51,14 @@ func (u *ArticleUsecase) Del(account, plain_text string) (err error) {
 	return
 }
 
-func (u *ArticleUsecase) Edit(plain_text string) (data entity.Article, err error) {
+func (u *ArticleUsecase) Edit(account, plain_text string) (data entity.Article, err error) {
 	var id int
 	id, err = strconv.Atoi(plain_text)
 	if err != nil {
 		return
 	}
 
-	list, err := u.Repo.Get(id)
+	list, err := u.Repo.Get(account, id)
 	if err != nil {
 		return
 	}
@@ -78,7 +78,7 @@ func (u *ArticleUsecase) Renew(account, article_id, article_title, article_conte
 	}
 
 	article_content = u.Img.ProcessBase64Images(account, article_id, article_content)
-	err = u.Repo.Update(row_id, article_title, article_content)
+	err = u.Repo.Update(account, row_id, article_title, article_content)
 	if err != nil {
 		return
 	}
@@ -87,18 +87,18 @@ func (u *ArticleUsecase) Renew(account, article_id, article_title, article_conte
 	return
 }
 
-func (u *ArticleUsecase) List(query string) (list []entity.Article, err error) {
+func (u *ArticleUsecase) List(account, query string) (list []entity.Article, err error) {
 	if len(query) > 0 {
-		list, err = u.Repo.Query(query)
+		list, err = u.Repo.Query(account, query)
 	} else {
-		list, err = u.Repo.List()
+		list, err = u.Repo.List(account)
 	}
 
 	return
 }
 
-func (u *ArticleUsecase) GetViewModel(aes_key []byte, menu_id string) (mo model.ArticleView, err error) {
-	tmp_list, err := u.Repo.GetAllNode()
+func (u *ArticleUsecase) GetViewModel(account string, aes_key []byte, menu_id string) (mo model.ArticleView, err error) {
+	tmp_list, err := u.Repo.GetAllNode(account)
 	if err != nil {
 		return
 	}

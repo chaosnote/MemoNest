@@ -116,6 +116,7 @@ BEGIN
     '  `Title` TEXT,',
     '  `Content` LONGTEXT,',
     '  `NodeID` VARCHAR(36),',
+    '  `CreatedDt` DATETIME,',
     '  `UpdateDt` DATETIME,',
     '  PRIMARY KEY (`RowID`)',
     ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;'

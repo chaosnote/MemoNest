@@ -44,7 +44,7 @@ func (h *ArticleHandler) Fresh(c *gin.Context) {
 	h.Session.Init(c)
 	aes_key := []byte(h.Session.GetAESKey())
 
-	mo, e := h.UC.GetViewModel(aes_key, infra.MP_ARTICLE)
+	mo, e := h.UC.GetViewModel(h.Session.GetAccount(), aes_key, infra.MP_ARTICLE)
 	if e != nil {
 		return
 	}
@@ -144,7 +144,7 @@ func (h *ArticleHandler) Edit(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	data, err := h.UC.Edit(plain_text)
+	data, err := h.UC.Edit(h.Session.GetAccount(), plain_text)
 	if err != nil {
 		return
 	}
@@ -164,7 +164,7 @@ func (h *ArticleHandler) Edit(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	mo, err := h.UC.GetViewModel(aes_key, infra.MP_ARTICLE)
+	mo, err := h.UC.GetViewModel(h.Session.GetAccount(), aes_key, infra.MP_ARTICLE)
 	err = tmpl.ExecuteTemplate(c.Writer, "edit.html", gin.H{
 		"Title":          "修改文章",
 		"Menu":           mo.Menu,
@@ -227,7 +227,7 @@ func (h *ArticleHandler) List(c *gin.Context) {
 		}
 	}()
 
-	list, err := h.UC.List(c.Query("q"))
+	list, err := h.UC.List(h.Session.GetAccount(), c.Query("q"))
 	if err != nil {
 		return
 	}
@@ -260,8 +260,8 @@ func (h *ArticleHandler) List(c *gin.Context) {
 		return
 	}
 
-	mo, e := h.UC.GetViewModel(aes_key, infra.MP_ARTICLE)
-	if e != nil {
+	mo, err := h.UC.GetViewModel(h.Session.GetAccount(), aes_key, infra.MP_ARTICLE)
+	if err != nil {
 		return
 	}
 	err = tmpl.ExecuteTemplate(c.Writer, "list.html", gin.H{

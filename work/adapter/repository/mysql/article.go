@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"database/sql"
+	"fmt"
 	"strings"
 	"time"
 
@@ -10,11 +11,16 @@ import (
 )
 
 type ArticleRepo struct {
-	db *sql.DB
+	db                   *sql.DB
+	categories_formatter string
+	articles_formatter   string
 }
 
-func (r *ArticleRepo) GetAllNode() (categories []entity.Category, err error) {
-	rows, err := r.db.Query("SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM categories ORDER BY LftIdx ASC")
+func (r *ArticleRepo) GetAllNode(account string) (categories []entity.Category, err error) {
+	query := `SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM %s ORDER BY LftIdx ASC`
+	query = fmt.Sprintf(query, fmt.Sprintf(r.categories_formatter, account))
+
+	rows, err := r.db.Query(query)
 	if err != nil {
 		return
 	}
@@ -31,9 +37,10 @@ func (r *ArticleRepo) GetAllNode() (categories []entity.Category, err error) {
 	return
 }
 
-func (r *ArticleRepo) Add(node_id string) (id int, e error) {
+func (r *ArticleRepo) Add(account, node_id string) (id int, e error) {
 	t := time.Now().UTC()
-	row := r.db.QueryRow("CALL insert_article(?, ?, ?, ?, ?) ;", "", "", t, t, node_id)
+
+	row := r.db.QueryRow("CALL sp_add_article(?, ?, ?, ?, ?, ?) ;", account, "", "", t, t, node_id)
 	e = row.Scan(&id)
 	if e != nil {
 		return
@@ -41,17 +48,20 @@ func (r *ArticleRepo) Add(node_id string) (id int, e error) {
 	return
 }
 
-func (r *ArticleRepo) Delete(id int) (e error) {
-	_, e = r.db.Exec(`DELETE from articles where RowID = ? ;`, id)
+func (r *ArticleRepo) Delete(account string, id int) (e error) {
+	query := `DELETE from %s where RowID = ? ;`
+	query = fmt.Sprintf(query, fmt.Sprintf(r.articles_formatter, account))
+	_, e = r.db.Exec(query, id)
 	if e != nil {
 		return
 	}
 	return
 }
 
-func (r *ArticleRepo) Update(row_id int, title, content string) error {
+func (r *ArticleRepo) Update(account string, row_id int, title, content string) error {
 	t := time.Now().UTC()
-	query := `UPDATE articles SET Title = ?, Content = ?, UpdateDt =? WHERE RowID = ?;`
+	query := `UPDATE %s SET Title = ?, Content = ?, UpdateDt =? WHERE RowID = ?;`
+	query = fmt.Sprintf(query, fmt.Sprintf(r.articles_formatter, account))
 	_, e := r.db.Exec(query, title, content, t, row_id)
 	if e != nil {
 		return e
@@ -59,8 +69,8 @@ func (r *ArticleRepo) Update(row_id int, title, content string) error {
 	return nil
 }
 
-func (r *ArticleRepo) Get(id int) (articles []entity.Article, err error) {
-	rows, err := r.db.Query(`
+func (r *ArticleRepo) Get(account string, id int) (articles []entity.Article, err error) {
+	query := `
 		SELECT 
 			a.RowID AS ArticleRowID,
 			a.Title,
@@ -68,10 +78,13 @@ func (r *ArticleRepo) Get(id int) (articles []entity.Article, err error) {
 			a.NodeID,
 			c.PathName,
 			a.UpdateDt
-		FROM articles as a
-		JOIN categories as c ON a.NodeID = c.NodeID
+		FROM %s as a
+		JOIN %s as c ON a.NodeID = c.NodeID
 		WHERE a.RowID = ? ;
-	`, id)
+	`
+	query = fmt.Sprintf(query, fmt.Sprintf(r.articles_formatter, account), fmt.Sprintf(r.articles_formatter, account))
+
+	rows, err := r.db.Query(query, id)
 	if err != nil {
 		return
 	}
@@ -95,8 +108,8 @@ func (r *ArticleRepo) Get(id int) (articles []entity.Article, err error) {
 	return
 }
 
-func (r *ArticleRepo) List() (articles []entity.Article, err error) {
-	rows, err := r.db.Query(`
+func (r *ArticleRepo) List(account string) (articles []entity.Article, err error) {
+	query := `
 		SELECT 
 			a.RowID AS ArticleRowID,
 			a.Title,
@@ -104,11 +117,14 @@ func (r *ArticleRepo) List() (articles []entity.Article, err error) {
 			a.NodeID,
 			c.PathName,
 			a.UpdateDt
-		FROM articles as a
-		JOIN categories as c ON a.NodeID = c.NodeID
+		FROM %s as a
+		JOIN %s as c ON a.NodeID = c.NodeID
 		ORDER BY a.UpdateDt DESC
 		LIMIT 10;
-	`)
+	`
+	query = fmt.Sprintf(query, fmt.Sprintf(r.articles_formatter, account), fmt.Sprintf(r.categories_formatter, account))
+
+	rows, err := r.db.Query(query)
 	if err != nil {
 		return
 	}
@@ -132,7 +148,7 @@ func (r *ArticleRepo) List() (articles []entity.Article, err error) {
 	return
 }
 
-func (r *ArticleRepo) composit(input string) (query string, args []interface{}) {
+func (r *ArticleRepo) composit(account, input string) (query string, args []interface{}) {
 	input = strings.TrimSpace(input)
 	if input == "" {
 		return "", nil
@@ -172,16 +188,17 @@ func (r *ArticleRepo) composit(input string) (query string, args []interface{}) 
             a.NodeID,
             c.PathName,
             a.UpdateDt
-        FROM articles AS a
-        JOIN categories AS c ON a.NodeID = c.NodeID
+        FROM %s AS a
+        JOIN %s AS c ON a.NodeID = c.NodeID
         WHERE ` + strings.Join(conditions, " AND ") + `
         ORDER BY a.UpdateDt DESC
     `
+	query = fmt.Sprintf(query, fmt.Sprintf(r.articles_formatter, account), fmt.Sprintf(r.categories_formatter, account))
 	return
 }
 
-func (r *ArticleRepo) Query(input string) (articles []entity.Article, err error) {
-	cmd, args := r.composit(input)
+func (r *ArticleRepo) Query(account, input string) (articles []entity.Article, err error) {
+	cmd, args := r.composit(account, input)
 	rows, err := r.db.Query(cmd, args...)
 	if err != nil {
 		return
@@ -207,5 +224,9 @@ func (r *ArticleRepo) Query(input string) (articles []entity.Article, err error)
 }
 
 func NewArticleRepo(db *sql.DB) repo.ArticleRepository {
-	return &ArticleRepo{db: db}
+	return &ArticleRepo{
+		db:                   db,
+		categories_formatter: "categories_%s",
+		articles_formatter:   "articles_%s",
+	}
 }

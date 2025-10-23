@@ -5,11 +5,11 @@ import (
 )
 
 type ArticleRepository interface {
-	Add(node_id string) (int, error)
-	Update(row_id int, title, content string) error
-	Delete(id int) error
-	Get(id int) ([]entity.Article, error)
-	List() ([]entity.Article, error)
-	Query(input string) ([]entity.Article, error)
-	GetAllNode() ([]entity.Category, error)
+	Add(account, node_id string) (int, error)
+	Update(account string, row_id int, title, content string) error
+	Delete(account string, id int) error
+	Get(account string, id int) ([]entity.Article, error)
+	List(account string) ([]entity.Article, error)
+	Query(account, input string) ([]entity.Article, error)
+	GetAllNode(account string) ([]entity.Category, error)
 }
