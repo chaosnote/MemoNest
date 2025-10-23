@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"idv/chris/MemoNest/adapter/infra"
 	"idv/chris/MemoNest/domain/entity"
 	"idv/chris/MemoNest/domain/model"
 	"idv/chris/MemoNest/domain/repo"
@@ -97,7 +98,7 @@ func (u *ArticleUsecase) List(account, query string) (list []entity.Article, err
 	return
 }
 
-func (u *ArticleUsecase) GetViewModel(account string, aes_key []byte, menu_id string) (mo model.ArticleView, err error) {
+func (u *ArticleUsecase) GetViewModel(account string, aes_key []byte) (mo model.ArticleView, err error) {
 	tmp_list, err := u.Repo.GetAllNode(account)
 	if err != nil {
 		return
@@ -110,9 +111,9 @@ func (u *ArticleUsecase) GetViewModel(account string, aes_key []byte, menu_id st
 
 	mo.NodeList = node_list
 	mo.NodeMap = node_map
-	mo.Menu = u.Menu.GetList()
-	mo.MenuChildren = u.Menu.GetList()[u.Menu.GetMap()[menu_id]].Children
-
+	mo.MainMenu = u.Menu.GetList()
+	mo.MenuIdx = u.Menu.GetMap()[infra.MP_ARTICLE]
+	mo.SubMenu = u.Menu.GetList()[mo.MenuIdx].Children
 	return
 }
 

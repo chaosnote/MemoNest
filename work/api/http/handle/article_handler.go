@@ -11,7 +11,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
-	"idv/chris/MemoNest/adapter/infra"
 	"idv/chris/MemoNest/application/usecase"
 	"idv/chris/MemoNest/domain/model"
 	"idv/chris/MemoNest/domain/service"
@@ -44,15 +43,14 @@ func (h *ArticleHandler) Fresh(c *gin.Context) {
 	h.Session.Init(c)
 	aes_key := []byte(h.Session.GetAESKey())
 
-	mo, e := h.UC.GetViewModel(h.Session.GetAccount(), aes_key, infra.MP_ARTICLE)
+	mo, e := h.UC.GetViewModel(h.Session.GetAccount(), aes_key)
 	if e != nil {
 		return
 	}
 
 	e = tmpl.ExecuteTemplate(c.Writer, "fresh.html", gin.H{
 		"Title":        "增加文章",
-		"Menu":         mo.Menu,
-		"Children":     mo.MenuChildren,
+		"Share":        mo.LayoutShare,
 		"NodeMap":      mo.NodeMap,
 		"ArticleTitle": "請輸入文章標題",
 	})
@@ -164,11 +162,10 @@ func (h *ArticleHandler) Edit(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	mo, err := h.UC.GetViewModel(h.Session.GetAccount(), aes_key, infra.MP_ARTICLE)
+	mo, err := h.UC.GetViewModel(h.Session.GetAccount(), aes_key)
 	err = tmpl.ExecuteTemplate(c.Writer, "edit.html", gin.H{
 		"Title":          "修改文章",
-		"Menu":           mo.Menu,
-		"Children":       mo.MenuChildren,
+		"Share":          mo.LayoutShare,
 		"ID":             id,
 		"PathName":       data.PathName,
 		"ArticleTitle":   data.Title,
@@ -260,15 +257,14 @@ func (h *ArticleHandler) List(c *gin.Context) {
 		return
 	}
 
-	mo, err := h.UC.GetViewModel(h.Session.GetAccount(), aes_key, infra.MP_ARTICLE)
+	mo, err := h.UC.GetViewModel(h.Session.GetAccount(), aes_key)
 	if err != nil {
 		return
 	}
 	err = tmpl.ExecuteTemplate(c.Writer, "list.html", gin.H{
-		"Title":    "文章清單",
-		"Menu":     mo.Menu,
-		"Children": mo.MenuChildren,
-		"List":     list,
+		"Title": "文章清單",
+		"Share": mo.LayoutShare,
+		"List":  list,
 	})
 	if err != nil {
 		return

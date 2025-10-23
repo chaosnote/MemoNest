@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 
-	"idv/chris/MemoNest/adapter/infra"
 	"idv/chris/MemoNest/application/usecase"
 	"idv/chris/MemoNest/domain/service"
 	"idv/chris/MemoNest/utils"
@@ -113,18 +112,17 @@ func (h *NodeHandler) List(c *gin.Context) {
 		return
 	}
 	h.Session.Init(c)
-	mo, err := h.UC.GetViewModel(h.Session.GetAccount(), aes_key, infra.MP_NODE)
+	mo, err := h.UC.GetViewModel(h.Session.GetAccount(), aes_key)
 	if err != nil {
 		return
 	}
 
 	err = tmpl.ExecuteTemplate(c.Writer, "list.html", gin.H{
-		"Title":    "節點清單",
-		"Menu":     mo.Menu,
-		"Children": mo.MenuChildren,
-		"NodeMap":  mo.NodeMap,
-		"List":     mo.NodeList,
-		"RootID":   uuid.Nil.String(),
+		"Title":   "節點清單",
+		"Share":   mo.LayoutShare,
+		"NodeMap": mo.NodeMap,
+		"List":    mo.NodeList,
+		"RootID":  uuid.Nil.String(),
 	})
 	if err != nil {
 		return

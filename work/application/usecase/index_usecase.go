@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"idv/chris/MemoNest/adapter/infra"
 	"idv/chris/MemoNest/domain/model"
 	"idv/chris/MemoNest/domain/service"
 )
@@ -9,11 +10,12 @@ type IndexUsecase struct {
 	Menu service.MenuProvider
 }
 
-func (u *IndexUsecase) GetViewModel(account, password, menu_id string) (mo model.IndexView) {
+func (u *IndexUsecase) GetViewModel(account, password string) (mo model.IndexView) {
 	mo.Account = account
 	mo.Password = password
-	mo.Menu = u.Menu.GetList()
-	mo.MenuChildren = u.Menu.GetList()[u.Menu.GetMap()[menu_id]].Children
+	mo.MainMenu = u.Menu.GetList()
+	mo.MenuIdx = u.Menu.GetMap()[infra.MP_INDEX]
+	mo.SubMenu = u.Menu.GetList()[mo.MenuIdx].Children
 	return
 }
 

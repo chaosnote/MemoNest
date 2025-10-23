@@ -10,21 +10,23 @@
 </head>
 <body>
     <div style="width: 800px;" class="mx-auto">
-        {{if .Menu}}
+        {{with .Share}}
         <div class="container mt-4">
-            <div class="d-flex flex-wrap gap-2 mb-3">
-                {{range .Menu}}
-                <a class="btn btn-outline-success" href="{{.Path}}">{{.Label}}</a>
+            <div class="d-flex flex-wrap gap-2 mb-2">
+                {{range .MainMenu}}
+                    {{if eq .Idx $.Share.MenuIdx}}
+                    <span class="btn btn-primary" style="pointer-events: none; user-select: none;">{{.Label}}</span>
+                    {{else}}
+                    <a class="btn btn-outline-primary" href="{{.Path}}">{{.Label}}</a>
+                    {{end}}
                 {{end}}
             </div>
         
-            {{if .Children}}
-            <div class="ps-2 border-start">
-                <div class="d-flex flex-wrap gap-2">
-                    {{range .Children}}
-                    <a class="btn btn-sm btn-outline-secondary" href="{{.Path}}">{{.Label}}</a>
-                    {{end}}
-                </div>
+            {{with .SubMenu}}
+            <div class="d-flex flex-wrap gap-2">
+                {{range .}}
+                <a class="btn btn-sm btn-outline-secondary" href="{{.Path}}">{{.Label}}</a>
+                {{end}}
             </div>
             {{end}}
         </div>

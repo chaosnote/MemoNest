@@ -1,7 +1,6 @@
 package handle
 
 import (
-	"idv/chris/MemoNest/adapter/infra"
 	"idv/chris/MemoNest/application/usecase"
 	"idv/chris/MemoNest/domain/service"
 	"idv/chris/MemoNest/utils"
@@ -41,11 +40,10 @@ func (h *IndexHandler) Entry(c *gin.Context) {
 		if e != nil {
 			return
 		}
-		mo := h.UC.GetViewModel("", "", infra.MP_INDEX)
+		mo := h.UC.GetViewModel("", "")
 		e = tmpl.ExecuteTemplate(c.Writer, "logged_in.html", gin.H{
-			"Title":    "首頁",
-			"Menu":     mo.Menu,
-			"Children": mo.MenuChildren,
+			"Title": "首頁",
+			"Share": mo.LayoutShare,
 		})
 		if e != nil {
 			return
@@ -60,7 +58,7 @@ func (h *IndexHandler) Entry(c *gin.Context) {
 		if e != nil {
 			return
 		}
-		mo := h.UC.GetViewModel("chris", "123456", infra.MP_INDEX)
+		mo := h.UC.GetViewModel("chris", "123456")
 		e = tmpl.ExecuteTemplate(c.Writer, "logged_out.html", gin.H{
 			"Title":    "首頁",
 			"Account":  mo.Account,

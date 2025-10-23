@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"idv/chris/MemoNest/adapter/infra"
 	"idv/chris/MemoNest/domain/entity"
 	"idv/chris/MemoNest/domain/model"
 	"idv/chris/MemoNest/domain/repo"
@@ -72,7 +73,7 @@ func (u *NodeUsecase) Move(account, parent_id, node_id string) (err error) {
 	return u.Repo.Move(account, parent_id, node_id, current_node.PathName)
 }
 
-func (u *NodeUsecase) GetViewModel(account string, aes_key []byte, menu_id string) (mo model.NodeView, err error) {
+func (u *NodeUsecase) GetViewModel(account string, aes_key []byte) (mo model.NodeView, err error) {
 	tmp_list, err := u.Repo.GetAllNode(account)
 	if err != nil {
 		return
@@ -85,9 +86,9 @@ func (u *NodeUsecase) GetViewModel(account string, aes_key []byte, menu_id strin
 
 	mo.NodeList = node_list
 	mo.NodeMap = node_map
-	mo.Menu = u.Menu.GetList()
-	mo.MenuChildren = u.Menu.GetList()[u.Menu.GetMap()[menu_id]].Children
-
+	mo.MainMenu = u.Menu.GetList()
+	mo.MenuIdx = u.Menu.GetMap()[infra.MP_NODE]
+	mo.SubMenu = u.Menu.GetList()[mo.MenuIdx].Children
 	return
 }
 

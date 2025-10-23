@@ -53,11 +53,17 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
+                {{if .NodeMap}}
                 <div class="d-flex flex-wrap gap-2">
                     {{range .NodeMap}}
                     <button class="btn btn-outline-info" onclick="select_node('{{.NodeID}}', '{{.PathName}}')">{{.Path}}</button>
                     {{end}}
                 </div>
+                {{else}}
+                <div class="d-flex flex-wrap gap-2">
+                    <button class="btn btn-outline-info" onclick="location.href='/node/list';">增加節點</button>
+                </div>
+                {{end}}
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="onBlur(event)">關閉 Panel</button>
