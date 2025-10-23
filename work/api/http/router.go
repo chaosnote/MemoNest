@@ -125,9 +125,13 @@ func NewNodeHandler(
 		UC:      uc,
 		Session: session,
 	}
-	r := engine.Group(filepath.Join(API_VER, "/node"))
+	const handler_name = "/node"
+	r := engine.Group(handler_name)
 	r.Use(middleware.Auth(session))
 	r.GET("/list", h.List)
+
+	r = engine.Group(filepath.Join(API_VER, handler_name))
+	r.Use(middleware.Auth(session))
 	r.POST("/add", h.Add)
 	r.POST("/del", h.Del)
 	r.POST("/edit", h.Edit)
@@ -158,12 +162,17 @@ func NewArticleHandler(
 		UC:      uc,
 		Session: session,
 	}
-	r := engine.Group(filepath.Join(API_VER, "/article"))
+	const handler_name = "/article"
+
+	r := engine.Group(handler_name)
 	r.Use(middleware.Auth(session))
 	r.GET("/fresh", h.Fresh)
 	r.GET("/list", h.List)
+	r.GET("/edit/:id", h.Edit)
+
+	r = engine.Group(filepath.Join(API_VER, handler_name))
+	r.Use(middleware.Auth(session))
 	r.POST("/add", h.Add)
 	r.POST("/del", h.Del)
 	r.POST("/renew", h.Renew)
-	r.GET("/edit/:id", h.Edit)
 }

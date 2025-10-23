@@ -39,7 +39,7 @@
 {{define "js"}}
 <script>
     function directTo(id){
-        location.href = "/api/v1/article/edit/"+id;
+        location.href = "/article/edit/"+id;
     }
     function onDel(id){
         const params = {
@@ -75,7 +75,7 @@
             return
         }
         const encoded = encodeURIComponent(q) ;
-        location.href = `/api/v1/article/list?q=${encoded}`;
+        location.href = `/article/list?q=${encoded}`;
     }
 </script>
     
