@@ -12,11 +12,11 @@ BEGIN
   DECLARE error_message TEXT;
   DECLARE member_exists INT DEFAULT 0;
 
-  DECLARE EXIT HANDLER FOR SQLEXCEPTION
-  BEGIN
-    SET error_message = CONCAT('登入失敗，帳號 "', p_account, '" 發生錯誤於：', @debug_step);
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = error_message;
-  END;
+  -- DECLARE EXIT HANDLER FOR SQLEXCEPTION
+  -- BEGIN
+  --   SET error_message = CONCAT('登入失敗，帳號 "', p_account, '" 發生錯誤於：', @debug_step);
+  --   SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = error_message;
+  -- END;
 
   SET @debug_step = 'check member';
   SELECT COUNT(*) INTO member_exists

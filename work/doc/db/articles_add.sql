@@ -17,11 +17,12 @@ BEGIN
     DECLARE table_categories TEXT;
     DECLARE node_exists INT DEFAULT 0;
 
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        SET error_message = CONCAT('新增文章失敗，帳號 "', p_account, '" 發生錯誤於：', @debug_step);
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = error_message;
-    END;
+    -- 測試階段用
+    -- DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    -- BEGIN
+    --     SET error_message = CONCAT('新增文章失敗，帳號 "', p_account, '" 發生錯誤於：', @debug_step);
+    --     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = error_message;
+    -- END;
 
     SET @debug_step = 'prepare table names';
     SET table_articles = CONCAT('articles_', p_account);
@@ -31,11 +32,11 @@ BEGIN
     SET @sql_check_node = CONCAT(
         'SELECT COUNT(*) INTO @node_exists FROM `', table_categories, '` WHERE `NodeID` = ?'
     );
-    PREPARE stmt_check_node FROM @sql_check_node;
-    SET @node_exists = 0;
+    PREPARE stmt_check_node FROM @sql_check_node;    
     EXECUTE stmt_check_node USING p_NodeID;
     DEALLOCATE PREPARE stmt_check_node;
 
+    SET @debug_step = 'check node condition';
     IF @node_exists = 0 THEN
         SET error_message = CONCAT('NodeID(', p_NodeID, ') 不存在於 `', table_categories, '`[ERR]無指定節點');
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = error_message;
@@ -50,9 +51,6 @@ BEGIN
         QUOTE(p_CreatedDt), ', ',
         QUOTE(p_NodeID), ')'
     );
-
-    -- SELECT @sql_insert_article AS debug_sql;
-    
     PREPARE stmt_insert_article FROM @sql_insert_article;
     EXECUTE stmt_insert_article;
     DEALLOCATE PREPARE stmt_insert_article;
@@ -62,5 +60,3 @@ BEGIN
 END$$
 
 DELIMITER ;
-
--- CALL sp_add_article('AAA', '123', NOW(), NOW(), '002198c1-1efe-4111-8c1c-d74d293b5823') ;

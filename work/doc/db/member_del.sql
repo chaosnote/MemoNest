@@ -14,8 +14,8 @@ BEGIN
   DECLARE EXIT HANDLER FOR SQLEXCEPTION
   BEGIN
     ROLLBACK;
-    SET error_message = CONCAT('刪除失敗，帳號 "', p_account, '" 發生錯誤於：', @debug_step);
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = error_message;
+    -- SET error_message = CONCAT('刪除失敗，帳號 "', p_account, '" 發生錯誤於：', @debug_step);
+    -- SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = error_message;
   END;
 
   SET @debug_step = 'init';
