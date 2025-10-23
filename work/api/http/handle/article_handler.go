@@ -224,7 +224,8 @@ func (h *ArticleHandler) List(c *gin.Context) {
 		}
 	}()
 
-	list, err := h.UC.List(h.Session.GetAccount(), c.Query("q"))
+	Q := c.Query("q")
+	list, err := h.UC.List(h.Session.GetAccount(), Q)
 	if err != nil {
 		return
 	}
@@ -264,6 +265,7 @@ func (h *ArticleHandler) List(c *gin.Context) {
 	err = tmpl.ExecuteTemplate(c.Writer, "list.html", gin.H{
 		"Title": "文章清單",
 		"Share": mo.LayoutShare,
+		"Q":     Q,
 		"List":  list,
 	})
 	if err != nil {

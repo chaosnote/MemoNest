@@ -6,7 +6,7 @@
 {{define "content"}}
 <div class="mb-3">
     <div class="d-flex align-items-center gap-2 mb-4">
-        <input type="text" class="form-control" id="query" placeholder="關鍵字查詢 +,&">
+        <input type="text" class="form-control" id="query" placeholder="關鍵字查詢 +,&" value="{{.Q}}">
         <button type="button" class="btn btn-success flex-shrink-0" onclick="onQuery()">查詢</button>
     </div>
 </div>
