@@ -51,6 +51,8 @@ func (h *MemberHandler) Login(c *gin.Context) {
 func (h *MemberHandler) Logout(c *gin.Context) {
 	h.Session.Init(c)
 	h.Session.Clear()
+
+	c.Redirect(http.StatusFound, "/")
 }
 
 func (h *MemberHandler) Register(c *gin.Context) {
