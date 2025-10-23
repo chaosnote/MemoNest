@@ -7,6 +7,7 @@ import (
 )
 
 const (
+	MP_INDEX   = "index"
 	MP_ARTICLE = "article"
 	MP_NODE    = "node"
 )
@@ -19,6 +20,17 @@ type MenuProvider struct {
 func NewMenuProvider() *MenuProvider {
 	menu_list := []model.Menu{}
 	menu_map := map[string]int{}
+	menu_index := 0
+
+	menu_list = append(menu_list, model.Menu{
+		MenuItem: model.MenuItem{
+			Label: "首頁",
+			Path:  "/",
+		},
+		Children: []model.MenuItem{},
+	})
+	menu_map[MP_INDEX] = menu_index
+	menu_index++
 
 	menu_list = append(menu_list, model.Menu{
 		MenuItem: model.MenuItem{
@@ -36,7 +48,8 @@ func NewMenuProvider() *MenuProvider {
 			},
 		},
 	})
-	menu_map[MP_ARTICLE] = 0
+	menu_map[MP_ARTICLE] = menu_index
+	menu_index++
 
 	menu_list = append(menu_list, model.Menu{
 		MenuItem: model.MenuItem{
@@ -50,7 +63,8 @@ func NewMenuProvider() *MenuProvider {
 			},
 		},
 	})
-	menu_map[MP_NODE] = 1
+	menu_map[MP_NODE] = menu_index
+	menu_index++
 
 	for k0 := range menu_list {
 		menu_list[k0].Idx = k0

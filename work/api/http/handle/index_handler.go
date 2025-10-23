@@ -2,7 +2,6 @@ package handle
 
 import (
 	"idv/chris/MemoNest/application/usecase"
-	"idv/chris/MemoNest/domain/model"
 	"idv/chris/MemoNest/domain/service"
 	"idv/chris/MemoNest/utils"
 	"net/http"
@@ -29,13 +28,6 @@ func (h *IndexHandler) Entry(c *gin.Context) {
 		}
 	}()
 
-	mo := model.IndexView{}
-	if h.Debug {
-		mo.Account = "chris"
-		mo.Password = "123456"
-	}
-	logger.Info(msg, zap.Any("view_model", mo))
-
 	h.Session.Init(c)
 	dir := filepath.Join("./web", "templates")
 	if h.Session.IsLogin() {
@@ -48,9 +40,11 @@ func (h *IndexHandler) Entry(c *gin.Context) {
 		if e != nil {
 			return
 		}
+		mo := h.UC.GetViewModel("chris", "123456", "")
 		e = tmpl.ExecuteTemplate(c.Writer, "logged_in.html", gin.H{
-			"Title": "首頁",
-			// "Login": []string{"/api/v1/member/login", "/api/v1/member/logout"},
+			"Title":    "首頁",
+			"Menu":     mo.Menu,
+			"Children": mo.MenuChildren,
 		})
 		if e != nil {
 			return
@@ -65,6 +59,7 @@ func (h *IndexHandler) Entry(c *gin.Context) {
 		if e != nil {
 			return
 		}
+		mo := h.UC.GetViewModel("", "", "")
 		e = tmpl.ExecuteTemplate(c.Writer, "logged_out.html", gin.H{
 			"Title":   "首頁",
 			"Setting": mo,
