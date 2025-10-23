@@ -41,7 +41,9 @@
 </div>
 
 {{/** 送出按鈕 */}}
-<button class="btn btn-success" onclick="submit()">送出</button>
+<div class="d-flex">
+    <button class="btn btn-success ms-auto" onclick="submit()">送出</button>
+</div>
 {{end}}
 
 {{define "js"}}
@@ -99,7 +101,8 @@
                 console.log(response.Code) ;
                 if( response.Code == "OK"){
                     alert("修改文章成功！");
-                    location.reload();
+                    const encoded = encodeURIComponent(title) ;
+                    location.href = `/article/list?q=${encoded}`;
                     return;
                 }
                 alert("修改文章失敗", response.Code);

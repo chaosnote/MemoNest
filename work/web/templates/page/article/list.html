@@ -7,7 +7,8 @@
 <div class="mb-3">
     <div class="d-flex align-items-center gap-2 mb-4">
         <input type="text" class="form-control" id="query" placeholder="關鍵字查詢 +,&" value="{{.Q}}">
-        <button type="button" class="btn btn-success flex-shrink-0" onclick="onQuery()">查詢</button>
+        <button type="button" class="btn btn-success flex-shrink-0 ms-auto" onclick="onQuery()">查詢</button>
+        <button type="button" class="btn btn-danger flex-shrink-0" onclick="onClear()">清除</button>
     </div>
 </div>
 {{ if .List }}
@@ -67,6 +68,9 @@
                 alert("刪除文章失敗，請稍後再試！");
             }
         });
+    }
+    function onClear(){
+        location.replace("/article/list");
     }
     function onQuery(){
         let q = $("#query").val() ;
