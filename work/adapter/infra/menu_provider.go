@@ -34,6 +34,21 @@ func NewMenuProvider() *MenuProvider {
 
 	menu_list = append(menu_list, model.Menu{
 		MenuItem: model.MenuItem{
+			Label: "分類",
+			Path:  fmt.Sprintf("/api/v1/%s/list", MP_NODE),
+		},
+		Children: []model.MenuItem{
+			{
+				Label: "清單",
+				Path:  fmt.Sprintf("/api/v1/%s/list", MP_NODE),
+			},
+		},
+	})
+	menu_map[MP_NODE] = menu_index
+	menu_index++
+
+	menu_list = append(menu_list, model.Menu{
+		MenuItem: model.MenuItem{
 			Label: "文章",
 			Path:  fmt.Sprintf("/api/v1/%s/list", MP_ARTICLE),
 		},
@@ -49,21 +64,6 @@ func NewMenuProvider() *MenuProvider {
 		},
 	})
 	menu_map[MP_ARTICLE] = menu_index
-	menu_index++
-
-	menu_list = append(menu_list, model.Menu{
-		MenuItem: model.MenuItem{
-			Label: "分類",
-			Path:  fmt.Sprintf("/api/v1/%s/list", MP_NODE),
-		},
-		Children: []model.MenuItem{
-			{
-				Label: "清單",
-				Path:  fmt.Sprintf("/api/v1/%s/list", MP_NODE),
-			},
-		},
-	})
-	menu_map[MP_NODE] = menu_index
 	menu_index++
 
 	for k0 := range menu_list {

@@ -82,7 +82,7 @@ func (r *ArticleRepo) Get(account string, id int) (articles []entity.Article, er
 		JOIN %s as c ON a.NodeID = c.NodeID
 		WHERE a.RowID = ? ;
 	`
-	query = fmt.Sprintf(query, fmt.Sprintf(r.articles_formatter, account), fmt.Sprintf(r.articles_formatter, account))
+	query = fmt.Sprintf(query, fmt.Sprintf(r.articles_formatter, account), fmt.Sprintf(r.categories_formatter, account))
 
 	rows, err := r.db.Query(query, id)
 	if err != nil {
