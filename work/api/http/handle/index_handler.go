@@ -58,7 +58,7 @@ func (h *IndexHandler) Entry(c *gin.Context) {
 		if e != nil {
 			return
 		}
-		mo := h.UC.GetViewModel("chris", "123456")
+		mo := h.UC.GetViewModel("", "")
 		e = tmpl.ExecuteTemplate(c.Writer, "logged_out.html", gin.H{
 			"Title":    "首頁",
 			"Account":  mo.Account,
