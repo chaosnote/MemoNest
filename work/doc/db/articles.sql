@@ -56,10 +56,6 @@ BEGIN
 
     SET @debug_step = 'insert article';
     SET @sql_insert_article = CONCAT(
-        'INSERT INTO `', table_articles, '` (`Title`, `Content`, `UpdateDt`, `CreatedDt`, `NodeID`) ',
-        'VALUES (?, ?, ?, ?, ?)'
-    );
-    SET @sql_insert_article = CONCAT(
         'INSERT INTO `', table_articles, '` (`Title`, `Content`, `UpdateDt`, `CreatedDt`, `NodeID`) VALUES (',
         QUOTE(p_Title), ', ',
         QUOTE(p_Content), ', ',
