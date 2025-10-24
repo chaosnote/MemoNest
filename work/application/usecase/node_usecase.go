@@ -10,6 +10,7 @@ import (
 	"idv/chris/MemoNest/domain/model"
 	"idv/chris/MemoNest/domain/repo"
 	"idv/chris/MemoNest/domain/service"
+	"idv/chris/MemoNest/utils"
 )
 
 type NodeUsecase struct {
@@ -24,19 +25,26 @@ func (u *NodeUsecase) Add(account, parent_id, node_id, path_name string) (err er
 	} else {
 		_, err = u.Repo.AddChildNode(account, parent_id, "", path_name)
 	}
+	err = utils.ParseSQLError(err)
 	return err
 }
 
-func (u *NodeUsecase) Delete(account, node_id string) error {
-	return u.Repo.Delete(account, node_id)
+func (u *NodeUsecase) Delete(account, node_id string) (err error) {
+	err = u.Repo.Delete(account, node_id)
+	err = utils.ParseSQLError(err)
+	return err
 }
 
-func (u *NodeUsecase) List(account string) ([]entity.Category, error) {
-	return u.Repo.GetAllNode(account)
+func (u *NodeUsecase) List(account string) (c []entity.Category, err error) {
+	c, err = u.Repo.GetAllNode(account)
+	err = utils.ParseSQLError(err)
+	return
 }
 
-func (u *NodeUsecase) Edit(account, node_id, path_name string) error {
-	return u.Repo.Edit(account, node_id, path_name)
+func (u *NodeUsecase) Edit(account, node_id, path_name string) (err error) {
+	err = u.Repo.Edit(account, node_id, path_name)
+	err = utils.ParseSQLError(err)
+	return
 }
 
 func (u *NodeUsecase) Move(account, parent_id, node_id string) (err error) {
@@ -47,6 +55,7 @@ func (u *NodeUsecase) Move(account, parent_id, node_id string) (err error) {
 		var parent_node entity.Category
 		parent_node, err = u.Repo.GetNode(account, parent_id)
 		if err != nil {
+			err = utils.ParseSQLError(err)
 			return
 		}
 		if parent_node.RowID != 0 {
@@ -60,6 +69,7 @@ func (u *NodeUsecase) Move(account, parent_id, node_id string) (err error) {
 
 	current_node, err := u.Repo.GetNode(account, node_id)
 	if err != nil {
+		err = utils.ParseSQLError(err)
 		return
 	}
 	if current_node.RowID != 0 {
@@ -70,12 +80,15 @@ func (u *NodeUsecase) Move(account, parent_id, node_id string) (err error) {
 		return
 	}
 
-	return u.Repo.Move(account, parent_id, node_id, current_node.PathName)
+	err = u.Repo.Move(account, parent_id, node_id, current_node.PathName)
+	err = utils.ParseSQLError(err)
+	return
 }
 
 func (u *NodeUsecase) GetViewModel(account string, aes_key []byte) (mo model.NodeView, err error) {
 	tmp_list, err := u.Repo.GetAllNode(account)
 	if err != nil {
+		err = utils.ParseSQLError(err)
 		return
 	}
 
