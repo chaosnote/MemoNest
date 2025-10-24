@@ -100,7 +100,10 @@ func (u *ArticleUsecase) List(account, query string) (list []entity.Article, err
 	} else {
 		list, err = u.Repo.List(account)
 	}
-	err = utils.ParseSQLError(err)
+
+	if err != nil {
+		err = utils.ParseSQLError(err)
+	}
 	return
 }
 

@@ -25,25 +25,33 @@ func (u *NodeUsecase) Add(account, parent_id, node_id, path_name string) (err er
 	} else {
 		_, err = u.Repo.AddChildNode(account, parent_id, "", path_name)
 	}
-	err = utils.ParseSQLError(err)
+	if err != nil {
+		err = utils.ParseSQLError(err)
+	}
 	return err
 }
 
 func (u *NodeUsecase) Delete(account, node_id string) (err error) {
 	err = u.Repo.Delete(account, node_id)
-	err = utils.ParseSQLError(err)
+	if err != nil {
+		err = utils.ParseSQLError(err)
+	}
 	return err
 }
 
 func (u *NodeUsecase) List(account string) (c []entity.Category, err error) {
 	c, err = u.Repo.GetAllNode(account)
-	err = utils.ParseSQLError(err)
+	if err != nil {
+		err = utils.ParseSQLError(err)
+	}
 	return
 }
 
 func (u *NodeUsecase) Edit(account, node_id, path_name string) (err error) {
 	err = u.Repo.Edit(account, node_id, path_name)
-	err = utils.ParseSQLError(err)
+	if err != nil {
+		err = utils.ParseSQLError(err)
+	}
 	return
 }
 
@@ -81,7 +89,9 @@ func (u *NodeUsecase) Move(account, parent_id, node_id string) (err error) {
 	}
 
 	err = u.Repo.Move(account, parent_id, node_id, current_node.PathName)
-	err = utils.ParseSQLError(err)
+	if err != nil {
+		err = utils.ParseSQLError(err)
+	}
 	return
 }
 
