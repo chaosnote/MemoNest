@@ -8,8 +8,9 @@ type Session interface {
 	Clear()
 	IsLogin() bool
 	GetAESKey() string
-	SetAccount(string)
+	SetAccount(string, string)
 	GetAccount() string
+	GetIP() string
 
 	Refresh()
 }

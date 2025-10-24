@@ -12,6 +12,7 @@ const (
 	SK_Account = "account"
 	SK_AESKey  = "aes_key"
 	SK_IsLogin = "is_login"
+	SK_IP      = "ip"
 )
 
 type GinSession struct {
@@ -27,10 +28,11 @@ func (s *GinSession) Clear() {
 	s.store.Save()
 }
 
-func (s *GinSession) SetAccount(account string) {
+func (s *GinSession) SetAccount(account, last_ip string) {
 	s.store.Set(SK_Account, account)
 	s.store.Set(SK_AESKey, utils.MD5Hash(account)) // 可改為 row_id
 	s.store.Set(SK_IsLogin, true)
+	s.store.Set(SK_IP, last_ip)
 	s.store.Save()
 }
 
@@ -45,6 +47,15 @@ func (s *GinSession) GetAccount() string {
 
 func (s *GinSession) GetAESKey() string {
 	val := s.store.Get(SK_AESKey)
+	str, ok := val.(string)
+	if ok {
+		return str
+	}
+	return ""
+}
+
+func (s *GinSession) GetIP() string {
+	val := s.store.Get(SK_IP)
 	str, ok := val.(string)
 	if ok {
 		return str

@@ -11,7 +11,8 @@ import (
 func Auth(session service.Session) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		session.Init(c)
-		if !session.IsLogin() {
+		if !session.IsLogin() || session.GetIP() != c.ClientIP() {
+			session.Clear()
 			c.Redirect(http.StatusFound, "/")
 			c.Abort()
 			return

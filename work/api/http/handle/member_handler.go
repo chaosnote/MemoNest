@@ -42,7 +42,7 @@ func (h *MemberHandler) Login(c *gin.Context) {
 	}
 
 	h.Session.Init(c)
-	h.Session.SetAccount(param.Account)
+	h.Session.SetAccount(param.Account, c.ClientIP())
 
 	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": ""})
 }
