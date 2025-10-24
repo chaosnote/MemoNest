@@ -51,9 +51,11 @@
     {{with .Share}}
     <script>
         function update() {
-            $.get('/update/user', function (data) {
-                console.log('收到資料：', data);
-                // 這裡可以加入你要更新 UI 的邏輯
+            $.get('/update/user', function (response) {
+                if (!response.hasOwnProperty('Code')) {
+                    location.href = "/" ;
+                    return;
+                }
             }).fail(function (xhr, status, error) {
                 console.error('取得資料失敗：', error);
             });
