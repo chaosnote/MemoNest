@@ -28,7 +28,35 @@ BEGIN
     SET table_articles = CONCAT('articles_', p_account);
     SET table_categories = CONCAT('categories_', p_account);
 
-    SET @debug_step = 'check node exists';
+    SET @debug_step = 'check table_categories exists';
+    SET @sql_check_table = CONCAT(
+        'SELECT COUNT(*) INTO @table_exists FROM INFORMATION_SCHEMA.TABLES ',
+        'WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = "', table_categories, '"'
+    );
+    PREPARE stmt_check_table FROM @sql_check_table;
+    EXECUTE stmt_check_table;
+    DEALLOCATE PREPARE stmt_check_table;
+
+    IF @table_exists = 0 THEN
+        SET error_message = CONCAT('資料表 `', table_categories, '` 不存在[ERR]無指定資料');
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = error_message;
+    END IF;
+
+    SET @debug_step = 'check table exists';
+    SET @sql_check_table = CONCAT(
+        'SELECT COUNT(*) INTO @table_exists FROM INFORMATION_SCHEMA.TABLES ',
+        'WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = "', table_articles, '"'
+    );
+    PREPARE stmt_check_table FROM @sql_check_table;
+    EXECUTE stmt_check_table;
+    DEALLOCATE PREPARE stmt_check_table;
+
+    IF @table_exists = 0 THEN
+        SET error_message = CONCAT('資料表 `', table_articles, '` 不存在[ERR]無指定資料');
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = error_message;
+    END IF;
+
+    SET @debug_step = 'check table_categories has node';
     SET @sql_check_node = CONCAT(
         'SELECT COUNT(*) INTO @node_exists FROM `', table_categories, '` WHERE `NodeID` = ?'
     );
@@ -36,7 +64,7 @@ BEGIN
     EXECUTE stmt_check_node USING p_NodeID;
     DEALLOCATE PREPARE stmt_check_node;
 
-    SET @debug_step = 'check node condition';
+    SET @debug_step = 'check table_categories condition';
     IF @node_exists = 0 THEN
         SET error_message = CONCAT('NodeID(', p_NodeID, ') 不存在於 `', table_categories, '`[ERR]無指定節點');
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = error_message;

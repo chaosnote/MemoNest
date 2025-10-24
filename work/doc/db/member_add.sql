@@ -18,7 +18,7 @@ BEGIN
   BEGIN
     ROLLBACK;
     -- SET error_message = CONCAT('註冊失敗，帳號 "', p_account, '" 發生錯誤於：', @debug_step);
-    -- SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = error_message;
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = error_message;
   END;
 
   -- 初始化 debug 變數
@@ -28,7 +28,7 @@ BEGIN
 
   SET @debug_step = 'check account exists';
   IF EXISTS (SELECT 1 FROM `member` WHERE `Account` = p_account) THEN
-    SET error_message = CONCAT('帳號 "', p_account, '" 已存在，請使用其他帳號',  '[ERR]帳號已存在');
+    SET error_message = CONCAT('帳號 "', p_account, '" 已存在',  '[ERR]帳號已存在，請使用其他帳號');
     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = error_message;
   END IF;
 
@@ -42,13 +42,6 @@ BEGIN
   SET @debug_step = 'prepare table names';
   SET table_articles = CONCAT('articles_', p_account);
   SET table_categories = CONCAT('categories_', p_account);
-
-  -- DROP articles 表（防呆）
-  SET @debug_step = 'drop articles table';
-  SET @sql_drop_articles = CONCAT('DROP TABLE IF EXISTS `', table_articles, '`;');
-  PREPARE stmt_drop_articles FROM @sql_drop_articles;
-  EXECUTE stmt_drop_articles;
-  DEALLOCATE PREPARE stmt_drop_articles;
 
   -- 建立 articles 表
   SET @debug_step = 'create articles table';
@@ -66,13 +59,6 @@ BEGIN
   PREPARE stmt_articles FROM @sql_articles;
   EXECUTE stmt_articles;
   DEALLOCATE PREPARE stmt_articles;
-
-  -- DROP categories 表（防呆）
-  SET @debug_step = 'drop categories table';
-  SET @sql_drop_categories = CONCAT('DROP TABLE IF EXISTS `', table_categories, '`;');
-  PREPARE stmt_drop_categories FROM @sql_drop_categories;
-  EXECUTE stmt_drop_categories;
-  DEALLOCATE PREPARE stmt_drop_categories;
 
   -- 建立 categories 表
   SET @debug_step = 'create categories table';

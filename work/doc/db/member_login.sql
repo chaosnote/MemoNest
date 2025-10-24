@@ -19,9 +19,7 @@ BEGIN
   -- END;
 
   SET @debug_step = 'check member';
-  SELECT COUNT(*) INTO member_exists
-  FROM `member`
-  WHERE `Account` = p_account AND `Password` = p_password;
+  SELECT COUNT(*) INTO member_exists FROM `member` WHERE `Account` = p_account AND `Password` = p_password;
 
   IF member_exists = 0 THEN
     SET error_message = CONCAT('帳號或密碼錯誤：', p_account, '[ERR]帳號或密碼錯誤');
@@ -29,10 +27,7 @@ BEGIN
   END IF;
 
   SET @debug_step = 'update last_ip';
-  UPDATE `member`
-  SET `LastIP` = p_ip,
-      `UpdatedAt` = UTC_TIMESTAMP()
-  WHERE `Account` = p_account;
+  UPDATE `member` SET `LastIP` = p_ip, `UpdatedAt` = UTC_TIMESTAMP() WHERE `Account` = p_account;
 
   SET @debug_step = 'return member';
   SELECT * FROM `member` WHERE `Account` = p_account;

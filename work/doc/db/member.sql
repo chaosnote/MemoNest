@@ -8,5 +8,5 @@ CREATE TABLE IF NOT EXISTS `member` (
     `IsEnabled` TINYINT(1) NOT NULL DEFAULT 1 COMMENT '帳號是否啟用 1=啟用, 0=停用',
     `CreatedAt` DATETIME NOT NULL COMMENT '建立時間', 
     `UpdatedAt` DATETIME NOT NULL COMMENT '更新時間', 
-    INDEX idx_account (`Account`) 
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '會員資訊表';
+    KEY k_account (`Account`) 
+) ENGINE=INNODB DEFAULT CHARSET=utf8mb4 COMMENT '會員資訊表';
