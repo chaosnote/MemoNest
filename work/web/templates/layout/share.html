@@ -48,6 +48,20 @@
             css({ 'pointer-events': 'none', 'user-select': 'none' });
         });
     </script>
+    {{with .Share}}
+    <script>
+        function update() {
+            $.get('/update/user', function (data) {
+                console.log('收到資料：', data);
+                // 這裡可以加入你要更新 UI 的邏輯
+            }).fail(function (xhr, status, error) {
+                console.error('取得資料失敗：', error);
+            });
+        }
+        update();
+        setInterval(update, 60000);
+    </script>
+    {{end}}
 </body>
 </html>
 {{end}}

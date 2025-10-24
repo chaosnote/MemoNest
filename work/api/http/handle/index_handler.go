@@ -102,3 +102,7 @@ func (h *IndexHandler) Register(c *gin.Context) {
 func (h *IndexHandler) Health(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": ""})
 }
+
+func (h *IndexHandler) User(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"Code": "OK", "message": ""})
+}

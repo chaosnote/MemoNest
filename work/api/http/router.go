@@ -86,6 +86,11 @@ func NewIndexHandler(
 	engine.GET("/", h.Entry)
 	engine.GET("/health", h.Health)
 	engine.GET("/register", h.Register)
+
+	r := engine.Group("/update")
+	r.Use(middleware.Auth(session))
+	r.Use(middleware.SessionRefresh(session))
+	r.GET("/user", h.User)
 }
 
 func NewToolHandler(
@@ -111,8 +116,8 @@ func NewMemberHandler(
 		Session: session,
 	}
 	r := engine.Group(filepath.Join(API_VER, "/member"))
-	r.POST("/login", h.Login)
 	r.GET("/logout", h.Logout)
+	r.POST("/login", h.Login)
 	r.POST("/register", h.Register)
 }
 
