@@ -3,6 +3,7 @@ package http
 import (
 	"idv/chris/MemoNest/domain/service"
 	"idv/chris/MemoNest/utils"
+	"time"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -72,6 +73,7 @@ func (s *GinSession) IsLogin() bool {
 }
 
 func (s *GinSession) Refresh() {
+	s.store.Set("_refresh", time.Now().Unix())
 	s.store.Save()
 }
 
