@@ -29,10 +29,10 @@ MemoNest 是一個模組化、可擴充的筆記系統，支援使用者註冊�
 
 ``` shell
 wsl -d Ubuntu-24.04 --cd "docker 目錄位置"
-./start.sh
+sh ./start.sh
 
 wsl -d Ubuntu-24.04 --cd "golang 專案位置"
-./start.sh
+sh ./start.sh
 ```
 
 ``` ConEmu
