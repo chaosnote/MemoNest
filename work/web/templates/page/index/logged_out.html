@@ -21,33 +21,43 @@
 <div class="d-flex justify-content-center mt-5">
   <div class="card shadow-sm" style="width: 100%; max-width: 500px;">
     <div class="card-body">
-      <div class="mb-3">
-        <div class="input-group">
-          <span class="input-group-text">帳號</span>
-          <input type="text" class="form-control" id="account" name="account" placeholder="請輸入帳號" value="{{.Account}}">
+      {{/** 正常登入 */}}
+      <div id="manual_input" class="d-none">
+        <div class="mb-3">
+          <div class="input-group">
+            <span class="input-group-text">帳號</span>
+            <input type="text" class="form-control" id="account" name="account" placeholder="請輸入帳號" value="{{.Account}}">
+          </div>
+          <div class="invalid-feedback">請輸入帳號</div>
         </div>
-        <div class="invalid-feedback">請輸入帳號</div>
-      </div>
-
-      <div class="mb-3">
-        <div class="input-group">
-          <span class="input-group-text">密碼</span>
-          <input type="password" class="form-control" id="password" name="password" placeholder="請輸入密碼" value="{{.Password}}">
+        <div class="mb-3">
+          <div class="input-group">
+            <span class="input-group-text">密碼</span>
+            <input type="password" class="form-control" id="password" name="password" placeholder="請輸入密碼" value="{{.Password}}">
+          </div>
+          <div class="invalid-feedback">請輸入密碼</div>
         </div>
-        <div class="invalid-feedback">請輸入密碼</div>
+      </div>
+      {{/** 錯誤訊息 */}}
+      <div class="mb-3 text-danger" id="error_message" style="display: none;">帳號或密碼錯誤，請重新輸入。</div>
+      {{/** 按鈕選擇 */}}
+      <div class="d-flex">
+        <button id="manual_login_btn" class="btn btn-primary w-75 mx-auto d-none">
+          <span class="spinner-border spinner-border-sm me-2 d-none" role="status" id="manual_loading_spinner"></span>登入
+        </button>
+        <button id="auto_login_btn" class="btn btn-success w-75 mx-auto d-none">
+          <span class="spinner-border spinner-border-sm me-2 d-none" role="status" id="auto_loading_spinner"></span>一鍵登入
+        </button>
+      </div>
+      {{/** 輔助功能 */}}
+      <div class="mt-3 d-flex justify-content-between align-items-center">
+        <div class="form-check mb-0">
+          <input class="form-check-input" type="checkbox" value="" id="mem_me">
+          <label class="form-check-label" for="mem_me">記住我</label>
+        </div>
+        <div class="text-end">尚未註冊？<a href="/register">前往註冊</a></div>
       </div>
 
-      <div class="mb-3 text-danger" id="error_message" style="display:none;">
-        帳號或密碼錯誤，請重新輸入。
-      </div>
-
-      <button id="login_btn" class="btn btn-primary w-100">
-        <span class="spinner-border spinner-border-sm me-2 d-none" role="status" id="loading_spinner"></span>登入
-      </button>
-
-      <div class="mt-3 text-center">
-        尚未註冊？<a href="/register">前往註冊</a>
-      </div>
     </div>
   </div>
 </div>
@@ -55,13 +65,21 @@
 
 {{define "js"}}
 <script>
-  $(()=>{
-    $('#login_btn').on('click', function () {
+  $(() => {
+    // 頁面載入時自動填入帳密
+    const mem_token = localStorage.getItem('mem_token');
+    if (mem_token != undefined && mem_token != "undefined" && mem_token.length > 0 ) {
+      $('#mem_me').prop('checked', true);
+      $('#auto_login_btn').removeClass("d-none");
+    }else{
+      $('#manual_input, #manual_login_btn').removeClass("d-none");
+    }
+
+    $('#manual_login_btn').on('click', function () {
       const account = $('#account').val().trim();
       const password = $('#password').val().trim();
       let valid = true;
 
-      // 清除先前狀態
       $('#account, #password').removeClass('is-invalid');
       $('#error_message').hide();
 
@@ -79,9 +97,8 @@
 
       if (!valid) return;
 
-      // 顯示 loading
-      $('#login_btn').prop('disabled', true);
-      $('#loading_spinner').removeClass('d-none');
+      $('#manual_login_btn').prop('disabled', true);
+      $('#manual_loading_spinner').removeClass('d-none');
 
       $.ajax({
         url: '/api/v1/member/login',
@@ -94,8 +111,15 @@
             return;
           }
           if (response.Code == "OK") {
+            
+            // 記憶帳密
+            if ($('#mem_me').is(':checked')) {
+              localStorage.setItem('mem_token', response.token);
+            } else {
+              localStorage.removeItem('mem_token');
+            }
+
             location.href = "/";
-            return;
           }
           $('#error_message').text(response.Code || '登入失敗').show();
         },
@@ -103,11 +127,53 @@
           $('#error_message').text('伺服器錯誤，請稍後再試').show();
         },
         complete: function () {
-          $('#login_btn').prop('disabled', false);
-          $('#loading_spinner').addClass('d-none');
+          $('#manual_login_btn').prop('disabled', false);
+          $('#manual_loading_spinner').addClass('d-none');
         }
       });
     });
+  
+    $('#auto_login_btn').on('click', function () {
+
+      $('#auto_login_btn').prop('disabled', true);
+      $('#auto_loading_spinner').removeClass('d-none');
+
+      $.ajax({
+        url: '/api/v1/member/login',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ token:mem_token }),
+        success: function (response) {
+          if (!response.hasOwnProperty('Code')) {
+            location.href = "/";
+            return;
+          }
+          if (response.Code == "OK") {
+            
+            // 記憶帳密
+            if ($('#mem_me').is(':checked')) {
+              localStorage.setItem('mem_token', response.token);
+            } else {
+              localStorage.removeItem('mem_token');
+            }
+
+            location.href = "/";
+
+            return;
+          }
+          alert(response.Code || '登入失敗') ;
+          localStorage.removeItem('mem_token');
+          location.href = "/";
+        },
+        error: function () {
+          $('#error_message').text('伺服器錯誤，請稍後再試').show();
+        },
+        complete: function () {
+          $('#auto_login_btn').prop('disabled', false);
+          $('#auto_loading_spinner').addClass('d-none');
+        }
+      });
+    })
   });
 </script>
 {{end}}
