@@ -10,14 +10,13 @@ import (
 	"go.uber.org/zap"
 
 	"idv/chris/MemoNest/application/usecase"
-	"idv/chris/MemoNest/domain/service"
 	"idv/chris/MemoNest/utils"
 )
 
 type NodeHandler struct {
-	Log     *zap.Logger
-	UC      *usecase.NodeUsecase
-	Session service.Session
+	CommonHandler
+
+	UC *usecase.NodeUsecase
 }
 
 func (h *NodeHandler) Add(c *gin.Context) {
@@ -94,7 +93,7 @@ func (h *NodeHandler) List(c *gin.Context) {
 	defer func() {
 		if err != nil {
 			h.Log.Error(msg, zap.Error(err))
-			c.JSON(http.StatusOK, gin.H{"Code": err.Error()})
+			h.PageException(c, err.Error())
 		}
 	}()
 

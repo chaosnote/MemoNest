@@ -13,18 +13,33 @@ import (
 
 	"idv/chris/MemoNest/application/usecase"
 	"idv/chris/MemoNest/domain/model"
-	"idv/chris/MemoNest/domain/service"
 	"idv/chris/MemoNest/utils"
 )
 
 type ArticleHandler struct {
-	Log     *zap.Logger
-	UC      *usecase.ArticleUsecase
-	Session service.Session
+	CommonHandler
+
+	UC *usecase.ArticleUsecase
 }
 
 func (h *ArticleHandler) Fresh(c *gin.Context) {
 	const msg = "fresh"
+
+	var err error
+	defer func() {
+		if err != nil {
+			h.Log.Error(msg, zap.Error(err))
+			h.PageException(c, err.Error())
+		}
+	}()
+
+	h.Session.Init(c)
+	aes_key := []byte(h.Session.GetAESKey())
+
+	mo, err := h.UC.GetViewModel(h.Session.GetAccount(), aes_key)
+	if err != nil {
+		return
+	}
 
 	dir := filepath.Join("./web", "templates")
 	config := utils.TemplateConfig{
@@ -32,33 +47,17 @@ func (h *ArticleHandler) Fresh(c *gin.Context) {
 		Page:    []string{filepath.Join(dir, "page", "article", "fresh.html")},
 		Pattern: []string{},
 	}
-	tmpl, e := utils.RenderTemplate(config)
-
-	defer func() {
-		if e != nil {
-			h.Log.Error(msg, zap.Error(e))
-			c.JSON(http.StatusOK, gin.H{"Code": e.Error()})
-		}
-	}()
-	if e != nil {
+	tmpl, err := utils.RenderTemplate(config)
+	if err != nil {
 		return
 	}
-
-	h.Session.Init(c)
-	aes_key := []byte(h.Session.GetAESKey())
-
-	mo, e := h.UC.GetViewModel(h.Session.GetAccount(), aes_key)
-	if e != nil {
-		return
-	}
-
-	e = tmpl.ExecuteTemplate(c.Writer, "fresh.html", gin.H{
+	err = tmpl.ExecuteTemplate(c.Writer, "fresh.html", gin.H{
 		"Title":        "增加文章",
 		"Share":        mo.LayoutShare,
 		"NodeMap":      mo.NodeMap,
 		"ArticleTitle": "請輸入文章標題",
 	})
-	if e != nil {
+	if err != nil {
 		return
 	}
 }
@@ -134,7 +133,7 @@ func (h *ArticleHandler) Edit(c *gin.Context) {
 	defer func() {
 		if err != nil {
 			h.Log.Error(msg, zap.Error(err))
-			c.JSON(http.StatusOK, gin.H{"Code": err.Error()})
+			h.PageException(c, err.Error())
 		}
 	}()
 
@@ -224,7 +223,7 @@ func (h *ArticleHandler) List(c *gin.Context) {
 	defer func() {
 		if err != nil {
 			h.Log.Error(msg, zap.Error(err))
-			c.JSON(http.StatusOK, gin.H{"Code": err.Error()})
+			h.PageException(c, err.Error())
 		}
 	}()
 

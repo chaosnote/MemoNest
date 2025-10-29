@@ -10,14 +10,13 @@ import (
 	"go.uber.org/zap"
 
 	"idv/chris/MemoNest/application/usecase"
-	"idv/chris/MemoNest/domain/service"
 	"idv/chris/MemoNest/utils"
 )
 
 type AssetHandler struct {
-	Log     *zap.Logger
-	UC      *usecase.AssetUsecase
-	Session service.Session
+	CommonHandler
+
+	UC *usecase.AssetUsecase
 }
 
 func (h *AssetHandler) Image(c *gin.Context) {

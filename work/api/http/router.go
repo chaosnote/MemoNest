@@ -87,10 +87,12 @@ func NewIndexHandler(
 		logger = utils.NewFileLogger("./dist/logs/index", "console", 1)
 	}
 	h := &handle.IndexHandler{
-		Log:     logger,
-		Debug:   cli.Debug,
-		UC:      uc,
-		Session: session,
+		CommonHandler: handle.CommonHandler{
+			Log:     logger,
+			Session: session,
+		},
+		Debug: cli.Debug,
+		UC:    uc,
 	}
 	engine.GET("/", h.Entry)
 	engine.GET("/health", h.Health)
@@ -129,9 +131,11 @@ func NewMemberHandler(
 		logger = utils.NewFileLogger("./dist/logs/member", "console", 1)
 	}
 	h := &handle.MemberHandler{
-		Log:     logger,
-		UC:      uc,
-		Session: session,
+		CommonHandler: handle.CommonHandler{
+			Log:     logger,
+			Session: session,
+		},
+		UC: uc,
 	}
 	r := engine.Group(filepath.Join(API_VER, "/member"))
 	r.GET("/logout", h.Logout)
@@ -152,9 +156,11 @@ func NewNodeHandler(
 		logger = utils.NewFileLogger("./dist/logs/node", "console", 1)
 	}
 	h := &handle.NodeHandler{
-		Log:     logger,
-		UC:      uc,
-		Session: session,
+		CommonHandler: handle.CommonHandler{
+			Log:     logger,
+			Session: session,
+		},
+		UC: uc,
 	}
 	const handler_name = "/node"
 	r := engine.Group(handler_name)
@@ -182,9 +188,11 @@ func NewAssetHandler(
 		logger = utils.NewFileLogger("./dist/logs/article/image", "console", 1)
 	}
 	h := &handle.AssetHandler{
-		Log:     logger,
-		UC:      uc,
-		Session: session,
+		CommonHandler: handle.CommonHandler{
+			Log:     logger,
+			Session: session,
+		},
+		UC: uc,
 	}
 
 	r := engine.Group("/asset/article")
@@ -205,9 +213,11 @@ func NewArticleHandler(
 		logger = utils.NewFileLogger("./dist/logs/server", "console", 1)
 	}
 	h := &handle.ArticleHandler{
-		Log:     logger,
-		UC:      uc,
-		Session: session,
+		CommonHandler: handle.CommonHandler{
+			Log:     logger,
+			Session: session,
+		},
+		UC: uc,
 	}
 	const handler_name = "/article"
 

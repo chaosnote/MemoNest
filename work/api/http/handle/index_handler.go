@@ -13,15 +13,14 @@ import (
 
 	"idv/chris/MemoNest/application/usecase"
 	"idv/chris/MemoNest/domain/model"
-	"idv/chris/MemoNest/domain/service"
 	"idv/chris/MemoNest/utils"
 )
 
 type IndexHandler struct {
-	Log     *zap.Logger
-	Debug   bool
-	UC      *usecase.IndexUsecase
-	Session service.Session
+	CommonHandler
+
+	Debug bool
+	UC    *usecase.IndexUsecase
 }
 
 func (h *IndexHandler) Entry(c *gin.Context) {
@@ -31,7 +30,7 @@ func (h *IndexHandler) Entry(c *gin.Context) {
 	defer func() {
 		if err != nil {
 			h.Log.Error(msg, zap.Error(err))
-			c.JSON(http.StatusOK, gin.H{"Code": err.Error()})
+			h.PageException(c, err.Error())
 		}
 	}()
 
@@ -70,8 +69,8 @@ func (h *IndexHandler) Entry(c *gin.Context) {
 		if err != nil {
 			return
 		}
-
 		mo = h.UC.GetViewModel("", "")
+
 		e = tmpl.ExecuteTemplate(c.Writer, "logged_in.html", gin.H{
 			"Title": "首頁",
 			"Share": mo.LayoutShare,
@@ -81,6 +80,12 @@ func (h *IndexHandler) Entry(c *gin.Context) {
 			return
 		}
 	} else {
+		if h.Debug {
+			mo = h.UC.GetViewModel("chris", "123456")
+		} else {
+			mo = h.UC.GetViewModel("", "")
+		}
+
 		config := utils.TemplateConfig{
 			Layout:  filepath.Join(dir, "layout", "share.html"),
 			Page:    []string{filepath.Join(dir, "page", "index", "logged_out.html")},
@@ -89,12 +94,6 @@ func (h *IndexHandler) Entry(c *gin.Context) {
 		tmpl, e := utils.RenderTemplate(config)
 		if e != nil {
 			return
-		}
-
-		if h.Debug {
-			mo = h.UC.GetViewModel("chris", "123456")
-		} else {
-			mo = h.UC.GetViewModel("", "")
 		}
 
 		e = tmpl.ExecuteTemplate(c.Writer, "logged_out.html", gin.H{
@@ -115,7 +114,7 @@ func (h *IndexHandler) Register(c *gin.Context) {
 	defer func() {
 		if err != nil {
 			h.Log.Error(msg, zap.Error(err))
-			c.JSON(http.StatusOK, gin.H{"Code": err.Error()})
+			h.PageException(c, err.Error())
 		}
 	}()
 

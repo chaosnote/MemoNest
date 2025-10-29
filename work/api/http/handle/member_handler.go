@@ -9,14 +9,13 @@ import (
 	"go.uber.org/zap"
 
 	"idv/chris/MemoNest/application/usecase"
-	"idv/chris/MemoNest/domain/service"
 	"idv/chris/MemoNest/utils"
 )
 
 type MemberHandler struct {
-	Log     *zap.Logger
-	UC      *usecase.MemberUsecase
-	Session service.Session
+	CommonHandler
+
+	UC *usecase.MemberUsecase
 }
 
 // 使用者(註冊/登入)
