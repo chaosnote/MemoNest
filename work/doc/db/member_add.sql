@@ -10,42 +10,38 @@ CREATE PROCEDURE IF NOT EXISTS `sp_add_member` (
 )
 BEGIN
   -- 所有 DECLARE 必須在最前面
-  DECLARE error_message TEXT;
+  DECLARE error_message VARCHAR(255);
+  DECLARE debug_message VARCHAR(255);
   DECLARE table_articles TEXT;
   DECLARE table_categories TEXT;
 
   DECLARE EXIT HANDLER FOR SQLEXCEPTION
   BEGIN
     ROLLBACK;
-    -- SET error_message = CONCAT('註冊失敗，帳號 "', p_account, '" 發生錯誤於：', @debug_step);
+    -- SET error_message = CONCAT('註冊失敗，帳號 "', p_account, '" 發生錯誤於：', error_message);
     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = error_message;
   END;
 
-  -- 初始化 debug 變數
-  SET @debug_step = 'init';
-
   START TRANSACTION;
 
-  SET @debug_step = 'check account exists';
+  SET table_articles = CONCAT('articles_', p_account);
+  SET table_categories = CONCAT('categories_', p_account);
+
+  -- 帳號驗證
+  SET error_message = '帳號驗證';
   IF EXISTS (SELECT 1 FROM `member` WHERE `Account` = p_account) THEN
     SET error_message = CONCAT('帳號 "', p_account, '" 已存在',  '[ERR]帳號已存在，請使用其他帳號');
     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = error_message;
   END IF;
 
-  SET @debug_step = 'insert member';
-  INSERT INTO `member` (
-    `Account`, `Password`, `LastIP`, `CreatedAt`, `UpdatedAt`
-  ) VALUES (
-    p_account, p_password, p_ip, UTC_TIMESTAMP(), UTC_TIMESTAMP()
-  );
+  -- 加入資料
+  SET error_message = '加入資料';
+  INSERT INTO `member` ( `Account`, `Password`, `LastIP`, `CreatedAt`, `UpdatedAt`) 
+  VALUES ( p_account, p_password, p_ip, UTC_TIMESTAMP(), UTC_TIMESTAMP() );
 
-  SET @debug_step = 'prepare table names';
-  SET table_articles = CONCAT('articles_', p_account);
-  SET table_categories = CONCAT('categories_', p_account);
-
-  -- 建立 articles 表
-  SET @debug_step = 'create articles table';
-  SET @sql_articles = CONCAT(
+  -- 建立使用者文章表單
+  SET error_message = '建立使用者文章表單';
+  SET @query = CONCAT(
     'CREATE TABLE `', table_articles, '` (',
     '  `RowID` INT NOT NULL AUTO_INCREMENT,',
     '  `Title` TEXT,',
@@ -56,13 +52,13 @@ BEGIN
     '  PRIMARY KEY (`RowID`)',
     ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;'
   );
-  PREPARE stmt_articles FROM @sql_articles;
-  EXECUTE stmt_articles;
-  DEALLOCATE PREPARE stmt_articles;
+  PREPARE stmt FROM @query;
+  EXECUTE stmt;
+  DEALLOCATE PREPARE stmt;
 
-  -- 建立 categories 表
-  SET @debug_step = 'create categories table';
-  SET @sql_categories = CONCAT(
+  -- 建立使用者節點表單
+  SET error_message = '建立使用者節點表單';
+  SET @query = CONCAT(
     'CREATE TABLE `', table_categories, '` (',
     '  `RowID` INT NOT NULL AUTO_INCREMENT,',
     '  `NodeID` VARCHAR(36),',
@@ -73,11 +69,10 @@ BEGIN
     '  PRIMARY KEY (`RowID`)',
     ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;'
   );
-  PREPARE stmt_categories FROM @sql_categories;
-  EXECUTE stmt_categories;
-  DEALLOCATE PREPARE stmt_categories;
+  PREPARE stmt FROM @query;
+  EXECUTE stmt;
+  DEALLOCATE PREPARE stmt;
 
-  SET @debug_step = 'commit';
   COMMIT;
 
   SELECT * from `member` where `Account` = p_account;
