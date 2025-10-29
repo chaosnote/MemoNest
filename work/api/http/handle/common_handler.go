@@ -16,7 +16,7 @@ type CommonHandler struct {
 	Session service.Session
 }
 
-func (h *CommonHandler) PageException(c *gin.Context, message string) {
+func (h *CommonHandler) HandlePageException(c *gin.Context, message string) {
 	h.Session.Init(c)
 	h.Session.Clear()
 

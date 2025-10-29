@@ -29,7 +29,7 @@ func (h *ArticleHandler) Fresh(c *gin.Context) {
 	defer func() {
 		if err != nil {
 			h.Log.Error(msg, zap.Error(err))
-			h.PageException(c, err.Error())
+			h.HandlePageException(c, err.Error())
 		}
 	}()
 
@@ -133,7 +133,7 @@ func (h *ArticleHandler) Edit(c *gin.Context) {
 	defer func() {
 		if err != nil {
 			h.Log.Error(msg, zap.Error(err))
-			h.PageException(c, err.Error())
+			h.HandlePageException(c, err.Error())
 		}
 	}()
 
@@ -223,7 +223,7 @@ func (h *ArticleHandler) List(c *gin.Context) {
 	defer func() {
 		if err != nil {
 			h.Log.Error(msg, zap.Error(err))
-			h.PageException(c, err.Error())
+			h.HandlePageException(c, err.Error())
 		}
 	}()
 

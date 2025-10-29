@@ -30,7 +30,7 @@ func (h *IndexHandler) Entry(c *gin.Context) {
 	defer func() {
 		if err != nil {
 			h.Log.Error(msg, zap.Error(err))
-			h.PageException(c, err.Error())
+			h.HandlePageException(c, err.Error())
 		}
 	}()
 
@@ -114,7 +114,7 @@ func (h *IndexHandler) Register(c *gin.Context) {
 	defer func() {
 		if err != nil {
 			h.Log.Error(msg, zap.Error(err))
-			h.PageException(c, err.Error())
+			h.HandlePageException(c, err.Error())
 		}
 	}()
 
