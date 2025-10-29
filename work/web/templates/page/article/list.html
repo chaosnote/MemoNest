@@ -18,7 +18,7 @@
             <h5 class="card-title fw-bold fs-5 text-primary mb-3">[{{.Title}}]</h5>
             <div class="card-text border p-2">{{trans .RowID .Content}}</div>
             <div class="d-flex justify-content-between align-items-center gap-2 mt-2">
-                <div class="d-flex gap-3 text-start">
+                <div class="d-flex gap-2 text-start">
                     <span class="small text-decoration-underline">{{format .UpdateDt}}</span>
                     <span class="small">分類: {{.PathName}}</span>
                 </div>
@@ -32,7 +32,7 @@
     {{end}}
 {{ else }}
     <div class="alert alert-danger border rounded" role="alert">
-    <strong>提示：</strong> 目前無資料
+    <strong>提示：</strong> 目前無文章
 </div>
 {{ end }}
 {{end}}

@@ -1,8 +1,12 @@
 package handle
 
 import (
+	"fmt"
+	"html/template"
 	"net/http"
 	"path/filepath"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -34,12 +38,28 @@ func (h *IndexHandler) Entry(c *gin.Context) {
 	var mo model.IndexView
 
 	h.Session.Init(c)
+	aes_key := []byte(h.Session.GetAESKey())
+
 	dir := filepath.Join("./web", "templates")
 	if h.Session.IsLogin() {
 		config := utils.TemplateConfig{
 			Layout:  filepath.Join(dir, "layout", "share.html"),
 			Page:    []string{filepath.Join(dir, "page", "index", "logged_in.html")},
 			Pattern: []string{},
+			Funcs: map[string]any{
+				"format": func(t time.Time) string {
+					loc, _ := time.LoadLocation("Asia/Taipei")
+					return t.In(loc).Format("2006-01-02 15:04")
+				},
+				"encrypt": func(id int) string {
+					cipher_text, _ := utils.AesEncrypt([]byte(fmt.Sprintf("%v", id)), aes_key)
+					return string(cipher_text)
+				},
+				"trans": func(id int, data string) template.HTML {
+					output, _ := utils.AesEncrypt([]byte(fmt.Sprintf("%v", id)), aes_key)
+					return template.HTML(strings.ReplaceAll(data, model.IMG_ENCRYPT, output))
+				},
+			},
 		}
 		tmpl, e := utils.RenderTemplate(config)
 		if e != nil {
