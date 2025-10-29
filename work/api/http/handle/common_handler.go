@@ -9,6 +9,8 @@ import (
 	"go.uber.org/zap"
 )
 
+const template_dir = "./web/templates"
+
 type CommonHandler struct {
 	Log     *zap.Logger
 	Session service.Session
@@ -18,7 +20,7 @@ func (h *CommonHandler) PageException(c *gin.Context, message string) {
 	h.Session.Init(c)
 	h.Session.Clear()
 
-	dir := filepath.Join("./web", "templates")
+	dir := filepath.Join(template_dir)
 	config := utils.TemplateConfig{
 		Layout:  "",
 		Page:    []string{filepath.Join(dir, "error", "exception.html")},

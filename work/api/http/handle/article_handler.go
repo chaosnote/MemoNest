@@ -41,7 +41,7 @@ func (h *ArticleHandler) Fresh(c *gin.Context) {
 		return
 	}
 
-	dir := filepath.Join("./web", "templates")
+	dir := filepath.Join(template_dir)
 	config := utils.TemplateConfig{
 		Layout:  filepath.Join(dir, "layout", "share.html"),
 		Page:    []string{filepath.Join(dir, "page", "article", "fresh.html")},
@@ -150,7 +150,7 @@ func (h *ArticleHandler) Edit(c *gin.Context) {
 		return
 	}
 
-	dir := filepath.Join("./web", "templates")
+	dir := filepath.Join(template_dir)
 	config := utils.TemplateConfig{
 		Layout:  filepath.Join(dir, "layout", "share.html"),
 		Page:    []string{filepath.Join(dir, "page", "article", "edit.html")},
@@ -236,7 +236,7 @@ func (h *ArticleHandler) List(c *gin.Context) {
 	h.Session.Init(c)
 	aes_key := []byte(h.Session.GetAESKey())
 
-	dir := filepath.Join("./web", "templates")
+	dir := filepath.Join(template_dir)
 	config := utils.TemplateConfig{
 		Layout:  filepath.Join(dir, "layout", "share.html"),
 		Page:    []string{filepath.Join(dir, "page", "article", "list.html")},

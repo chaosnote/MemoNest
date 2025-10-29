@@ -104,7 +104,7 @@ func (h *NodeHandler) List(c *gin.Context) {
 		return
 	}
 
-	dir := filepath.Join("./web", "templates")
+	dir := filepath.Join(template_dir)
 	config := utils.TemplateConfig{
 		Layout:  filepath.Join(dir, "layout", "share.html"),
 		Page:    []string{filepath.Join(dir, "page", "node", "list.html")},

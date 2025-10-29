@@ -39,7 +39,7 @@ func (h *IndexHandler) Entry(c *gin.Context) {
 	h.Session.Init(c)
 	aes_key := []byte(h.Session.GetAESKey())
 
-	dir := filepath.Join("./web", "templates")
+	dir := filepath.Join(template_dir)
 	if h.Session.IsLogin() {
 		config := utils.TemplateConfig{
 			Layout:  filepath.Join(dir, "layout", "share.html"),
@@ -118,7 +118,7 @@ func (h *IndexHandler) Register(c *gin.Context) {
 		}
 	}()
 
-	dir := filepath.Join("./web", "templates")
+	dir := filepath.Join(template_dir)
 	config := utils.TemplateConfig{
 		Layout:  filepath.Join(dir, "layout", "share.html"),
 		Page:    []string{filepath.Join(dir, "page", "index", "register.html")},
