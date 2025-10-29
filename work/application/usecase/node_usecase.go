@@ -26,7 +26,7 @@ func (u *NodeUsecase) Add(account, parent_id, node_id, path_name string) (err er
 		_, err = u.Repo.AddChildNode(account, parent_id, "", path_name)
 	}
 	if err != nil {
-		err = utils.ParseSQLError(err)
+		err = utils.ParseSQLError(err, "新增節點失敗")
 	}
 	return err
 }
@@ -34,7 +34,7 @@ func (u *NodeUsecase) Add(account, parent_id, node_id, path_name string) (err er
 func (u *NodeUsecase) Delete(account, node_id string) (err error) {
 	err = u.Repo.Delete(account, node_id)
 	if err != nil {
-		err = utils.ParseSQLError(err)
+		err = utils.ParseSQLError(err, "刪除節點失敗")
 	}
 	return err
 }
@@ -42,7 +42,7 @@ func (u *NodeUsecase) Delete(account, node_id string) (err error) {
 func (u *NodeUsecase) List(account string) (c []entity.Category, err error) {
 	c, err = u.Repo.GetAllNode(account)
 	if err != nil {
-		err = utils.ParseSQLError(err)
+		err = utils.ParseSQLError(err, "查詢節點失敗")
 	}
 	return
 }
@@ -50,7 +50,7 @@ func (u *NodeUsecase) List(account string) (c []entity.Category, err error) {
 func (u *NodeUsecase) Edit(account, node_id, path_name string) (err error) {
 	err = u.Repo.Edit(account, node_id, path_name)
 	if err != nil {
-		err = utils.ParseSQLError(err)
+		err = utils.ParseSQLError(err, "編輯節點失敗")
 	}
 	return
 }
@@ -63,7 +63,7 @@ func (u *NodeUsecase) Move(account, parent_id, node_id string) (err error) {
 		var parent_node entity.Category
 		parent_node, err = u.Repo.GetNode(account, parent_id)
 		if err != nil {
-			err = utils.ParseSQLError(err)
+			err = utils.ParseSQLError(err, "搬移節點失敗")
 			return
 		}
 		if parent_node.RowID != 0 {
@@ -77,7 +77,7 @@ func (u *NodeUsecase) Move(account, parent_id, node_id string) (err error) {
 
 	current_node, err := u.Repo.GetNode(account, node_id)
 	if err != nil {
-		err = utils.ParseSQLError(err)
+		err = utils.ParseSQLError(err, "無指定子節點")
 		return
 	}
 	if current_node.RowID != 0 {
@@ -90,7 +90,7 @@ func (u *NodeUsecase) Move(account, parent_id, node_id string) (err error) {
 
 	err = u.Repo.Move(account, parent_id, node_id, current_node.PathName)
 	if err != nil {
-		err = utils.ParseSQLError(err)
+		err = utils.ParseSQLError(err, "搬移節點失敗")
 	}
 	return
 }
@@ -98,7 +98,7 @@ func (u *NodeUsecase) Move(account, parent_id, node_id string) (err error) {
 func (u *NodeUsecase) GetViewModel(account string, aes_key []byte) (mo model.NodeView, err error) {
 	tmp_list, err := u.Repo.GetAllNode(account)
 	if err != nil {
-		err = utils.ParseSQLError(err)
+		err = utils.ParseSQLError(err, "查詢節點失敗")
 		return
 	}
 

@@ -23,7 +23,7 @@ func (u *ArticleUsecase) Add(account, node_id, article_title, article_content st
 	var row_id int
 	row_id, err = u.Repo.Add(account, node_id)
 	if err != nil {
-		err = utils.ParseSQLError(err)
+		err = utils.ParseSQLError(err, "新增文章失敗")
 		return
 	}
 
@@ -32,7 +32,7 @@ func (u *ArticleUsecase) Add(account, node_id, article_title, article_content st
 	article_content = u.Img.ProcessBase64Images(account, article_id, article_content)
 	err = u.Repo.Update(account, row_id, article_title, article_content)
 	if err != nil {
-		err = utils.ParseSQLError(err)
+		err = utils.ParseSQLError(err, "新增文章失敗")
 		return
 	}
 	u.Img.CleanupUnusedImages(account, article_id, article_content)
@@ -48,7 +48,7 @@ func (u *ArticleUsecase) Del(account, plain_text string) (err error) {
 	}
 	err = u.Repo.Delete(account, id)
 	if err != nil {
-		err = utils.ParseSQLError(err)
+		err = utils.ParseSQLError(err, "刪除文章失敗")
 		return
 	}
 	u.Img.DelImageDir(account, fmt.Sprintf("%v", id))
@@ -65,11 +65,11 @@ func (u *ArticleUsecase) Edit(account, plain_text string) (data entity.Article, 
 
 	list, err := u.Repo.Get(account, id)
 	if err != nil {
-		err = utils.ParseSQLError(err)
+		err = utils.ParseSQLError(err, "編輯文章失敗")
 		return
 	}
 	if len(list) == 0 {
-		err = fmt.Errorf("無指定資料")
+		err = fmt.Errorf("無指定文章")
 		return
 	}
 	data = list[0]
@@ -86,7 +86,7 @@ func (u *ArticleUsecase) Renew(account, article_id, article_title, article_conte
 	article_content = u.Img.ProcessBase64Images(account, article_id, article_content)
 	err = u.Repo.Update(account, row_id, article_title, article_content)
 	if err != nil {
-		err = utils.ParseSQLError(err)
+		err = utils.ParseSQLError(err, "編輯文章失敗")
 		return
 	}
 	u.Img.CleanupUnusedImages(account, article_id, article_content)
@@ -102,7 +102,7 @@ func (u *ArticleUsecase) List(account, query string) (list []entity.Article, err
 	}
 
 	if err != nil {
-		err = utils.ParseSQLError(err)
+		err = utils.ParseSQLError(err, "查詢文章清單失敗")
 	}
 	return
 }
@@ -110,7 +110,7 @@ func (u *ArticleUsecase) List(account, query string) (list []entity.Article, err
 func (u *ArticleUsecase) GetViewModel(account string, aes_key []byte) (mo model.ArticleView, err error) {
 	tmp_list, err := u.Repo.GetAllNode(account)
 	if err != nil {
-		err = utils.ParseSQLError(err)
+		err = utils.ParseSQLError(err, "查詢節點失敗")
 		return
 	}
 

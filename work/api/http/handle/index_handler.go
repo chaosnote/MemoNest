@@ -40,10 +40,17 @@ func (h *IndexHandler) Entry(c *gin.Context) {
 		if e != nil {
 			return
 		}
+
+		list, err := h.UC.List(h.Session.GetAccount())
+		if err != nil {
+			return
+		}
 		mo := h.UC.GetViewModel("", "")
+
 		e = tmpl.ExecuteTemplate(c.Writer, "logged_in.html", gin.H{
 			"Title": "首頁",
 			"Share": mo.LayoutShare,
+			"List":  list,
 		})
 		if e != nil {
 			return

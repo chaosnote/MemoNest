@@ -41,7 +41,7 @@ func (u *MemberUsecase) Login(account, password, last_ip string) (mo entity.Memb
 	}
 	mo, err = u.Repo.Login(account, password, last_ip)
 	if err != nil {
-		err = utils.ParseSQLError(err)
+		err = utils.ParseSQLError(err, "登入失敗")
 		return
 	}
 
@@ -61,7 +61,7 @@ func (u *MemberUsecase) Register(account, password, last_ip string) (mo entity.M
 	}
 	mo, err = u.Repo.Register(account, password, last_ip)
 	if err != nil {
-		err = utils.ParseSQLError(err)
+		err = utils.ParseSQLError(err, "註冊失敗")
 		return
 	}
 
