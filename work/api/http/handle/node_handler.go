@@ -88,8 +88,22 @@ func (h *NodeHandler) Del(c *gin.Context) {
 }
 
 func (h *NodeHandler) List(c *gin.Context) {
+	const msg = "list"
+
+	var err error
+	defer func() {
+		if err != nil {
+			h.Log.Error(msg, zap.Error(err))
+			c.JSON(http.StatusOK, gin.H{"Code": err.Error()})
+		}
+	}()
+
 	h.Session.Init(c)
 	aes_key := []byte(h.Session.GetAESKey())
+	mo, err := h.UC.GetViewModel(h.Session.GetAccount(), aes_key)
+	if err != nil {
+		return
+	}
 
 	dir := filepath.Join("./web", "templates")
 	config := utils.TemplateConfig{
@@ -103,17 +117,8 @@ func (h *NodeHandler) List(c *gin.Context) {
 			},
 		},
 	}
+
 	tmpl, err := utils.RenderTemplate(config)
-	defer func() {
-		if err != nil {
-			http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
-		}
-	}()
-	if err != nil {
-		return
-	}
-	h.Session.Init(c)
-	mo, err := h.UC.GetViewModel(h.Session.GetAccount(), aes_key)
 	if err != nil {
 		return
 	}

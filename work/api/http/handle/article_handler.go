@@ -37,7 +37,7 @@ func (h *ArticleHandler) Fresh(c *gin.Context) {
 	defer func() {
 		if e != nil {
 			h.Log.Error(msg, zap.Error(e))
-			http.Error(c.Writer, e.Error(), http.StatusInternalServerError)
+			c.JSON(http.StatusOK, gin.H{"Code": e.Error()})
 		}
 	}()
 	if e != nil {
