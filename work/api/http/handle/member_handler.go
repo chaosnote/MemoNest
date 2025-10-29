@@ -14,6 +14,7 @@ import (
 )
 
 type MemberHandler struct {
+	Log     *zap.Logger
 	UC      *usecase.MemberUsecase
 	Session service.Session
 }
@@ -21,11 +22,11 @@ type MemberHandler struct {
 // 使用者(註冊/登入)
 func (h *MemberHandler) Login(c *gin.Context) {
 	const msg = "login"
-	logger := utils.NewFileLogger("./dist/logs/member/login", "console", 1)
+
 	var err error
 	defer func() {
 		if err != nil {
-			logger.Error(msg, zap.Error(err))
+			h.Log.Error(msg, zap.Error(err))
 			c.JSON(http.StatusOK, gin.H{"Code": err.Error()})
 		}
 	}()
@@ -55,7 +56,7 @@ func (h *MemberHandler) Login(c *gin.Context) {
 		param.Password = list[1]
 	}
 
-	logger.Info(msg, zap.Any("params", param))
+	h.Log.Info(msg, zap.Any("params", param))
 
 	_, err = h.UC.Login(param.Account, param.Password, c.ClientIP())
 	if err != nil {
@@ -87,11 +88,11 @@ func (h *MemberHandler) Logout(c *gin.Context) {
 
 func (h *MemberHandler) Register(c *gin.Context) {
 	const msg = "register"
-	logger := utils.NewFileLogger("./dist/logs/member/register", "console", 1)
+
 	var err error
 	defer func() {
 		if err != nil {
-			logger.Error(msg, zap.Error(err))
+			h.Log.Error(msg, zap.Error(err))
 			c.JSON(http.StatusOK, gin.H{"Code": err.Error()})
 		}
 	}()
@@ -104,7 +105,7 @@ func (h *MemberHandler) Register(c *gin.Context) {
 		return
 	}
 
-	logger.Info(msg, zap.Any("params", param))
+	h.Log.Info(msg, zap.Any("params", param))
 
 	_, err = h.UC.Register(param.Account, param.Password, c.ClientIP())
 	if err != nil {

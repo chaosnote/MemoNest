@@ -1,17 +1,20 @@
 package handle
 
 import (
-	"idv/chris/MemoNest/application/usecase"
-	"idv/chris/MemoNest/domain/service"
-	"idv/chris/MemoNest/utils"
 	"net/http"
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+
+	"idv/chris/MemoNest/application/usecase"
+	"idv/chris/MemoNest/domain/model"
+	"idv/chris/MemoNest/domain/service"
+	"idv/chris/MemoNest/utils"
 )
 
 type IndexHandler struct {
+	Log     *zap.Logger
 	Debug   bool
 	UC      *usecase.IndexUsecase
 	Session service.Session
@@ -19,14 +22,16 @@ type IndexHandler struct {
 
 func (h *IndexHandler) Entry(c *gin.Context) {
 	const msg = "entry"
-	logger := utils.NewFileLogger("./dist/logs/index/entry", "console", 1)
+
 	var err error
 	defer func() {
 		if err != nil {
-			logger.Error(msg, zap.Error(err))
+			h.Log.Error(msg, zap.Error(err))
 			c.JSON(http.StatusOK, gin.H{"Code": err.Error()})
 		}
 	}()
+
+	var mo model.IndexView
 
 	h.Session.Init(c)
 	dir := filepath.Join("./web", "templates")
@@ -45,8 +50,8 @@ func (h *IndexHandler) Entry(c *gin.Context) {
 		if err != nil {
 			return
 		}
-		mo := h.UC.GetViewModel("", "")
 
+		mo = h.UC.GetViewModel("", "")
 		e = tmpl.ExecuteTemplate(c.Writer, "logged_in.html", gin.H{
 			"Title": "首頁",
 			"Share": mo.LayoutShare,
@@ -65,7 +70,13 @@ func (h *IndexHandler) Entry(c *gin.Context) {
 		if e != nil {
 			return
 		}
-		mo := h.UC.GetViewModel("", "")
+
+		if h.Debug {
+			mo = h.UC.GetViewModel("chris", "123456")
+		} else {
+			mo = h.UC.GetViewModel("", "")
+		}
+
 		e = tmpl.ExecuteTemplate(c.Writer, "logged_out.html", gin.H{
 			"Title":    "首頁",
 			"Account":  mo.Account,
@@ -79,11 +90,11 @@ func (h *IndexHandler) Entry(c *gin.Context) {
 
 func (h *IndexHandler) Register(c *gin.Context) {
 	const msg = "register"
-	logger := utils.NewFileLogger("./dist/logs/index/register", "console", 1)
+
 	var err error
 	defer func() {
 		if err != nil {
-			logger.Error(msg, zap.Error(err))
+			h.Log.Error(msg, zap.Error(err))
 			c.JSON(http.StatusOK, gin.H{"Code": err.Error()})
 		}
 	}()

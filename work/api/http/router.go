@@ -36,12 +36,14 @@ func NewServerRoute(
 ) *gin.Engine {
 	// utils.RSAInit("./dist/logs/crypt/rsa.txt", 1024, true)
 
-	var logger *zap.Logger
-	if cli.Debug {
-		logger = utils.NewConsoleLogger("console", 1)
-	} else {
-		logger = utils.NewFileLogger("./dist/logs/server", "console", 1)
-	}
+	// var logger *zap.Logger
+	// if cli.Debug {
+	// 	logger = utils.NewConsoleLogger("console", 1)
+	// } else {
+	// 	logger = utils.NewFileLogger("./dist/logs/server", "console", 1)
+	// }
+
+	logger := utils.NewFileLogger("./dist/logs/server", "console", 1)
 
 	gin.SetMode(cfg.Gin.Mode)
 
@@ -73,13 +75,20 @@ func NewServerRoute(
 }
 
 func NewIndexHandler(
-	cfg *config.APPConfig,
+	cli *config.CLIFlags,
 	engine *gin.Engine,
 	uc *usecase.IndexUsecase,
 	session service.Session,
 ) {
+	var logger *zap.Logger
+	if cli.Debug {
+		logger = utils.NewConsoleLogger("console", 1)
+	} else {
+		logger = utils.NewFileLogger("./dist/logs/index", "console", 1)
+	}
 	h := &handle.IndexHandler{
-		Debug:   cfg.Gin.Mode == "debug",
+		Log:     logger,
+		Debug:   cli.Debug,
 		UC:      uc,
 		Session: session,
 	}
@@ -94,6 +103,7 @@ func NewIndexHandler(
 }
 
 func NewToolHandler(
+	cli *config.CLIFlags,
 	engine *gin.Engine,
 	uc *usecase.ToolUsecase,
 	session service.Session,
@@ -107,11 +117,19 @@ func NewToolHandler(
 }
 
 func NewMemberHandler(
+	cli *config.CLIFlags,
 	engine *gin.Engine,
 	uc *usecase.MemberUsecase,
 	session service.Session,
 ) {
+	var logger *zap.Logger
+	if cli.Debug {
+		logger = utils.NewConsoleLogger("console", 1)
+	} else {
+		logger = utils.NewFileLogger("./dist/logs/member", "console", 1)
+	}
 	h := &handle.MemberHandler{
+		Log:     logger,
 		UC:      uc,
 		Session: session,
 	}
@@ -122,11 +140,19 @@ func NewMemberHandler(
 }
 
 func NewNodeHandler(
+	cli *config.CLIFlags,
 	engine *gin.Engine,
 	uc *usecase.NodeUsecase,
 	session service.Session,
 ) {
+	var logger *zap.Logger
+	if cli.Debug {
+		logger = utils.NewConsoleLogger("console", 1)
+	} else {
+		logger = utils.NewFileLogger("./dist/logs/node", "console", 1)
+	}
 	h := &handle.NodeHandler{
+		Log:     logger,
 		UC:      uc,
 		Session: session,
 	}
@@ -144,11 +170,19 @@ func NewNodeHandler(
 }
 
 func NewAssetHandler(
+	cli *config.CLIFlags,
 	engine *gin.Engine,
 	uc *usecase.AssetUsecase,
 	session service.Session,
 ) {
+	var logger *zap.Logger
+	if cli.Debug {
+		logger = utils.NewConsoleLogger("console", 1)
+	} else {
+		logger = utils.NewFileLogger("./dist/logs/article/image", "console", 1)
+	}
 	h := &handle.AssetHandler{
+		Log:     logger,
 		UC:      uc,
 		Session: session,
 	}
@@ -159,11 +193,19 @@ func NewAssetHandler(
 }
 
 func NewArticleHandler(
+	cli *config.CLIFlags,
 	engine *gin.Engine,
 	uc *usecase.ArticleUsecase,
 	session service.Session,
 ) {
+	var logger *zap.Logger
+	if cli.Debug {
+		logger = utils.NewConsoleLogger("console", 1)
+	} else {
+		logger = utils.NewFileLogger("./dist/logs/server", "console", 1)
+	}
 	h := &handle.ArticleHandler{
+		Log:     logger,
 		UC:      uc,
 		Session: session,
 	}

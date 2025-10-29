@@ -18,11 +18,14 @@ import (
 )
 
 type ArticleHandler struct {
+	Log     *zap.Logger
 	UC      *usecase.ArticleUsecase
 	Session service.Session
 }
 
 func (h *ArticleHandler) Fresh(c *gin.Context) {
+	const msg = "fresh"
+
 	dir := filepath.Join("./web", "templates")
 	config := utils.TemplateConfig{
 		Layout:  filepath.Join(dir, "layout", "share.html"),
@@ -33,6 +36,7 @@ func (h *ArticleHandler) Fresh(c *gin.Context) {
 
 	defer func() {
 		if e != nil {
+			h.Log.Error(msg, zap.Error(e))
 			http.Error(c.Writer, e.Error(), http.StatusInternalServerError)
 		}
 	}()
@@ -61,11 +65,11 @@ func (h *ArticleHandler) Fresh(c *gin.Context) {
 
 func (h *ArticleHandler) Add(c *gin.Context) {
 	const msg = "add"
-	logger := utils.NewFileLogger("./dist/logs/article/add", "console", 1)
+
 	var e error
 	defer func() {
 		if e != nil {
-			logger.Error(msg, zap.Error(e))
+			h.Log.Error(msg, zap.Error(e))
 			c.JSON(http.StatusOK, gin.H{"Code": e.Error()})
 		}
 	}()
@@ -78,7 +82,7 @@ func (h *ArticleHandler) Add(c *gin.Context) {
 	if e != nil {
 		return
 	}
-	logger.Info(msg, zap.Any("params", param))
+	h.Log.Info(msg, zap.Any("params", param))
 
 	h.Session.Init(c)
 	account := h.Session.GetAccount()
@@ -93,11 +97,11 @@ func (h *ArticleHandler) Add(c *gin.Context) {
 
 func (h *ArticleHandler) Del(c *gin.Context) {
 	const msg = "del"
-	logger := utils.NewFileLogger("./dist/logs/article/del", "console", 1)
+
 	var err error
 	defer func() {
 		if err != nil {
-			logger.Error(msg, zap.Error(err))
+			h.Log.Error(msg, zap.Error(err))
 			c.JSON(http.StatusOK, gin.H{"Code": err.Error()})
 		}
 	}()
@@ -108,7 +112,7 @@ func (h *ArticleHandler) Del(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	logger.Info(msg, zap.Any("params", param))
+	h.Log.Info(msg, zap.Any("params", param))
 
 	h.Session.Init(c)
 	account := h.Session.GetAccount()
@@ -125,11 +129,11 @@ func (h *ArticleHandler) Del(c *gin.Context) {
 
 func (h *ArticleHandler) Edit(c *gin.Context) {
 	const msg = "edit"
-	logger := utils.NewFileLogger("./dist/logs/article/edit", "console", 1)
+
 	var err error
 	defer func() {
 		if err != nil {
-			logger.Error(msg, zap.Error(err))
+			h.Log.Error(msg, zap.Error(err))
 			c.JSON(http.StatusOK, gin.H{"Code": err.Error()})
 		}
 	}()
@@ -178,11 +182,11 @@ func (h *ArticleHandler) Edit(c *gin.Context) {
 
 func (h *ArticleHandler) Renew(c *gin.Context) {
 	const msg = "renew"
-	logger := utils.NewFileLogger("./dist/logs/article/renew", "console", 1)
+
 	var err error
 	defer func() {
 		if err != nil {
-			logger.Error(msg, zap.Error(err))
+			h.Log.Error(msg, zap.Error(err))
 			c.JSON(http.StatusOK, gin.H{"Code": err.Error()})
 		}
 	}()
@@ -195,7 +199,7 @@ func (h *ArticleHandler) Renew(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	logger.Info(msg, zap.Any("params", param))
+	h.Log.Info(msg, zap.Any("params", param))
 
 	h.Session.Init(c)
 	aes_key := []byte(h.Session.GetAESKey())
@@ -215,11 +219,11 @@ func (h *ArticleHandler) Renew(c *gin.Context) {
 
 func (h *ArticleHandler) List(c *gin.Context) {
 	const msg = "list"
-	logger := utils.NewFileLogger("./dist/logs/article/list", "console", 1)
+
 	var err error
 	defer func() {
 		if err != nil {
-			logger.Error(msg, zap.Error(err))
+			h.Log.Error(msg, zap.Error(err))
 			c.JSON(http.StatusOK, gin.H{"Code": err.Error()})
 		}
 	}()

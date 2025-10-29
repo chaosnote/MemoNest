@@ -15,24 +15,25 @@ import (
 )
 
 type AssetHandler struct {
+	Log     *zap.Logger
 	UC      *usecase.AssetUsecase
 	Session service.Session
 }
 
 func (h *AssetHandler) Image(c *gin.Context) {
 	const msg = "image"
-	logger := utils.NewFileLogger("./dist/logs/article/image", "console", 1)
+
 	var e error
 	defer func() {
 		if e != nil {
-			logger.Error(msg, zap.Error(e))
+			h.Log.Error(msg, zap.Error(e))
 			return
 		}
 	}()
 
 	id := c.Params.ByName("id")
 	name := c.Params.ByName("name")
-	logger.Info(msg, zap.String("id", id), zap.String("name", name))
+	h.Log.Info(msg, zap.String("id", id), zap.String("name", name))
 
 	h.Session.Init(c)
 	aes_key := []byte(h.Session.GetAESKey())

@@ -15,17 +15,18 @@ import (
 )
 
 type NodeHandler struct {
+	Log     *zap.Logger
 	UC      *usecase.NodeUsecase
 	Session service.Session
 }
 
 func (h *NodeHandler) Add(c *gin.Context) {
 	const msg = "add"
-	logger := utils.NewFileLogger("./dist/logs/node/add", "console", 1)
+
 	var e error
 	defer func() {
 		if e != nil {
-			logger.Error(msg, zap.Error(e))
+			h.Log.Error(msg, zap.Error(e))
 			c.JSON(http.StatusOK, gin.H{"Code": e.Error()})
 		}
 	}()
@@ -37,7 +38,7 @@ func (h *NodeHandler) Add(c *gin.Context) {
 	if e != nil {
 		return
 	}
-	logger.Info(msg, zap.Any("params", param))
+	h.Log.Info(msg, zap.Any("params", param))
 
 	h.Session.Init(c)
 	aes_key := []byte(h.Session.GetAESKey())
@@ -55,11 +56,11 @@ func (h *NodeHandler) Add(c *gin.Context) {
 
 func (h *NodeHandler) Del(c *gin.Context) {
 	const msg = "del"
-	logger := utils.NewFileLogger("./dist/logs/node/del", "console", 1)
+
 	var e error
 	defer func() {
 		if e != nil {
-			logger.Error(msg, zap.Error(e))
+			h.Log.Error(msg, zap.Error(e))
 			c.JSON(http.StatusOK, gin.H{"Code": e.Error()})
 		}
 	}()
@@ -70,7 +71,7 @@ func (h *NodeHandler) Del(c *gin.Context) {
 	if e != nil {
 		return
 	}
-	logger.Info(msg, zap.Any("params", param))
+	h.Log.Info(msg, zap.Any("params", param))
 
 	h.Session.Init(c)
 	aes_key := []byte(h.Session.GetAESKey())
@@ -131,11 +132,11 @@ func (h *NodeHandler) List(c *gin.Context) {
 
 func (h *NodeHandler) Edit(c *gin.Context) {
 	const msg = "edit"
-	logger := utils.NewFileLogger("./dist/logs/node/edit", "console", 1)
+
 	var e error
 	defer func() {
 		if e != nil {
-			logger.Error(msg, zap.Error(e))
+			h.Log.Error(msg, zap.Error(e))
 			c.JSON(http.StatusOK, gin.H{"Code": e.Error()})
 		}
 	}()
@@ -147,7 +148,7 @@ func (h *NodeHandler) Edit(c *gin.Context) {
 	if e != nil {
 		return
 	}
-	logger.Info(msg, zap.Any("params", param))
+	h.Log.Info(msg, zap.Any("params", param))
 	if len(param.Label) == 0 {
 		e = fmt.Errorf("label 長度為零")
 		return
@@ -166,11 +167,11 @@ func (h *NodeHandler) Edit(c *gin.Context) {
 
 func (h *NodeHandler) Move(c *gin.Context) {
 	const msg = "move"
-	logger := utils.NewFileLogger("./dist/logs/node/edit", "console", 1)
+
 	var err error
 	defer func() {
 		if err != nil {
-			logger.Error(msg, zap.Error(err))
+			h.Log.Error(msg, zap.Error(err))
 			c.JSON(http.StatusOK, gin.H{"Code": err.Error()})
 		}
 	}()
@@ -182,7 +183,7 @@ func (h *NodeHandler) Move(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	logger.Info(msg, zap.Any("params", param))
+	h.Log.Info(msg, zap.Any("params", param))
 
 	h.Session.Init(c)
 	aes_key := []byte(h.Session.GetAESKey())
