@@ -40,6 +40,7 @@ func (h *ArticleHandler) Fresh(c *gin.Context) {
 	if err != nil {
 		return
 	}
+	mo.CurrentPath = h.Session.GetURL()
 
 	dir := filepath.Join(template_dir)
 	config := utils.TemplateConfig{
@@ -165,7 +166,10 @@ func (h *ArticleHandler) Edit(c *gin.Context) {
 	if err != nil {
 		return
 	}
+
 	mo, err := h.UC.GetViewModel(h.Session.GetAccount(), aes_key)
+	mo.CurrentPath = h.Session.GetURL()
+
 	err = tmpl.ExecuteTemplate(c.Writer, "edit.html", gin.H{
 		"Title":          "修改文章",
 		"Share":          mo.LayoutShare,
@@ -265,6 +269,8 @@ func (h *ArticleHandler) List(c *gin.Context) {
 	if err != nil {
 		return
 	}
+	mo.CurrentPath = h.Session.GetURL()
+
 	err = tmpl.ExecuteTemplate(c.Writer, "list.html", gin.H{
 		"Title": "文章清單",
 		"Share": mo.LayoutShare,

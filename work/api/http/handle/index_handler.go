@@ -70,6 +70,7 @@ func (h *IndexHandler) Entry(c *gin.Context) {
 			return
 		}
 		mo = h.UC.GetViewModel("", "")
+		mo.CurrentPath = h.Session.GetURL()
 
 		e = tmpl.ExecuteTemplate(c.Writer, "logged_in.html", gin.H{
 			"Title": "首頁",
@@ -85,6 +86,7 @@ func (h *IndexHandler) Entry(c *gin.Context) {
 		} else {
 			mo = h.UC.GetViewModel("", "")
 		}
+		mo.CurrentPath = h.Session.GetURL()
 
 		config := utils.TemplateConfig{
 			Layout:  filepath.Join(dir, "layout", "share.html"),

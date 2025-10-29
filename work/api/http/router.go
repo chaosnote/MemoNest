@@ -165,6 +165,7 @@ func NewNodeHandler(
 	const handler_name = "/node"
 	r := engine.Group(handler_name)
 	r.Use(middleware.Auth(session))
+	r.Use(middleware.RecordPath(session))
 	r.GET("/list", h.List)
 
 	r = engine.Group(filepath.Join(API_VER, handler_name))
@@ -223,6 +224,7 @@ func NewArticleHandler(
 
 	r := engine.Group(handler_name)
 	r.Use(middleware.Auth(session))
+	r.Use(middleware.RecordPath(session))
 	r.GET("/fresh", h.Fresh)
 	r.GET("/list", h.List)
 	r.GET("/edit/:id", h.Edit)

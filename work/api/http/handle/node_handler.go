@@ -103,6 +103,7 @@ func (h *NodeHandler) List(c *gin.Context) {
 	if err != nil {
 		return
 	}
+	mo.CurrentPath = h.Session.GetURL()
 
 	dir := filepath.Join(template_dir)
 	config := utils.TemplateConfig{
