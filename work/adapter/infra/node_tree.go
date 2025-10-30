@@ -14,19 +14,19 @@ import (
 type NodeTree struct {
 }
 
-func (nt *NodeTree) GetInfo(source []entity.Node) ([]*model.CategoryNode, map[string]*model.CategoryNode) {
+func (nt *NodeTree) GetInfo(source []entity.Node) ([]*model.NodeTreeViewModel, map[string]*model.NodeTreeViewModel) {
 	root_id := uuid.Nil.String()
-	node_map := make(map[string]*model.CategoryNode)
+	node_map := make(map[string]*model.NodeTreeViewModel)
 
 	// 第一次遍歷：建立節點地圖
 	for _, category := range source {
-		node_map[category.NodeID] = &model.CategoryNode{
+		node_map[category.NodeID] = &model.NodeTreeViewModel{
 			Node: category,
 		}
 	}
 
 	// 第二次遍歷：建立樹狀結構並生成路徑
-	node_list := []*model.CategoryNode{}
+	node_list := []*model.NodeTreeViewModel{}
 	for _, category := range source {
 		current_node := node_map[category.NodeID]
 
@@ -59,7 +59,7 @@ func (nt *NodeTree) GetInfo(source []entity.Node) ([]*model.CategoryNode, map[st
 	return node_list, node_map
 }
 
-func (nh *NodeTree) Assign(node *model.CategoryNode, aes_key []byte) {
+func (nh *NodeTree) Encrypt(node *model.NodeTreeViewModel, aes_key []byte) {
 	sUID, _ := utils.AesEncrypt([]byte(fmt.Sprintf("%v", node.RowID)), aes_key)
 	node.El_UID = sUID
 
@@ -67,7 +67,7 @@ func (nh *NodeTree) Assign(node *model.CategoryNode, aes_key []byte) {
 	node.El_NodeID = sNodeID
 
 	for _, child := range node.Children {
-		nh.Assign(child, aes_key)
+		nh.Encrypt(child, aes_key)
 	}
 }
 

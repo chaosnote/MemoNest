@@ -116,7 +116,7 @@ func (u *ArticleUsecase) GetViewModel(account string, aes_key []byte) (mo model.
 
 	node_list, node_map := u.Tree.GetInfo(tmp_list)
 	for _, node := range node_list {
-		u.Tree.Assign(node, aes_key)
+		u.Tree.Encrypt(node, aes_key)
 	}
 
 	mo.NodeList = node_list

@@ -2,10 +2,10 @@ package model
 
 import "idv/chris/MemoNest/domain/entity"
 
-type CategoryNode struct {
+type NodeTreeViewModel struct {
 	entity.Node
 
-	Children  []*CategoryNode
+	Children  []*NodeTreeViewModel
 	Path      string
 	El_UID    string
 	El_NodeID string

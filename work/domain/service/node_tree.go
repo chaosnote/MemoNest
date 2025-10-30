@@ -6,6 +6,6 @@ import (
 )
 
 type NodeTree interface {
-	GetInfo(source []entity.Node) ([]*model.CategoryNode, map[string]*model.CategoryNode)
-	Assign(node *model.CategoryNode, aesKey []byte)
+	GetInfo(source []entity.Node) ([]*model.NodeTreeViewModel, map[string]*model.NodeTreeViewModel)
+	Encrypt(node *model.NodeTreeViewModel, aesKey []byte)
 }
