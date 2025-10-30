@@ -21,7 +21,12 @@ func (r *NodeRepo) AddParentNode(account, node_id, path_name string) (*entity.No
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback() // 如果有錯誤發生，確保交易回滾
+	committed := false
+	defer func() {
+		if !committed {
+			tx.Rollback()
+		}
+	}()
 
 	// 找到最大的 RftIdx，作為新根節點的 LftIdx
 	var maxRftIdx int
@@ -59,7 +64,7 @@ func (r *NodeRepo) AddParentNode(account, node_id, path_name string) (*entity.No
 	if err != nil {
 		return nil, err
 	}
-
+	committed = true
 	return &entity.Node{
 		RowID:    int(rowID),
 		NodeID:   node_id,
@@ -76,7 +81,12 @@ func (r *NodeRepo) AddChildNode(account, parent_id, node_id, path_name string) (
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	committed := false
+	defer func() {
+		if !committed {
+			tx.Rollback()
+		}
+	}()
 
 	// 1. 查詢父節點的 RftIdx
 	query := fmt.Sprintf(
@@ -135,7 +145,7 @@ func (r *NodeRepo) AddChildNode(account, parent_id, node_id, path_name string) (
 	if err != nil {
 		return nil, err
 	}
-
+	committed = true
 	return &entity.Node{
 		RowID:    int(rowID),
 		NodeID:   node_id,
@@ -166,7 +176,12 @@ func (r *NodeRepo) Delete(account, node_id string) error {
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	committed := false
+	defer func() {
+		if !committed {
+			tx.Rollback()
+		}
+	}()
 
 	// 1. 查詢要刪除節點的 LftIdx 和 RftIdx
 	query = fmt.Sprintf(
@@ -217,8 +232,14 @@ func (r *NodeRepo) Delete(account, node_id string) error {
 		return err
 	}
 
-	// 提交事務
-	return tx.Commit()
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	committed = true
+
+	return err
 }
 
 // Edit 編輯
