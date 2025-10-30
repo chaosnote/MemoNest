@@ -87,7 +87,7 @@ func (r *NodeRepo) AddChildNode(account, parent_id, node_id, path_name string) (
 	err = tx.QueryRow(query, parent_id).Scan(&parentRftIdx)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("parent node with NodeID '%s' not found", parent_id)
+			return nil, fmt.Errorf("parent node with NodeID '%s' not found[ERR]無指定父節點", parent_id)
 		}
 		return nil, err
 	}
@@ -159,7 +159,7 @@ func (r *NodeRepo) Delete(account, node_id string) error {
 		return e
 	}
 	if total != 0 {
-		return fmt.Errorf("該節點仍有文章(筆數: %v)", total)
+		return fmt.Errorf("[ERR]該節點仍有文章(筆數: %v)", total)
 	}
 
 	tx, err := r.db.Begin()

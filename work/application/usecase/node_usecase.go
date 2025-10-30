@@ -34,6 +34,7 @@ func (u *NodeUsecase) Add(account, parent_id, node_id, path_name string) (err er
 func (u *NodeUsecase) Delete(account, node_id string) (err error) {
 	err = u.Repo.Delete(account, node_id)
 	if err != nil {
+		fmt.Println(err)
 		err = utils.ParseSQLError(err, "刪除節點失敗")
 	}
 	return err
