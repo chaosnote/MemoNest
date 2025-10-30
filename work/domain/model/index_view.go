@@ -1,6 +1,6 @@
 package model
 
-type IndexView struct {
+type IndexViewModel struct {
 	LayoutShare
 
 	Account  string

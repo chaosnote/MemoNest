@@ -95,7 +95,7 @@ func (u *NodeUsecase) Move(account, parent_id, node_id string) (err error) {
 	return
 }
 
-func (u *NodeUsecase) GetViewModel(account string, aes_key []byte) (mo model.NodeView, err error) {
+func (u *NodeUsecase) GetViewModel(account string, aes_key []byte) (mo model.NodeViewModel, err error) {
 	tmp_list, err := u.Repo.GetAllNode(account)
 	if err != nil {
 		err = utils.ParseSQLError(err, "查詢節點失敗")

@@ -1,6 +1,6 @@
 package model
 
-type NodeView struct {
+type NodeViewModel struct {
 	LayoutShare
 
 	NodeList []*CategoryNode

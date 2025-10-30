@@ -34,7 +34,7 @@ func (h *IndexHandler) Entry(c *gin.Context) {
 		}
 	}()
 
-	var mo model.IndexView
+	var mo model.IndexViewModel
 
 	h.Session.Init(c)
 	aes_key := []byte(h.Session.GetAESKey())

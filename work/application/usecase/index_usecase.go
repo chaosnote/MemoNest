@@ -22,7 +22,7 @@ func (u *IndexUsecase) List(account string) (list []entity.Article, err error) {
 	return
 }
 
-func (u *IndexUsecase) GetViewModel(account, password string) (mo model.IndexView) {
+func (u *IndexUsecase) GetViewModel(account, password string) (mo model.IndexViewModel) {
 	mo.Account = account
 	mo.Password = password
 	mo.MainMenu = u.Menu.GetList()

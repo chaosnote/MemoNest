@@ -1,6 +1,6 @@
 package model
 
-type ArticleView struct {
+type ArticleViewModel struct {
 	LayoutShare
 
 	NodeList []*CategoryNode

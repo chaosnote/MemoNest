@@ -107,7 +107,7 @@ func (u *ArticleUsecase) List(account, query string) (list []entity.Article, err
 	return
 }
 
-func (u *ArticleUsecase) GetViewModel(account string, aes_key []byte) (mo model.ArticleView, err error) {
+func (u *ArticleUsecase) GetViewModel(account string, aes_key []byte) (mo model.ArticleViewModel, err error) {
 	tmp_list, err := u.Repo.GetAllNode(account)
 	if err != nil {
 		err = utils.ParseSQLError(err, "查詢節點失敗")
