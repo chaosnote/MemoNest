@@ -26,7 +26,7 @@
             {{with .SubMenu}}
             <div class="d-flex flex-wrap gap-2">
                 {{range .}}
-                    {{if ne .Path $.Share.CurrentPath}}
+                    {{if ne .Path $.Share.Url}}
                     <a class="btn btn-sm btn-outline-secondary" href="{{.Path}}">{{.Label}}</a>
                     {{else}}
                     <span class="btn btn-sm btn-secondary" style="pointer-events: none; user-select: none;">{{.Label}}</span>
