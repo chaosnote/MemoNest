@@ -1,7 +1,7 @@
 package model
 
 type NodeViewModel struct {
-	LayoutShare
+	LayoutContext
 
 	NodeList []*CategoryNode
 	NodeMap  map[string]*CategoryNode

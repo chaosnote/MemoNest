@@ -1,7 +1,7 @@
 package model
 
 type ArticleViewModel struct {
-	LayoutShare
+	LayoutContext
 
 	NodeList []*CategoryNode
 	NodeMap  map[string]*CategoryNode

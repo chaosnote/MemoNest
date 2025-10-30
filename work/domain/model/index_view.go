@@ -1,7 +1,7 @@
 package model
 
 type IndexViewModel struct {
-	LayoutShare
+	LayoutContext
 
 	Account  string
 	Password string

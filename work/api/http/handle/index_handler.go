@@ -70,11 +70,11 @@ func (h *IndexHandler) Entry(c *gin.Context) {
 			return
 		}
 		mo = h.UC.GetViewModel("", "")
-		mo.CurrentPath = h.Session.GetURL()
+		mo.Url = h.Session.GetURL()
 
 		e = tmpl.ExecuteTemplate(c.Writer, "logged_in.html", gin.H{
 			"Title": "首頁",
-			"Share": mo.LayoutShare,
+			"Share": mo.LayoutContext,
 			"List":  list,
 		})
 		if e != nil {
@@ -86,7 +86,7 @@ func (h *IndexHandler) Entry(c *gin.Context) {
 		} else {
 			mo = h.UC.GetViewModel("", "")
 		}
-		mo.CurrentPath = h.Session.GetURL()
+		mo.Url = h.Session.GetURL()
 
 		config := utils.TemplateConfig{
 			Layout:  filepath.Join(dir, "layout", "share.html"),

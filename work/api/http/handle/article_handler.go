@@ -40,7 +40,7 @@ func (h *ArticleHandler) Fresh(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	mo.CurrentPath = h.Session.GetURL()
+	mo.Url = h.Session.GetURL()
 
 	dir := filepath.Join(template_dir)
 	config := utils.TemplateConfig{
@@ -54,7 +54,7 @@ func (h *ArticleHandler) Fresh(c *gin.Context) {
 	}
 	err = tmpl.ExecuteTemplate(c.Writer, "fresh.html", gin.H{
 		"Title":        "增加文章",
-		"Share":        mo.LayoutShare,
+		"Share":        mo.LayoutContext,
 		"NodeMap":      mo.NodeMap,
 		"ArticleTitle": "請輸入文章標題",
 	})
@@ -168,11 +168,11 @@ func (h *ArticleHandler) Edit(c *gin.Context) {
 	}
 
 	mo, err := h.UC.GetViewModel(h.Session.GetAccount(), aes_key)
-	mo.CurrentPath = h.Session.GetURL()
+	mo.Url = h.Session.GetURL()
 
 	err = tmpl.ExecuteTemplate(c.Writer, "edit.html", gin.H{
 		"Title":          "修改文章",
-		"Share":          mo.LayoutShare,
+		"Share":          mo.LayoutContext,
 		"ID":             id,
 		"PathName":       data.PathName,
 		"ArticleTitle":   data.Title,
@@ -269,11 +269,11 @@ func (h *ArticleHandler) List(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	mo.CurrentPath = h.Session.GetURL()
+	mo.Url = h.Session.GetURL()
 
 	err = tmpl.ExecuteTemplate(c.Writer, "list.html", gin.H{
 		"Title": "文章清單",
-		"Share": mo.LayoutShare,
+		"Share": mo.LayoutContext,
 		"Q":     Q,
 		"List":  list,
 	})

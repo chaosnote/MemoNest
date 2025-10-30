@@ -103,7 +103,7 @@ func (h *NodeHandler) List(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	mo.CurrentPath = h.Session.GetURL()
+	mo.Url = h.Session.GetURL()
 
 	dir := filepath.Join(template_dir)
 	config := utils.TemplateConfig{
@@ -125,7 +125,7 @@ func (h *NodeHandler) List(c *gin.Context) {
 
 	err = tmpl.ExecuteTemplate(c.Writer, "list.html", gin.H{
 		"Title":   "節點清單",
-		"Share":   mo.LayoutShare,
+		"Share":   mo.LayoutContext,
 		"NodeMap": mo.NodeMap,
 		"List":    mo.NodeList,
 		"RootID":  uuid.Nil.String(),
