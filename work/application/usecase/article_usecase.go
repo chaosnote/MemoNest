@@ -98,11 +98,11 @@ func (u *ArticleUsecase) Renew(account, article_id, article_title, article_conte
 }
 
 func (u *ArticleUsecase) List(account, query string, aes_key []byte) (list []model.ArticleListViewModel, err error) {
-	var source []entity.Article
+	var articles []entity.Article
 	if len(query) > 0 {
-		source, err = u.Repo.Query(account, query)
+		articles, err = u.Repo.Query(account, query)
 	} else {
-		source, err = u.Repo.List(account)
+		articles, err = u.Repo.List(account)
 	}
 	if err != nil {
 		err = utils.ParseSQLError(err, "查詢文章清單失敗")
@@ -110,17 +110,17 @@ func (u *ArticleUsecase) List(account, query string, aes_key []byte) (list []mod
 	}
 
 	loc, _ := time.LoadLocation("Asia/Taipei")
-	for _, item := range source {
+	for key, item := range articles {
 		output := model.ArticleListViewModel{
 			Article: item,
 		}
 		id, _ := utils.AesEncrypt([]byte(fmt.Sprintf("%v", item.RowID)), aes_key)
+		output.El_Idx = key + 1
 		output.El_ID = id
 		output.El_Time = item.UpdateDt.In(loc).Format("2006-01-02 15:04")
 		output.El_Content = template.HTML(strings.ReplaceAll(item.Content, model.IMG_ENCRYPT, id))
 
 		list = append(list, output)
-		fmt.Println(item)
 	}
 	return
 }
