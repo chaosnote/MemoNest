@@ -34,7 +34,7 @@ func NewMenuProvider() *MenuProvider {
 
 	menu_list = append(menu_list, model.Menu{
 		MenuItem: model.MenuItem{
-			Label: "分類",
+			Label: "節點",
 			Path:  fmt.Sprintf("/%s/list", MP_NODE),
 		},
 		Children: []model.MenuItem{
