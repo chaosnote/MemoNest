@@ -34,11 +34,7 @@ func (u *MemberUsecase) Login(account, password, last_ip string) (mo entity.Memb
 		return
 	}
 
-	aes_key := utils.GenAESKey([]byte(account))
-	password, err = utils.AesEncrypt([]byte(password), aes_key)
-	if err != nil {
-		return
-	}
+	password = utils.MD5Hash(password)
 	mo, err = u.Repo.Login(account, password, last_ip)
 	if err != nil {
 		err = utils.ParseSQLError(err, "登入失敗")
@@ -54,11 +50,7 @@ func (u *MemberUsecase) Register(account, password, last_ip string) (mo entity.M
 		return
 	}
 
-	aes_key := utils.GenAESKey([]byte(account))
-	password, err = utils.AesEncrypt([]byte(password), aes_key)
-	if err != nil {
-		return
-	}
+	password = utils.MD5Hash(password)
 	mo, err = u.Repo.Register(account, password, last_ip)
 	if err != nil {
 		err = utils.ParseSQLError(err, "註冊失敗")
