@@ -22,7 +22,7 @@ BEGIN
   START TRANSACTION;
 
   SET table_articles = CONCAT('articles_', p_account);
-  SET table_categories = CONCAT('categories_', p_account);
+  SET table_categories = CONCAT('node_', p_account);
 
   -- DROP articles 表
   SET debug_message = '刪除使用者文章表單';

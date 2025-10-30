@@ -25,7 +25,7 @@ BEGIN
     -- END;
 
     SET table_articles = CONCAT('articles_', p_account);
-    SET table_categories = CONCAT('categories_', p_account);
+    SET table_categories = CONCAT('node_', p_account);
 
     -- 驗證是否有使用者文章表單
     SET debug_message = '驗證是否有使用者文章表單';

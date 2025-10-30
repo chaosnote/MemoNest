@@ -11,9 +11,9 @@ import (
 )
 
 type NodeRepo struct {
-	db                   *sql.DB
-	categories_formatter string
-	articles_formatter   string
+	db                 *sql.DB
+	node_formatter     string
+	articles_formatter string
 }
 
 func (r *NodeRepo) AddParentNode(account, node_id, path_name string) (*entity.Category, error) {
@@ -27,7 +27,7 @@ func (r *NodeRepo) AddParentNode(account, node_id, path_name string) (*entity.Ca
 	var maxRftIdx int
 	query := fmt.Sprintf(
 		"SELECT COALESCE(MAX(RftIdx), 0) FROM %s",
-		fmt.Sprintf(r.categories_formatter, account),
+		fmt.Sprintf(r.node_formatter, account),
 	)
 	err = tx.QueryRow(query).Scan(&maxRftIdx)
 	if err != nil {
@@ -44,7 +44,7 @@ func (r *NodeRepo) AddParentNode(account, node_id, path_name string) (*entity.Ca
 	// 插入新節點
 	query = fmt.Sprintf(
 		"INSERT INTO %s (NodeID, ParentID, PathName, LftIdx, RftIdx) VALUES (?, ?, ?, ?, ?)",
-		fmt.Sprintf(r.categories_formatter, account),
+		fmt.Sprintf(r.node_formatter, account),
 	)
 	result, err := tx.Exec(
 		query,
@@ -81,7 +81,7 @@ func (r *NodeRepo) AddChildNode(account, parent_id, node_id, path_name string) (
 	// 1. 查詢父節點的 RftIdx
 	query := fmt.Sprintf(
 		"SELECT RftIdx FROM %s WHERE NodeID = ?",
-		fmt.Sprintf(r.categories_formatter, account),
+		fmt.Sprintf(r.node_formatter, account),
 	)
 	var parentRftIdx int
 	err = tx.QueryRow(query, parent_id).Scan(&parentRftIdx)
@@ -95,7 +95,7 @@ func (r *NodeRepo) AddChildNode(account, parent_id, node_id, path_name string) (
 	// 2. 更新所有受影響的節點，為新節點騰出空間
 	query = fmt.Sprintf(
 		"UPDATE %s SET RftIdx = RftIdx + 2 WHERE RftIdx >= ?",
-		fmt.Sprintf(r.categories_formatter, account),
+		fmt.Sprintf(r.node_formatter, account),
 	)
 	_, err = tx.Exec(query, parentRftIdx)
 	if err != nil {
@@ -104,7 +104,7 @@ func (r *NodeRepo) AddChildNode(account, parent_id, node_id, path_name string) (
 
 	query = fmt.Sprintf(
 		"UPDATE %s SET LftIdx = LftIdx + 2 WHERE LftIdx >= ?",
-		fmt.Sprintf(r.categories_formatter, account),
+		fmt.Sprintf(r.node_formatter, account),
 	)
 	_, err = tx.Exec(query, parentRftIdx)
 	if err != nil {
@@ -120,7 +120,7 @@ func (r *NodeRepo) AddChildNode(account, parent_id, node_id, path_name string) (
 
 	query = fmt.Sprintf(
 		"INSERT INTO %s (NodeID, ParentID, PathName, LftIdx, RftIdx) VALUES (?, ?, ?, ?, ?)",
-		fmt.Sprintf(r.categories_formatter, account),
+		fmt.Sprintf(r.node_formatter, account),
 	)
 	result, err := tx.Exec(
 		query,
@@ -171,7 +171,7 @@ func (r *NodeRepo) Delete(account, node_id string) error {
 	// 1. 查詢要刪除節點的 LftIdx 和 RftIdx
 	query = fmt.Sprintf(
 		"SELECT LftIdx, RftIdx FROM %s WHERE NodeID = ?",
-		fmt.Sprintf(r.categories_formatter, account),
+		fmt.Sprintf(r.node_formatter, account),
 	)
 	var lftIdx, rftIdx int
 	err = tx.QueryRow(query, node_id).Scan(&lftIdx, &rftIdx)
@@ -189,7 +189,7 @@ func (r *NodeRepo) Delete(account, node_id string) error {
 	// 2. 刪除節點及其所有後代節點 (LftIdx 介於 LftIdx 和 RftIdx 之間的)
 	query = fmt.Sprintf(
 		"DELETE FROM %s WHERE LftIdx >= ? AND RftIdx <= ?",
-		fmt.Sprintf(r.categories_formatter, account),
+		fmt.Sprintf(r.node_formatter, account),
 	)
 	_, err = tx.Exec(query, lftIdx, rftIdx)
 	if err != nil {
@@ -200,7 +200,7 @@ func (r *NodeRepo) Delete(account, node_id string) error {
 	// 將所有 RftIdx > rftIdx 的右索引減去 width
 	query = fmt.Sprintf(
 		"UPDATE %s SET RftIdx = RftIdx - ? WHERE RftIdx > ?",
-		fmt.Sprintf(r.categories_formatter, account),
+		fmt.Sprintf(r.node_formatter, account),
 	)
 	_, err = tx.Exec(query, width, rftIdx)
 	if err != nil {
@@ -210,7 +210,7 @@ func (r *NodeRepo) Delete(account, node_id string) error {
 	// 將所有 LftIdx > rftIdx 的左索引減去 width
 	query = fmt.Sprintf(
 		"UPDATE %s SET LftIdx = LftIdx - ? WHERE LftIdx > ?",
-		fmt.Sprintf(r.categories_formatter, account),
+		fmt.Sprintf(r.node_formatter, account),
 	)
 	_, err = tx.Exec(query, width, rftIdx)
 	if err != nil {
@@ -225,7 +225,7 @@ func (r *NodeRepo) Delete(account, node_id string) error {
 func (r *NodeRepo) Edit(account, node_id, label string) error {
 	query := fmt.Sprintf(
 		"UPDATE %s SET PathName = ? WHERE NodeID = ?;",
-		fmt.Sprintf(r.categories_formatter, account),
+		fmt.Sprintf(r.node_formatter, account),
 	)
 	_, err := r.db.Exec(query, label, node_id)
 	if err != nil {
@@ -259,7 +259,7 @@ func (r *NodeRepo) GetAllNode(account string) (categories []entity.Category, err
 	// 從資料庫中讀取所有分類，並按 LftIdx 排序
 	query := fmt.Sprintf(
 		"SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM %s ORDER BY LftIdx ASC",
-		fmt.Sprintf(r.categories_formatter, account),
+		fmt.Sprintf(r.node_formatter, account),
 	)
 	rows, err := r.db.Query(query)
 	if err != nil {
@@ -281,7 +281,7 @@ func (r *NodeRepo) GetAllNode(account string) (categories []entity.Category, err
 func (r *NodeRepo) GetNode(account, node_id string) (c entity.Category, e error) {
 	query := fmt.Sprintf(
 		"SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM %s WHERE NodeID = ?",
-		fmt.Sprintf(r.categories_formatter, account),
+		fmt.Sprintf(r.node_formatter, account),
 	)
 	row := r.db.QueryRow(query, node_id)
 	if err := row.Scan(&c.RowID, &c.NodeID, &c.ParentID, &c.PathName, &c.LftIdx, &c.RftIdx); err != nil {
@@ -292,8 +292,8 @@ func (r *NodeRepo) GetNode(account, node_id string) (c entity.Category, e error)
 
 func NewNodeRepo(db *sql.DB) repo.NodeRepository {
 	return &NodeRepo{
-		db:                   db,
-		categories_formatter: "categories_%s",
-		articles_formatter:   "articles_%s",
+		db:                 db,
+		node_formatter:     "node_%s",
+		articles_formatter: "articles_%s",
 	}
 }

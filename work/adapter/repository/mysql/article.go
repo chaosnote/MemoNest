@@ -11,14 +11,14 @@ import (
 )
 
 type ArticleRepo struct {
-	db                   *sql.DB
-	categories_formatter string
-	articles_formatter   string
+	db                 *sql.DB
+	node_formatter     string
+	articles_formatter string
 }
 
 func (r *ArticleRepo) GetAllNode(account string) (categories []entity.Category, err error) {
 	query := `SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM %s ORDER BY LftIdx ASC`
-	query = fmt.Sprintf(query, fmt.Sprintf(r.categories_formatter, account))
+	query = fmt.Sprintf(query, fmt.Sprintf(r.node_formatter, account))
 
 	rows, err := r.db.Query(query)
 	if err != nil {
@@ -82,7 +82,7 @@ func (r *ArticleRepo) Get(account string, id int) (articles []entity.Article, er
 		JOIN %s as c ON a.NodeID = c.NodeID
 		WHERE a.RowID = ? ;
 	`
-	query = fmt.Sprintf(query, fmt.Sprintf(r.articles_formatter, account), fmt.Sprintf(r.categories_formatter, account))
+	query = fmt.Sprintf(query, fmt.Sprintf(r.articles_formatter, account), fmt.Sprintf(r.node_formatter, account))
 
 	rows, err := r.db.Query(query, id)
 	if err != nil {
@@ -122,7 +122,7 @@ func (r *ArticleRepo) List(account string) (articles []entity.Article, err error
 		ORDER BY a.UpdateDt DESC
 		LIMIT 10;
 	`
-	query = fmt.Sprintf(query, fmt.Sprintf(r.articles_formatter, account), fmt.Sprintf(r.categories_formatter, account))
+	query = fmt.Sprintf(query, fmt.Sprintf(r.articles_formatter, account), fmt.Sprintf(r.node_formatter, account))
 
 	rows, err := r.db.Query(query)
 	if err != nil {
@@ -193,7 +193,7 @@ func (r *ArticleRepo) composit(account, input string) (query string, args []inte
         WHERE ` + strings.Join(conditions, " AND ") + `
         ORDER BY a.UpdateDt DESC
     `
-	query = fmt.Sprintf(query, fmt.Sprintf(r.articles_formatter, account), fmt.Sprintf(r.categories_formatter, account))
+	query = fmt.Sprintf(query, fmt.Sprintf(r.articles_formatter, account), fmt.Sprintf(r.node_formatter, account))
 	return
 }
 
@@ -225,8 +225,8 @@ func (r *ArticleRepo) Query(account, input string) (articles []entity.Article, e
 
 func NewArticleRepo(db *sql.DB) repo.ArticleRepository {
 	return &ArticleRepo{
-		db:                   db,
-		categories_formatter: "categories_%s",
-		articles_formatter:   "articles_%s",
+		db:                 db,
+		node_formatter:     "node_%s",
+		articles_formatter: "articles_%s",
 	}
 }

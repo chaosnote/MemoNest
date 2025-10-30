@@ -25,7 +25,7 @@ BEGIN
   START TRANSACTION;
 
   SET table_articles = CONCAT('articles_', p_account);
-  SET table_categories = CONCAT('categories_', p_account);
+  SET table_categories = CONCAT('node_', p_account);
 
   -- 帳號驗證
   SET error_message = '帳號驗證';
