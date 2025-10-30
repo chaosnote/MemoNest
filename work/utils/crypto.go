@@ -88,7 +88,7 @@ func GenAESKey(passphrase []byte) []byte {
 	return pbkdf2.Key(passphrase, salt, iterations, key_len, sha256.New)
 }
 
-// AesEncrypt 加密，使用固定的 IV
+// AesEncrypt 加密，使用隨機 IV，並將 IV 附加在密文前方
 func AesEncrypt(plainText, key []byte) (string, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
@@ -98,19 +98,23 @@ func AesEncrypt(plainText, key []byte) (string, error) {
 	blockSize := block.BlockSize()
 	plainText = aes_pkcs7padding(plainText, blockSize)
 
-	// 固定 IV，這裡假設為全零。(需同時改動解密)
-	fixedIV := make([]byte, blockSize)
+	iv := make([]byte, blockSize)
+	if _, err := rand.Read(iv); err != nil {
+		return "", err
+	}
 
-	mode := cipher.NewCBCEncrypter(block, fixedIV)
+	mode := cipher.NewCBCEncrypter(block, iv)
 	cipherText := make([]byte, len(plainText))
 	mode.CryptBlocks(cipherText, plainText)
 
-	return hex.EncodeToString(cipherText), nil
+	// 將 IV 附加在密文前方
+	finalCipher := append(iv, cipherText...)
+	return hex.EncodeToString(finalCipher), nil
 }
 
-// AesDecrypt 解密，使用固定的 IV
+// AesDecrypt 解密，從密文中取出 IV
 func AesDecrypt(cipherHexText string, key []byte) (string, error) {
-	cipherText, err := hex.DecodeString(cipherHexText)
+	cipherData, err := hex.DecodeString(cipherHexText)
 	if err != nil {
 		return "", err
 	}
@@ -121,19 +125,18 @@ func AesDecrypt(cipherHexText string, key []byte) (string, error) {
 	}
 
 	blockSize := block.BlockSize()
-	if len(cipherText)%blockSize != 0 {
-		return "", fmt.Errorf("密文長度不是區塊大小的倍數")
+	if len(cipherData) < blockSize || (len(cipherData)-blockSize)%blockSize != 0 {
+		return "", fmt.Errorf("密文長度不正確")
 	}
 
-	// 固定 IV，與加密時保持一致
-	fixedIV := make([]byte, blockSize)
+	iv := cipherData[:blockSize]
+	cipherText := cipherData[blockSize:]
 
-	mode := cipher.NewCBCDecrypter(block, fixedIV)
+	mode := cipher.NewCBCDecrypter(block, iv)
 	plainText := make([]byte, len(cipherText))
 	mode.CryptBlocks(plainText, cipherText)
 
 	plainText = aes_pkcs7unpadding(plainText)
-
 	return string(plainText), nil
 }
 

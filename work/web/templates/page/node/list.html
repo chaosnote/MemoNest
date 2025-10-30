@@ -217,6 +217,10 @@
 
     function confirm_move(){
         console.log("觸發搬移", node_id, target_node) ;
+        if(node_id == target_node){
+            alert("來源節點相同！");
+            return
+        }
         const params = {
             parent_id: node_id,
             current_id: target_node

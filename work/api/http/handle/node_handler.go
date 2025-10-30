@@ -190,6 +190,11 @@ func (h *NodeHandler) Move(c *gin.Context) {
 	}
 	h.Log.Info(msg, zap.Any("params", param))
 
+	if param.ParentID == param.CurrentID {
+		err = fmt.Errorf("搬移節點相同")
+		return
+	}
+
 	h.Session.Init(c)
 	aes_key := []byte(h.Session.GetAESKey())
 	parent_id, err := utils.AesDecrypt(param.ParentID, aes_key)
