@@ -1,12 +1,15 @@
 package http
 
 import (
+	"fmt"
 	"idv/chris/MemoNest/domain/service"
 	"idv/chris/MemoNest/utils"
 	"time"
 
 	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
+	redigo "github.com/gomodule/redigo/redis"
 )
 
 const (
@@ -19,6 +22,7 @@ const (
 
 type GinSession struct {
 	store sessions.Session
+	conn  redigo.Conn
 }
 
 func (s *GinSession) Init(ctx *gin.Context) {
@@ -36,6 +40,8 @@ func (s *GinSession) SetAccount(account, last_ip string) {
 	s.store.Set(SK_IS_LOGIN, true)
 	s.store.Set(SK_IP, last_ip)
 	s.store.Save()
+
+	s.conn.Do("SET", account, last_ip)
 }
 
 func (s *GinSession) GetAccount() string {
@@ -87,13 +93,31 @@ func (s *GinSession) IsLogin() bool {
 	return false
 }
 
-func (s *GinSession) Refresh() {
+func (s *GinSession) Refresh() error {
+	mem_ip, err := redigo.String(s.conn.Do("GET", s.GetAccount()))
+	if err != nil {
+		return err
+	}
+	my_ip := s.GetIP()
+	if my_ip != mem_ip {
+		return fmt.Errorf("來源IP[%s]不符", my_ip)
+	}
+
 	s.store.Set("_refresh", time.Now().Unix())
 	s.store.Save()
+
+	return nil
 }
 
 //-----------------------------------------------
 
-func NewGinSession() service.Session {
-	return &GinSession{}
+func NewGinSession(redis_store redis.Store) service.Session {
+	store, err := redis.GetRedisStore(redis_store)
+	if err != nil {
+		panic(err)
+	}
+
+	return &GinSession{
+		conn: store.Pool.Get(),
+	}
 }

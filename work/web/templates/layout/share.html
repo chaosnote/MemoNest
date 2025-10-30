@@ -53,11 +53,12 @@
                     return;
                 }
             }).fail(function (xhr, status, error) {
-                console.error('取得資料失敗：', error);
+                console.error('錯誤資訊：', error);
+                location.href = "/" ;
             });
         }
         update();
-        setInterval(update, 60000);
+        setInterval(update, 3000);
     </script>
     {{end}}
 </body>

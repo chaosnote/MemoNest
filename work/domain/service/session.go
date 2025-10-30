@@ -14,5 +14,5 @@ type Session interface {
 	GetURL() string
 	GetIP() string
 
-	Refresh()
+	Refresh() error
 }
