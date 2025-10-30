@@ -39,7 +39,7 @@ func (u *NodeUsecase) Delete(account, node_id string) (err error) {
 	return err
 }
 
-func (u *NodeUsecase) List(account string) (c []entity.Category, err error) {
+func (u *NodeUsecase) List(account string) (c []entity.Node, err error) {
 	c, err = u.Repo.GetAllNode(account)
 	if err != nil {
 		err = utils.ParseSQLError(err, "查詢節點失敗")
@@ -60,7 +60,7 @@ func (u *NodeUsecase) Move(account, parent_id, node_id string) (err error) {
 	if parent_id == uuid.Nil.String() {
 		has_node = true
 	} else {
-		var parent_node entity.Category
+		var parent_node entity.Node
 		parent_node, err = u.Repo.GetNode(account, parent_id)
 		if err != nil {
 			err = utils.ParseSQLError(err, "搬移節點失敗")

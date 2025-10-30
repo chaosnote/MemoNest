@@ -16,7 +16,7 @@ type ArticleRepo struct {
 	articles_formatter string
 }
 
-func (r *ArticleRepo) GetAllNode(account string) (categories []entity.Category, err error) {
+func (r *ArticleRepo) GetAllNode(account string) (categories []entity.Node, err error) {
 	query := `SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM %s ORDER BY LftIdx ASC`
 	query = fmt.Sprintf(query, fmt.Sprintf(r.node_formatter, account))
 
@@ -27,7 +27,7 @@ func (r *ArticleRepo) GetAllNode(account string) (categories []entity.Category, 
 	defer rows.Close()
 
 	for rows.Next() {
-		var c entity.Category
+		var c entity.Node
 		if err := rows.Scan(&c.RowID, &c.NodeID, &c.ParentID, &c.PathName, &c.LftIdx, &c.RftIdx); err != nil {
 			return categories, err
 		}

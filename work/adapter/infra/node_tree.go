@@ -14,14 +14,14 @@ import (
 type NodeTree struct {
 }
 
-func (nt *NodeTree) GetInfo(source []entity.Category) ([]*model.CategoryNode, map[string]*model.CategoryNode) {
+func (nt *NodeTree) GetInfo(source []entity.Node) ([]*model.CategoryNode, map[string]*model.CategoryNode) {
 	root_id := uuid.Nil.String()
 	node_map := make(map[string]*model.CategoryNode)
 
 	// 第一次遍歷：建立節點地圖
 	for _, category := range source {
 		node_map[category.NodeID] = &model.CategoryNode{
-			Category: category,
+			Node: category,
 		}
 	}
 

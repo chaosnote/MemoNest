@@ -16,7 +16,7 @@ type NodeRepo struct {
 	articles_formatter string
 }
 
-func (r *NodeRepo) AddParentNode(account, node_id, path_name string) (*entity.Category, error) {
+func (r *NodeRepo) AddParentNode(account, node_id, path_name string) (*entity.Node, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return nil, err
@@ -60,7 +60,7 @@ func (r *NodeRepo) AddParentNode(account, node_id, path_name string) (*entity.Ca
 		return nil, err
 	}
 
-	return &entity.Category{
+	return &entity.Node{
 		RowID:    int(rowID),
 		NodeID:   node_id,
 		ParentID: parent_id,
@@ -71,7 +71,7 @@ func (r *NodeRepo) AddParentNode(account, node_id, path_name string) (*entity.Ca
 }
 
 // AddChildNode 插入一個新的分類節點
-func (r *NodeRepo) AddChildNode(account, parent_id, node_id, path_name string) (*entity.Category, error) {
+func (r *NodeRepo) AddChildNode(account, parent_id, node_id, path_name string) (*entity.Node, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return nil, err
@@ -136,7 +136,7 @@ func (r *NodeRepo) AddChildNode(account, parent_id, node_id, path_name string) (
 		return nil, err
 	}
 
-	return &entity.Category{
+	return &entity.Node{
 		RowID:    int(rowID),
 		NodeID:   node_id,
 		ParentID: parent_id,
@@ -255,7 +255,7 @@ func (r *NodeRepo) Move(account, parent_id, node_id, path_name string) error {
 	return nil
 }
 
-func (r *NodeRepo) GetAllNode(account string) (categories []entity.Category, err error) {
+func (r *NodeRepo) GetAllNode(account string) (categories []entity.Node, err error) {
 	// 從資料庫中讀取所有分類，並按 LftIdx 排序
 	query := fmt.Sprintf(
 		"SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM %s ORDER BY LftIdx ASC",
@@ -268,7 +268,7 @@ func (r *NodeRepo) GetAllNode(account string) (categories []entity.Category, err
 	defer rows.Close()
 
 	for rows.Next() {
-		var c entity.Category
+		var c entity.Node
 		if err := rows.Scan(&c.RowID, &c.NodeID, &c.ParentID, &c.PathName, &c.LftIdx, &c.RftIdx); err != nil {
 			return categories, err
 		}
@@ -278,7 +278,7 @@ func (r *NodeRepo) GetAllNode(account string) (categories []entity.Category, err
 	return
 }
 
-func (r *NodeRepo) GetNode(account, node_id string) (c entity.Category, e error) {
+func (r *NodeRepo) GetNode(account, node_id string) (c entity.Node, e error) {
 	query := fmt.Sprintf(
 		"SELECT RowID, NodeID, ParentID, PathName, LftIdx, RftIdx FROM %s WHERE NodeID = ?",
 		fmt.Sprintf(r.node_formatter, account),

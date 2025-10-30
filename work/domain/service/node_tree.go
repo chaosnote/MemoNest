@@ -6,6 +6,6 @@ import (
 )
 
 type NodeTree interface {
-	GetInfo(source []entity.Category) ([]*model.CategoryNode, map[string]*model.CategoryNode)
+	GetInfo(source []entity.Node) ([]*model.CategoryNode, map[string]*model.CategoryNode)
 	Assign(node *model.CategoryNode, aesKey []byte)
 }

@@ -1,6 +1,6 @@
 package entity
 
-type Category struct {
+type Node struct {
 	RowID    int
 	NodeID   string
 	ParentID string

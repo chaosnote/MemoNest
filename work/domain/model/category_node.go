@@ -3,7 +3,7 @@ package model
 import "idv/chris/MemoNest/domain/entity"
 
 type CategoryNode struct {
-	entity.Category
+	entity.Node
 
 	Children  []*CategoryNode
 	Path      string

@@ -11,5 +11,5 @@ type ArticleRepository interface {
 	Get(account string, id int) ([]entity.Article, error)
 	List(account string) ([]entity.Article, error)
 	Query(account, input string) ([]entity.Article, error)
-	GetAllNode(account string) ([]entity.Category, error)
+	GetAllNode(account string) ([]entity.Node, error)
 }
