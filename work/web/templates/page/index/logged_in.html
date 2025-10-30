@@ -8,17 +8,17 @@
     <ul class="list-group">
         {{ range .List }}
         <li class="list-group-item">
-            <div class="d-flex align-items-center" data-bs-toggle="collapse" data-bs-target="#content-{{encrypt .RowID}}" style="cursor:pointer;">
+            <div class="d-flex align-items-center" data-bs-toggle="collapse" data-bs-target="#content-{{.El_ID}}" style="cursor:pointer;">
                 <div>
                     <div>{{.Title}}</div>
                 </div>
                 <div class="ms-auto d-flex gap-2 text-start">
-                    <span class="small text-decoration-underline">{{format .UpdateDt}}</span>
+                    <span class="small text-decoration-underline">{{.El_Time}}</span>
                     <span class="small">分類: {{.PathName}}</span>
                 </div>
             </div>
-            <div class="collapse p-2 border" id="content-{{encrypt .RowID}}">
-                {{trans .RowID .Content}}
+            <div class="collapse p-2 border" id="content-{{.El_ID}}">
+                {{.El_Content}}
             </div>
         </li>
         {{ end }}

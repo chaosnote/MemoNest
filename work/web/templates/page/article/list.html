@@ -16,15 +16,15 @@
     <div class="card mt-2 border border-2">
         <div class="card-body">
             <h5 class="card-title fw-bold fs-5 text-primary mb-3">[{{.Title}}]</h5>
-            <div class="card-text border p-2">{{trans .RowID .Content}}</div>
+            <div class="card-text border p-2">{{.El_Content}}</div>
             <div class="d-flex justify-content-between align-items-center gap-2 mt-2">
                 <div class="d-flex gap-2 text-start">
-                    <span class="small text-decoration-underline">{{format .UpdateDt}}</span>
+                    <span class="small text-decoration-underline">{{.El_Time}}</span>
                     <span class="small">分類: {{.PathName}}</span>
                 </div>
                 <div class="d-flex gap-2">
-                    <a class="btn btn-outline-primary btn-sm" onclick="directTo('{{encrypt .RowID}}')">修改</a>
-                    <a class="btn btn-outline-danger btn-sm" onclick="onDel('{{encrypt .RowID}}')">刪除</a>
+                    <a class="btn btn-outline-primary btn-sm" onclick="directTo('{{.El_ID}}')">修改</a>
+                    <a class="btn btn-outline-danger btn-sm" onclick="onDel('{{.El_ID}}')">刪除</a>
                 </div>
             </div>
         </div>

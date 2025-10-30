@@ -2,7 +2,10 @@ package usecase
 
 import (
 	"fmt"
+	"html/template"
 	"strconv"
+	"strings"
+	"time"
 
 	"idv/chris/MemoNest/adapter/infra"
 	"idv/chris/MemoNest/domain/entity"
@@ -94,15 +97,30 @@ func (u *ArticleUsecase) Renew(account, article_id, article_title, article_conte
 	return
 }
 
-func (u *ArticleUsecase) List(account, query string) (list []entity.Article, err error) {
+func (u *ArticleUsecase) List(account, query string, aes_key []byte) (list []model.ArticleListViewModel, err error) {
+	var source []entity.Article
 	if len(query) > 0 {
-		list, err = u.Repo.Query(account, query)
+		source, err = u.Repo.Query(account, query)
 	} else {
-		list, err = u.Repo.List(account)
+		source, err = u.Repo.List(account)
 	}
-
 	if err != nil {
 		err = utils.ParseSQLError(err, "查詢文章清單失敗")
+		return
+	}
+
+	loc, _ := time.LoadLocation("Asia/Taipei")
+	for _, item := range source {
+		output := model.ArticleListViewModel{
+			Article: item,
+		}
+		id, _ := utils.AesEncrypt([]byte(fmt.Sprintf("%v", item.RowID)), aes_key)
+		output.El_ID = id
+		output.El_Time = item.UpdateDt.In(loc).Format("2006-01-02 15:04")
+		output.El_Content = template.HTML(strings.ReplaceAll(item.Content, model.IMG_ENCRYPT, id))
+
+		list = append(list, output)
+		fmt.Println(item)
 	}
 	return
 }
