@@ -2,7 +2,6 @@ package mysql
 
 import (
 	"database/sql"
-	"fmt"
 
 	"github.com/google/uuid"
 
@@ -80,13 +79,11 @@ func (r *NodeRepo) Move(account, parent_id, node_id, path_name string) error {
 	}
 
 	if parent_id == uuid.Nil.String() {
-		fmt.Println("AddParentNode", account, parent_id, node_id, path_name)
 		_, e = r.AddParentNode(account, parent_id, node_id, path_name)
 		if e != nil {
 			return e
 		}
 	} else {
-		fmt.Println("AddChildNode", account, parent_id, node_id, path_name)
 		_, e = r.AddChildNode(account, parent_id, node_id, path_name)
 		if e != nil {
 			return e

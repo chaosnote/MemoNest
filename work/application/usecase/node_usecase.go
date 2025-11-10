@@ -90,7 +90,6 @@ func (u *NodeUsecase) Move(account, parent_id, node_id string) (err error) {
 
 	err = u.Repo.Move(account, parent_id, node_id, current_node.PathName)
 	if err != nil {
-		fmt.Println(err)
 		err = utils.ParseSQLError(err, "搬移節點失敗")
 	}
 	return
