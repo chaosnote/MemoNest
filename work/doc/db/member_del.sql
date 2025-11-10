@@ -10,7 +10,7 @@ BEGIN
   DECLARE error_message VARCHAR(255);
   DECLARE debug_message VARCHAR(255);
   DECLARE table_articles TEXT;
-  DECLARE table_categories TEXT;
+  DECLARE table_node TEXT;
 
   DECLARE EXIT HANDLER FOR SQLEXCEPTION
   BEGIN
@@ -22,7 +22,7 @@ BEGIN
   START TRANSACTION;
 
   SET table_articles = CONCAT('articles_', p_account);
-  SET table_categories = CONCAT('node_', p_account);
+  SET table_node = CONCAT('node_', p_account);
 
   -- DROP articles 表
   SET debug_message = '刪除使用者文章表單';
@@ -33,7 +33,7 @@ BEGIN
 
   -- DROP categories 表
   SET debug_message = '刪除使用者節點表單';
-  SET @query = CONCAT('DROP TABLE IF EXISTS `', table_categories, '`;');
+  SET @query = CONCAT('DROP TABLE IF EXISTS `', table_node, '`;');
   PREPARE stmt FROM @query;
   EXECUTE stmt;
   DEALLOCATE PREPARE stmt;

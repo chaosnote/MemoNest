@@ -13,7 +13,7 @@ BEGIN
   DECLARE error_message VARCHAR(255);
   DECLARE debug_message VARCHAR(255);
   DECLARE table_articles TEXT;
-  DECLARE table_categories TEXT;
+  DECLARE table_node TEXT;
 
   DECLARE EXIT HANDLER FOR SQLEXCEPTION
   BEGIN
@@ -25,7 +25,7 @@ BEGIN
   START TRANSACTION;
 
   SET table_articles = CONCAT('articles_', p_account);
-  SET table_categories = CONCAT('node_', p_account);
+  SET table_node = CONCAT('node_', p_account);
 
   -- 帳號驗證
   SET error_message = '帳號驗證';
@@ -59,7 +59,7 @@ BEGIN
   -- 建立使用者節點表單
   SET error_message = '建立使用者節點表單';
   SET @query = CONCAT(
-    'CREATE TABLE `', table_categories, '` (',
+    'CREATE TABLE `', table_node, '` (',
     '  `RowID` INT NOT NULL AUTO_INCREMENT,',
     '  `NodeID` VARCHAR(36),',
     '  `ParentID` VARCHAR(36),',
