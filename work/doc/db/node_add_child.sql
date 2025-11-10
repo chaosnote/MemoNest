@@ -1,7 +1,7 @@
 DROP PROCEDURE IF EXISTS `sp_node_add_child` ;
 
 DELIMITER $$
-CREATE PROCEDURE IF NOT EXISTS sp_node_add_child(
+CREATE PROCEDURE IF NOT EXISTS `sp_node_add_child`(
   IN p_account VARCHAR(50),
   IN p_parent_id CHAR(36),
   IN p_node_id CHAR(36),
@@ -20,7 +20,7 @@ BEGIN
   DEALLOCATE PREPARE stmt;
 
   IF @parent_rft IS NULL THEN
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Parent node not found';
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '[ERR]未找到父節點';
   END IF;
 
   SET @sql = CONCAT('UPDATE ', table_node, ' SET RftIdx = RftIdx + 2 WHERE RftIdx >= ?');
@@ -45,7 +45,7 @@ BEGIN
   EXECUTE stmt USING p_node_id, p_parent_id, p_path_name, @lft, @rft;
   DEALLOCATE PREPARE stmt;
 
-  SET @sql = CONCAT('SELECT `RowID` FROM `',table_node,'` WHERE `NodeID` = ? ') ;
+  SET @sql = CONCAT('SELECT * FROM `',table_node,'` WHERE `NodeID` = ? ') ;
   PREPARE stmt FROM @sql;
   EXECUTE stmt USING p_node_id;
   DEALLOCATE PREPARE stmt;

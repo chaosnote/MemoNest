@@ -21,7 +21,7 @@ type NodeUsecase struct {
 
 func (u *NodeUsecase) Add(account, parent_id, node_id, path_name string) (err error) {
 	if parent_id == uuid.Nil.String() {
-		_, err = u.Repo.AddParentNode(account, "", path_name)
+		_, err = u.Repo.AddParentNode(account, parent_id, "", path_name)
 	} else {
 		_, err = u.Repo.AddChildNode(account, parent_id, "", path_name)
 	}
@@ -34,7 +34,6 @@ func (u *NodeUsecase) Add(account, parent_id, node_id, path_name string) (err er
 func (u *NodeUsecase) Delete(account, node_id string) (err error) {
 	err = u.Repo.Delete(account, node_id)
 	if err != nil {
-		fmt.Println(err)
 		err = utils.ParseSQLError(err, "刪除節點失敗")
 	}
 	return err
@@ -91,6 +90,7 @@ func (u *NodeUsecase) Move(account, parent_id, node_id string) (err error) {
 
 	err = u.Repo.Move(account, parent_id, node_id, current_node.PathName)
 	if err != nil {
+		fmt.Println(err)
 		err = utils.ParseSQLError(err, "搬移節點失敗")
 	}
 	return
